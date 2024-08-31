@@ -1,7 +1,5 @@
 import environ
-from django_thread import Thread
-from time import sleep
-from backend.module import date_utils
+from backend.module.utils import date_utils
 from django.contrib.sessions.models import Session
 from django.views.decorators.csrf import csrf_exempt
 from django_ratelimit.decorators import ratelimit
