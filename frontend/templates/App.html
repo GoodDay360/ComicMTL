@@ -1,0 +1,62 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#B8C6DB"/>
+
+    <meta name="google-site-verification" content="knMIh34LrSc899ygpmjg0RSM5NUnfI4ZGqw4eWJlklA" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="{% static 'sitemap.xml' %}" />
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="icon" type="image/x-icon" href="{% static 'media/ngs_logo.ico' %}">
+
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="/manifest.webmanifest" >
+    
+    <title>{{ title }}</title>
+
+    <meta name="description" content="Find informations about NGS Preah Sisowath High School Library."/>
+    <meta name="keywords" content="NGS, Library, NGS Library, sisowath, high school">
+    <meta name="author" content="{{creator}}">
+
+</head>
+
+<body font>
+    {% csrf_token %}
+    <div id="root">
+        
+    </div>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+              navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                // Registration was successful
+                console.log('ServiceWorker registration successful with scope: ', registration.scope);
+              }, function(err) {
+                // registration failed :(
+                console.log('ServiceWorker registration failed: ', err);
+              });
+            });
+          }
+    </script>
+    <script>
+        var r = document.querySelector(':root');
+        r.style.setProperty('--view-height', window.innerHeight + "px");
+        r.style.setProperty('--view-width', window.innerWidth + "px");
+
+        window.addEventListener('resize', function() {
+            r.style.setProperty('--view-height', window.innerHeight + "px");
+            r.style.setProperty('--view-width', window.innerWidth + "px");
+            console.log(window.innerHeight)
+        });
+
+    </script>
+    <script src="{% static "frontend/App.js" %}"></script>
+</body>
+</html>
