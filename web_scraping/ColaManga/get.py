@@ -1,6 +1,6 @@
-from pprint import pprint
-from WebScraping.utils import SeleniumScraper
 from bs4 import BeautifulSoup
+from pprint import pprint
+from web_scraping.utils import SeleniumScraper
 import json
 
 def scrap(type:int=1,page:int=1,search:str=""):
@@ -30,8 +30,11 @@ def scrap(type:int=1,page:int=1,search:str=""):
         h1 =  dd.find("h1",{"class": "fed-part-eone"})
         object["title"] = h1.find("a").text
         DATA.append(object)
+    pprint(DATA)
+    
 
-    return DATA
+    
+    return source
 
 if __name__ == "__main__":
     DATA = scrap(page=1,search="妖")

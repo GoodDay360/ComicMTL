@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 from pprint import pprint
-from WebScraping.utils import SeleniumScraper
+from web_scraping.utils import SeleniumScraper
 from selenium.webdriver.common.by import By
 import io, base64
 from PIL import Image
