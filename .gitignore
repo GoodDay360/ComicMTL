@@ -4,8 +4,7 @@ venv/
 frontend/.git
 .env
 
-temp.html
-temp.json
+temp/
 backend/module/media/
 backend/module/utils/translator/models/
 
