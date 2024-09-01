@@ -1,1 +1,1 @@
-from . import get_list, get_chapter, get, search
+from . import get_list, get_chapter, get, search, get_cover

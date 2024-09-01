@@ -6,6 +6,8 @@ import io, base64
 from PIL import Image
 import json,time, threading,os
 
+scraper = None
+
 def __scrollToBottom(driver:object=None):
     if not driver: raise ValueError("The 'driver' argument is required.")
     timeout = 10
@@ -45,12 +47,13 @@ def __scrollToBottom(driver:object=None):
 def scrap(id:str="",chapter:int=None):
     if not id: raise ValueError("The 'id' parameter is required.")
     if not chapter: raise ValueError("The 'chapter' parameter is required.")
+    global scraper
     
     url = f"https://www.colamanga.com/{id}/1/{chapter}.html"
     
-    scraper = SeleniumScraper(url=url)
-    driver = scraper.driver
-    
+    if not scraper: scraper = SeleniumScraper()
+    driver = scraper.driver()
+    driver.get(url)
     __scrollToBottom(driver=driver)
     
     def process_browser_log_entry(entry):

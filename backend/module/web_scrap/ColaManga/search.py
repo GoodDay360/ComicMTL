@@ -3,13 +3,18 @@ from backend.module.web_scrap.utils import SeleniumScraper
 from bs4 import BeautifulSoup
 import json
 
+scraper = None
+
 def scrap(type:int=1,page:int=1,search:str=""):
     if not search: raise ValueError("The 'search' parameter is required.")
+    global scraper
     
     url = f"https://www.colamanga.com/search?type={type}&page={page}&searchString={search}"
     
-    scraper = SeleniumScraper(url=url)
-    source = BeautifulSoup(scraper.page_source(), 'html.parser') 
+    if not scraper: scraper = SeleniumScraper()
+    driver = scraper.driver()
+    driver.get(url)
+    source = BeautifulSoup(driver.page_source, 'html.parser') 
     
     div = source.select("div.fed-part-layout")[0]
     
@@ -22,8 +27,8 @@ def scrap(type:int=1,page:int=1,search:str=""):
         a = dt.find("a",{"class": "fed-list-pics"})
         
         object["cover"] = a.get("data-original")
-        object["url"] = a.get("href")
-        object["remarks"] = a.find("span",{"class": "fed-list-remarks"}).text
+        object["id"] = a.get("href").strip("/")
+        object["lastest"] = a.find("span",{"class": "fed-list-remarks"}).text
         
         dd = dl.find("dd",{"class": "fed-deta-content"})
 

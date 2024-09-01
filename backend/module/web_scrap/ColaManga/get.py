@@ -2,20 +2,28 @@ from bs4 import BeautifulSoup
 from pprint import pprint
 from backend.module.web_scrap.utils import SeleniumScraper
 
+scraper = None
 
 def scrap(id:int=1):
     if not id: raise ValueError("The 'id' parameter is required.")
+    global scraper
     
     url = f"https://www.colamanga.com/{id}/"
     
-    scraper = SeleniumScraper(url=url)
+    if not scraper: scraper = SeleniumScraper()
+    driver = scraper.driver()
+    driver.get(url)
     
     DATA = {}
     
     # Get info
-    source = BeautifulSoup(scraper.page_source(), 'html.parser') 
+    source = BeautifulSoup(driver.page_source, 'html.parser') 
     
     div = source.select("div.fed-part-layout")[0]
+    
+    dt = div.find("dt",{"class","fed-deta-images"})
+    
+    DATA["cover"] = dt.find("a",{"class":"fed-list-pics"}).get("data-original")
     
     dl = div.find("dl", {"class": "fed-deta-info"})
     

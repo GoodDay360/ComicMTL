@@ -16,8 +16,22 @@ def get_list(request):
     return JsonResponse({"data":DATA})  
 
 @ratelimit(key='ip', rate='60/m')
+def search(request):
+    
+    DATA = web_scrap.source_control["colamanga"].search.scrap(search="妖")
+    return JsonResponse({"data":DATA})
+    
+
+@ratelimit(key='ip', rate='60/m')
 def get(request):
     # if request.method != "POST": return HttpResponseBadRequest('Allowed POST request only!', status=400)
     DATA = web_scrap.source_control["colamanga"].get.scrap(id="manga-gu881388")
     return JsonResponse({"data":DATA}) 
-    
+
+
+@ratelimit(key='ip', rate='60/m')
+def get_cover(request,id,cover_id):
+    DATA = web_scrap.source_control["colamanga"].get_cover.scrap(id=id,cover_id=cover_id)
+    response = HttpResponse(DATA, content_type="image/png")
+    response['Content-Disposition'] = 'inline; filename="cover.png"'
+    return response
