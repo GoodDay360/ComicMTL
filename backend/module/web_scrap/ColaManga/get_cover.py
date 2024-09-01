@@ -25,13 +25,7 @@ def scrap(id:int=None,cover_id:int=None):
     if not scraper: scraper = SeleniumScraper()
     driver = scraper.driver()
     
-    driver.switch_to.window(driver.window_handles[0])
-    driver.execute_script("console.clear();")
-    driver.execute_script("window.open('');")
-    driver.switch_to.window(driver.window_handles[1])
     driver.get(url)
-    
-
     
     
     image_src_url = f'https://res.colamanga.com/comic/{cover_id}/cover.jpg'
@@ -67,14 +61,13 @@ def scrap(id:int=None,cover_id:int=None):
         if e.get("params").get("type") == "Image":
             url = e.get("params").get("response").get("url")
             if url == image_src_url:
-                print("EXISTED",url)
                 request_id = e["params"]["requestId"]
                 response = driver.execute_cdp_cmd('Network.getResponseBody', {'requestId': request_id})
                 image_data = base64.decodebytes(bytes(response.get("body"), "utf-8"))
 
                 DATA = image_data
                 break
-    driver.close()         
+       
     return DATA
 
 if __name__ == "__main__":
