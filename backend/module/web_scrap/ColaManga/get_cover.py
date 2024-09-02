@@ -1,13 +1,9 @@
-from bs4 import BeautifulSoup
-from pprint import pprint
+
 from ..utils import SeleniumScraper
 import json, os
 from core.settings import BASE_DIR
 
-import imghdr
-
-import io, base64
-from PIL import Image
+import  base64
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
