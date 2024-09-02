@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 from pprint import pprint
-from backend.module.web_scrap.utils import SeleniumScraper
+from ..utils import SeleniumScraper
 
 scraper = None
 

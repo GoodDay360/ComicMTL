@@ -1,5 +1,5 @@
 from pprint import pprint
-from backend.module.web_scrap.utils import SeleniumScraper
+from ..utils import SeleniumScraper
 from bs4 import BeautifulSoup
 import json
 

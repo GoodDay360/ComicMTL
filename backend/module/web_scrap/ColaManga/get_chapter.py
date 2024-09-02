@@ -1,10 +1,11 @@
 from bs4 import BeautifulSoup
 from pprint import pprint
-from backend.module.web_scrap.utils import SeleniumScraper
+from ..utils import SeleniumScraper
 from selenium.webdriver.common.by import By
 import io, base64
 from PIL import Image
 import json,time, threading,os
+
 
 scraper = None
 
@@ -44,17 +45,30 @@ def __scrollToBottom(driver:object=None):
         
 
 
-def scrap(id:str="",chapter:int=None):
+def scrap(id:str="",output_dir:str=""):
     if not id: raise ValueError("The 'id' parameter is required.")
-    if not chapter: raise ValueError("The 'chapter' parameter is required.")
+    if not output_dir: raise ValueError("The 'output_dir' parameter is required.")
     global scraper
     
-    url = f"https://www.colamanga.com/{id}/1/{chapter}.html"
+    url = f"https://www.colamanga.com/{id}"
     
     if not scraper: scraper = SeleniumScraper()
     driver = scraper.driver()
     driver.get(url)
+    
     __scrollToBottom(driver=driver)
+    
+    parent_element = driver.find_element(By.ID, "mangalist")
+    child_list = parent_element.find_elements(By.CLASS_NAME, "mh_comicpic")
+    
+    blob_list = []
+    
+    for child in child_list:
+        url = child.find_element(By.TAG_NAME, "img").get_attribute("src")
+        if not url: continue
+        if url.split(":")[0] == "blob":
+            blob_list.append(url)
+    
     
     def process_browser_log_entry(entry):
         
@@ -66,29 +80,23 @@ def scrap(id:str="",chapter:int=None):
     events = [event for event in events if 'Network.response' in event['method']]
     
     
-    DATA = []
-    page = 0
     for e in events:
-        object = {}
         if e.get("params").get("type") == "Image":
             url = e.get("params").get("response").get("url")
             if url.split(":")[0] == "blob":
                 request_id = e["params"]["requestId"]
                 response = driver.execute_cdp_cmd('Network.getResponseBody', {'requestId': request_id})
                 img = Image.open(io.BytesIO(base64.decodebytes(bytes(response.get("body"), "utf-8"))))
-                os.makedirs(f'media/{id}/{chapter}', exist_ok=True)
-                img.save(f'media/{id}/{chapter}/{page}.png')
                 
-                object["url"] = url
-                object["file_path"] = f"media/my-image-{id}.png"
-                DATA.append(response)
+                chapter_id = id.split("/")[-1].split(".")[0]
                 
-                page += 1
+                dir = os.path.join(output_dir,id.split("/")[0],chapter_id,"original")
+                
+                os.makedirs(dir, exist_ok=True)
+                img.save(os.path.join(dir,f"{blob_list.index(url)}.png"))
+                
             
-            
-    with open("./temp.json","w", encoding='utf-8') as f:
-        json.dump(DATA , f,indent=2)
-            
+    return {"status":"success"}
 
 if __name__ == "__main__":
     DATA = scrap(id="manga-gu881388",chapter=334)

@@ -5,7 +5,7 @@ frontend/.git
 .env
 
 temp/
-backend/module/media/
+media/
 backend/module/utils/translator/models/
 
 backend/module/utils/translator/result
