@@ -33,12 +33,12 @@ def scrap(id:int=None,cover_id:int=None):
     # Execute JavaScript to check if the image is fully loaded
     driver.execute_script(f'arguments[0].innerHTML = "<img id=\\"injected_image\\" src=\\"{image_src_url}\\">";', origin_image_element)
     
-    image_element = driver.find_elements(By.ID, "injected_image")
+    image_element = driver.find_element(By.ID, "injected_image")
     
     while True:
         is_image_loaded = driver.execute_script(
             "return arguments[0].complete", 
-            image_element[0]
+            image_element
         )
         if is_image_loaded: break
 

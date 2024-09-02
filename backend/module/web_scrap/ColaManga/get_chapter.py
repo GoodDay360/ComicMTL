@@ -64,9 +64,16 @@ def scrap(id:str="",output_dir:str=""):
     blob_list = []
     
     for child in child_list:
-        url = child.find_element(By.TAG_NAME, "img").get_attribute("src")
+        image_element = child.find_element(By.TAG_NAME, "img")
+        url = image_element.get_attribute("src")
         if not url: continue
         if url.split(":")[0] == "blob":
+            while True:
+                is_image_loaded = driver.execute_script(
+                    "return arguments[0].complete", 
+                    image_element
+                )
+                if is_image_loaded: break
             blob_list.append(url)
     
     
