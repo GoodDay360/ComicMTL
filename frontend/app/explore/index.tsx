@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'expo-router';
-import { StyleSheet, View, useWindowDimensions, Image, ScrollView } from 'react-native';
+import { Image } from 'expo-image';
+import { StyleSheet, View, useWindowDimensions, ScrollView} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Icon, MD3Colors, Button, Text } from 'react-native-paper';
 import Theme from '@/constants/theme';
@@ -48,7 +49,9 @@ const Explore = () => {
         <ScrollView style={style.body_container}>
 
             {CONTENT.map((item:any,index:number)=>(
-                <Image key={index} source={{uri:`${API_BASE}${item.cover}`}} style={{width:"100%",height:Dimensions.height*0.5}}/>
+                <Image key={index} source={{uri:`${API_BASE}${item.cover}`}} style={{width:"100%",height:Dimensions.height*0.5}}
+                    contentFit="cover" transition={1000}
+                />
             ))}
             
 
