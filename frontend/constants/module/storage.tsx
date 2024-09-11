@@ -6,7 +6,7 @@ class storage {
     };
   
     async store(key:string,value:string)  {
-      return  await AsyncStorage.setItem(key, value);
+      return await AsyncStorage.setItem(key, value);
   };
 }
 

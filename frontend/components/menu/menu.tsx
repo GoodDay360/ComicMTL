@@ -13,7 +13,7 @@ const Menu = () => {
     const [style, setStyle]:any = useState("")
     const [themeType, setThemeType]:any = useState("")
     const Dimensions = useWindowDimensions();
-    const pathname = usePathname();
+    
 
     useEffect(() => { 
         (async ()=>{

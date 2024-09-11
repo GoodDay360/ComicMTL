@@ -21,24 +21,31 @@ const MenuButton = ({pathname, label, icon}:any) => {
             setStyle(__styles(theme_type,Dimensions))
         })()
     },[])
-    
 
-    return (<>{style && themeType && <>
-            <Button
-                onPress={() => {router.navigate(pathname)}}
-                mode={current_pathname === pathname ? "contained": "outlined"}
-                style={current_pathname === pathname ? style.current_menu_button : style.menu_button}
-            >
-                <View style={current_pathname !== pathname ? style.menu_button_box : {}}>
-                    <Icon source={icon} size={Dimensions.width*0.05} color={Theme[themeType].icon_color}/>
-                    {current_pathname !== pathname && <>
-                        <Text style={style.menu_button_text}>{label}</Text>
-                    </>}
-                </View>
-            </Button>
+
+    return (<>{(style && themeType) && <View style={style.menu_button_box}>
+            {current_pathname === pathname 
+                ? <Button
+                    onPress={() => {router.navigate(pathname)}}
+                    mode={"contained"}
+                    style={style.selected_menu_button}
+                >
+
+                    <Icon source={icon} size={Dimensions.width*0.045} color={Theme[themeType].icon_color}/>
+                
+                </Button>
+                : <><Button
+                    onPress={() => {router.navigate(pathname)}}
+                    mode={"outlined"}
+                    style={style.menu_button}
+                    
+                >
+                    <Icon source={icon} size={Dimensions.width*0.045} color={Theme[themeType].icon_color}/>
+                    
+                </Button><Text style={style.menu_button_text}>{label}</Text></>
+            }
             
-            
-    </>}</>);
+    </View>}</>);
 }
 
 export default MenuButton;

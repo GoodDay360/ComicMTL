@@ -17,6 +17,7 @@ def scrap(id:int=None,cover_id:int=None):
     if not cover_id: raise ValueError("The 'url' parameter is required.")
     global scraper, __is_get_cover
     
+    while __is_get_cover: pass
     __is_get_cover = True
     try:
         

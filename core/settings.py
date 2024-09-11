@@ -37,11 +37,15 @@ else:
 
 DEBUG_PROPAGATE_EXCEPTIONS = True
 TASTYPIE_FULL_DEBUG = True
-ALLOWED_HOSTS = ["*"]
-WORKER_SERVED_SCOPE = "http://127.0.0.1:8000"
-CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1","https://ngslibrary.fly.dev","http://ngslibrary.fly.dev"]
+CORS_ORIGIN_ALLOW_ALL = True 
+ALLOWED_HOSTS = ["192.168.1.102"]
+WORKER_SERVED_SCOPE = "http://192.168.1.102:8000"
+CSRF_TRUSTED_ORIGINS = ["http://192.168.1.102:8000"]
 CSRF_USE_SESSIONS = True
 CSRF_COOKIE_HTTPONLY = True
+
+CORS_ORIGIN_ALLOW_ALL = False
+CORS_ALLOWED_ORIGINS = ["http://192.168.1.102:8081","http://localhost:8081"]
 
 # Application definition
 INSTALLED_APPS = [
@@ -55,6 +59,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'corsheaders',
     
     'backend.apps.BackendConfig',
     'frontend.apps.FrontendConfig',
@@ -69,6 +74,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',

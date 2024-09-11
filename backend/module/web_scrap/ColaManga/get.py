@@ -28,7 +28,7 @@ def scrap(id:int=1):
         dt = div.find("dt",{"class","fed-deta-images"})
         
         cover_id = dt.find("a",{"class":"fed-list-pics"}).get("data-original").split("/")[-2]
-        DATA["cover"] = f"/api/web_scrap/get_cover/{id}/{cover_id}/"
+        DATA["cover"] = f"/api/web_scrap/colamanga/get_cover/{id}/{cover_id}/"
         
         dl = div.find("dl", {"class": "fed-deta-info"})
         
