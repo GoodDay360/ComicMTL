@@ -71,7 +71,7 @@ def get_chapter(request):
         
             subprocess.run(
                 ["python", "-m", "manga_translator", "-v", "--manga2eng", "--translator=m2m100_big", "-l", "ENG", "-i", f"{merged_output_dir}", "-o", f"{translated_merged_output_dir}"],
-                cwd=os.path.join(BASE_DIR,"backend","module","utils","translator"), shell=True, check=True
+                cwd=os.path.join(BASE_DIR,"backend","module","utils","image_translator"), shell=True, check=True
             )
             
             translated_splited_output_dir = os.path.join(BASE_DIR,"media",id.split("/")[0],chapter_id,"translated")
