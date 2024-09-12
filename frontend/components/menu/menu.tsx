@@ -8,7 +8,6 @@ import Theme from '@/constants/theme';
 import {useWindowDimensions} from 'react-native';
 import MenuButton from './components/menu_button';
 
-
 const Menu = () => {
     const [style, setStyle]:any = useState("")
     const [themeType, setThemeType]:any = useState("")
@@ -25,13 +24,16 @@ const Menu = () => {
     
 
     return (<>{style && themeType && <>
+        {Dimensions.width <= 720
+            ? <View style={style.menu_container}>
+                <MenuButton pathname="/recent" label="Recent" icon="history"/>
+                <MenuButton pathname="/bookmark" label="Bookmark" icon="bookmark"/>
+                <MenuButton pathname="/explore" label="Explore" icon="compass"/>
+                <MenuButton pathname="/setting" label="Setting" icon="cog"/>
+            </View>
+            : <></>
+        }
         
-        <View style={style.menu_container}>
-            <MenuButton pathname="/recent" label="Recent" icon="history"/>
-            <MenuButton pathname="/bookmark" label="Bookmark" icon="bookmark"/>
-            <MenuButton pathname="/explore" label="Explore" icon="compass"/>
-            <MenuButton pathname="/setting" label="Setting" icon="cog"/>
-        </View>
     </>}</>);
 }
 
