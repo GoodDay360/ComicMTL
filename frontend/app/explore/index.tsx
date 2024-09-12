@@ -11,6 +11,7 @@ import { CONTEXT } from '@/constants/module/context';
 import { get_list } from '@/app/explore/module/content'
 import ShowList from './components/show_list';
 
+
 const Explore = () => {
     const [itemSelectedId, setItemSelectedId]:any = useState("")
 

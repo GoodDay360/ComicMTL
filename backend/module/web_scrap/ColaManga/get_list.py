@@ -1,6 +1,7 @@
 from pprint import pprint
 from ..utils import SeleniumScraper
 from bs4 import BeautifulSoup
+from backend.module.utils.text_translator import translate
 import json
 
 scraper = None
@@ -24,7 +25,7 @@ def scrap(orderBy:str="weeklyCount",page:int=1):
         DATA = []
         for li in li_list:
             object = {}
-            object["title"] = li.find("a", {"class": "fed-list-title"}).text
+            object["title"] = translate(text=li.find("a", {"class": "fed-list-title"}).text)
             id = li.find("a", {"class": "fed-list-pics"}).get("href").strip("/")
             object["id"] = id
             cover_link_split = li.find("a", {"class": "fed-list-pics"}).get("data-original").split("/")

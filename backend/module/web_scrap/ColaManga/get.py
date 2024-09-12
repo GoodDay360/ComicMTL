@@ -1,6 +1,8 @@
 from bs4 import BeautifulSoup
 from pprint import pprint
 from ..utils import SeleniumScraper
+from core.settings import BASE_DIR
+import os
 
 scraper = None
 
@@ -38,13 +40,22 @@ def scrap(id:int=1):
         ul = dd.find("ul", {"class": "fed-part-rows"})
         
         DATA["status"] = ul.find_all("li")[0].find("a").text
+        DATA["author"] = ul.find_all("li")[1].find("a").text
         DATA["updated"] = ul.find_all("li")[2].find("a").text
+        
         category_li = ul.find_all("li")[4].find_all("a")
         array = []
         for c in category_li:
             array.append(c.text)
-            
         DATA["category"] = array
+        
+        DATA["introduction"] = ul.find_all("li")[5].text
+        
+        # Get Synopsis
+        div = source.select("div.all_data_list")[0]
+        p = source.find("div",{"class": "fed-tabs-boxs"}).find("p",{"class": "fed-text-muted"})
+        DATA["synopsis"] = p.text
+        
         
         # Get Chapters
         div = source.select("div.all_data_list")[0]

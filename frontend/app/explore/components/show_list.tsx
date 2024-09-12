@@ -10,7 +10,12 @@ import storage from '@/constants/module/storage';
 import { CONTEXT } from '@/constants/module/context';
 import { get_list } from '@/app/explore/module/content'
 
+
+
+
 const ShowList = ({itemSelected,setItemSelected}:any) => {
+    
+
     const {showMenuContext, setShowMenuContext}:any = useContext(CONTEXT)
     const {themeTypeContext, setThemeTypeContext}:any = useContext(CONTEXT)
     const {apiBaseContext, setApiBaseContext}:any = useContext(CONTEXT)
@@ -34,9 +39,13 @@ const ShowList = ({itemSelected,setItemSelected}:any) => {
         get_list(SET_CONTENT,apiBaseContext)
     },[style])
 
-    const onRefresh = useCallback(() => {
-        
-    },[])
+    const onRefresh = () => {
+        if (!(style && themeTypeContext && apiBaseContext)) return
+        SET_CONTENT([])
+        get_list(SET_CONTENT,apiBaseContext)
+    }
+
+
     const onScroll = useCallback((event:any) => {
         const nativeEvent = event.nativeEvent
         const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
