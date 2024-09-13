@@ -9,7 +9,6 @@ https://docs.djangoproject.com/en/4.2/howto/deployment/asgi/
 
 import os, django
 
-os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 django.setup()
 

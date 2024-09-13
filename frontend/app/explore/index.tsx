@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useContext } from 'react';
+import React, { useEffect, useState, useCallback, useContext, memo } from 'react';
 import { Link } from 'expo-router';
 import { Image } from 'expo-image';
 import { StyleSheet, View, useWindowDimensions, ScrollView, Pressable, RefreshControl } from 'react-native';
@@ -13,6 +13,7 @@ import ShowList from './components/show_list';
 
 
 const Explore = () => {
+
     const [itemSelectedId, setItemSelectedId]:any = useState("")
 
 

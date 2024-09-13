@@ -16,5 +16,3 @@ const Index = () => {
 }
 
 export default Index;
-
-{/* <Link href="/play">Go to Play</Link> */}

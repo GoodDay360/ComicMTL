@@ -1,16 +1,18 @@
 import axios from 'axios';
 
 
-export const get_list = (SET_CONTENT:any,API_BASE:string) => {
-    console.log(`${API_BASE}/api/web_scrap/get_list/`)
+export const get_list = (setIsLoading:any,translate:any,SET_CONTENT:any,API_BASE:string) => {
 
     axios({
-        method: 'get',
+        method: 'post',
         url: `${API_BASE}/api/web_scrap/get_list/`,
+        data: {
+            translate:translate
+        }
     }).then((response) => {(async () =>{
         const DATA = response.data.data
-    
         SET_CONTENT(DATA)
+        setIsLoading(false)
         
     })()}).catch((error) => {
         console.log(error)

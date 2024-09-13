@@ -1,8 +1,11 @@
 
 import json, environ, requests, os, subprocess
+import asyncio
 
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
 from django_ratelimit.decorators import ratelimit
+from django.views.decorators.csrf import csrf_exempt
+from asgiref.sync import sync_to_async
 
 from backend.module import web_scrap
 from backend.module.utils import manage_image
@@ -12,11 +15,14 @@ from core.settings import BASE_DIR
 env = environ.Env()
 
 
+
+@csrf_exempt
 @ratelimit(key='ip', rate='60/m')
 def get_list(request):
-    # if request.method != "POST": return HttpResponseBadRequest('Allowed POST request only!', status=400)
+    if request.method != "POST": return HttpResponseBadRequest('Allowed POST request only!', status=400)
+    payload = json.loads(request.body)
     try:
-        DATA = web_scrap.source_control["colamanga"].get_list.scrap()
+        DATA = web_scrap.source_control["colamanga"].get_list.scrap(translate=payload.get("translate"))
         return JsonResponse({"data":DATA}) 
     except Exception as e:
         return HttpResponseBadRequest(str(e), status=500)
@@ -52,6 +58,7 @@ def get_cover(request,source,id,cover_id):
         return response
     except Exception as e:
         return HttpResponseBadRequest(str(e), status=500)
+
     
 def get_chapter(request):
     try:
