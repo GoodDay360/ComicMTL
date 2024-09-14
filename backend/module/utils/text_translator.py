@@ -1,22 +1,15 @@
-import argostranslate.package
-import argostranslate.translate
+
+
+
+import environ, os
+from core.settings import BASE_DIR
+
+env = environ.Env()
+
+os.environ['HF_HOME'] = os.path.join(BASE_DIR, '.cache')
+
+import dl_translate as dlt
 
 def translate(from_code="zh", to_code="en", text=""):
-    from_code = from_code
-    to_code = to_code
-    try:
-        return argostranslate.translate.translate(text, from_code, to_code)
-    except:
-        # Download and install Argos Translate package
-        argostranslate.package.update_package_index()
-        available_packages = argostranslate.package.get_available_packages()
-        package_to_install = next(
-            filter(
-                lambda x: x.from_code == from_code and x.to_code == to_code, available_packages
-            )
-        )
-        argostranslate.package.install_from_path(package_to_install.download())
-
-        # Translate
-        return argostranslate.translate.translate(text, from_code, to_code)
-
+    mt = dlt.TranslationModel()
+    return mt.translate(text, source=from_code, target=to_code)

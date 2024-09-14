@@ -3,6 +3,7 @@ frontend/static/frontend
 venv/
 frontend/.git
 .env
+.cache
 
 temp/
 media/

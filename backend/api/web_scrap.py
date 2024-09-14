@@ -1,6 +1,6 @@
 
 import json, environ, requests, os, subprocess
-import asyncio
+import asyncio, uuid
 
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
 from django_ratelimit.decorators import ratelimit
@@ -9,7 +9,7 @@ from asgiref.sync import sync_to_async
 
 from backend.module import web_scrap
 from backend.module.utils import manage_image
-
+from backend.models.model_cache import RequestCache
 from core.settings import BASE_DIR
 
 env = environ.Env()
@@ -21,11 +21,11 @@ env = environ.Env()
 def get_list(request):
     if request.method != "POST": return HttpResponseBadRequest('Allowed POST request only!', status=400)
     payload = json.loads(request.body)
-    try:
-        DATA = web_scrap.source_control["colamanga"].get_list.scrap(translate=payload.get("translate"))
-        return JsonResponse({"data":DATA}) 
-    except Exception as e:
-        return HttpResponseBadRequest(str(e), status=500)
+
+    DATA = web_scrap.source_control["colamanga"].get_list.scrap(translate=payload.get("translate"))
+
+    return JsonResponse({"data":DATA}) 
+
 
 
 @ratelimit(key='ip', rate='60/m')
@@ -53,6 +53,7 @@ def get(request):
 def get_cover(request,source,id,cover_id):
     try:
         DATA = web_scrap.source_control[source].get_cover.scrap(id=id,cover_id=cover_id)
+        if not DATA: return HttpResponseBadRequest(str(e), status=500)
         response = HttpResponse(DATA, content_type="image/png")
         response['Content-Disposition'] = f'inline; filename="{id}.png"'
         return response

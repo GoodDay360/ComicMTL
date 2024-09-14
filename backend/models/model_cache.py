@@ -4,8 +4,10 @@ from django.db import models
 
 class RequestCache(models.Model):
     room = models.TextField()
-    client = models.UUIDField(primary_key=True)
+    client = models.UUIDField()
     datetime = models.DateTimeField(auto_now=True)
+    def save(self, *args, **kwargs):
+        super(RequestCache, self).save(*args, **kwargs)
 
 # class SocketCache(models.Model):
 #     room = models.TextField()

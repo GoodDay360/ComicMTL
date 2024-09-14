@@ -2,21 +2,61 @@ from pprint import pprint
 from ..utils import SeleniumScraper
 from bs4 import BeautifulSoup
 from backend.module.utils import text_translator
-import json, threading
+import json, threading, uuid, time
+
+from backend.models.model_cache import RequestCache
+from backend.module.utils import date_utils
+
 
 scraper = None
 
-Lock = threading.Lock()
+RequestQueueRoom = "colamanga_get_list"
+RequestQueueID = None
+
+RequestCache.objects.filter(room=RequestQueueRoom).delete()
+class RequestContextManager:
+    def __init__(self):
+        self.id = uuid.uuid4()
+        
+    def __enter__(self):
+        RequestCache(room=RequestQueueRoom,client=self.id).save()
+        return self.id
+
+
+        
+    def __exit__(self,*exc_info):
+        global RequestQueueID
+        while True:
+            try:
+                RequestCache.objects.filter(room=RequestQueueRoom,client=self.id).delete()
+                if RequestQueueID == self.id: RequestQueueID = None
+                break
+            except Exception as e: print(f"Error Exiting Room: {RequestQueueRoom}.\n {e}\nRetrying...")
+        
+def RequestQueueManager():
+    while True:
+        global RequestQueueRoom,RequestQueueID
+        try:
+            if not RequestQueueID: 
+                if RequestCache.objects.filter(room=RequestQueueRoom).count():
+                    RequestCache.objects.filter(room=RequestQueueRoom,datetime__lte= date_utils.utc_time().add((-5,'minute')).get()).delete()
+                    RequestQueueID = RequestCache.objects.filter(room=RequestQueueRoom).order_by("datetime").values("client").first().get("client")
+        except Exception as e: print(f"Error Room: {RequestQueueRoom}.\n {e}\nRetrying...")
+        
+thread = threading.Thread(target=RequestQueueManager)
+thread.daemon = True
+thread.start()
+
 
 def scrap(translate={},orderBy:str="weeklyCount",page:int=1):
-    global scraper
-    with Lock:
+    global scraper, RequestContextManager, RequestQueueID
+    with RequestContextManager() as queue_id:
+        while RequestQueueID != queue_id: pass
         try:
             url = f"https://www.colamanga.com/show?orderBy={orderBy}&page={page}"
             
             if not scraper: scraper = SeleniumScraper()
             driver = scraper.driver()
-            print(driver.session_id)
             driver.get(url)
             source = BeautifulSoup(driver.page_source, 'html.parser') 
             

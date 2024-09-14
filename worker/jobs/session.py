@@ -11,7 +11,7 @@ env = environ.Env()
 def delete_outdated(request):
     if request.method != "POST": return HttpResponseBadRequest('Allowed POST request only!', status=400)
     if request.headers.get("Worker-Token") != env("WORKER_TOKEN"): return HttpResponseBadRequest('Request Forbidden!', status=403)
-    Session.objects.filter(expire_date__lte=date_utils.get_utc_time()).delete()
+    Session.objects.filter(expire_date__lte=date_utils.utc_time().get()).delete()
     return JsonResponse({"status":True})
 
 

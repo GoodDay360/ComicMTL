@@ -46,7 +46,7 @@ export default function RootLayout() {
         const THEME:any = await storage.get("theme")
         const API_BASE:any = await storage.get("API_BASE")
         if (!THEME) await storage.store("theme","DARK_GREEN")
-        if (!API_BASE) await storage.store("API_BASE","http://192.168.1.102:8000")
+        if (!API_BASE) await storage.store("API_BASE","http://192.168.2.24:8000")
         setThemeTypeContext(`${await storage.get("theme")}`)
         setApiBaseContext(`${await storage.get("API_BASE")}`)
         SplashScreen.hideAsync();
