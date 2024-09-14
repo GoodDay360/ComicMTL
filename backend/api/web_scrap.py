@@ -20,9 +20,8 @@ env = environ.Env()
 @ratelimit(key='ip', rate='60/m')
 def get_list(request):
     if request.method != "POST": return HttpResponseBadRequest('Allowed POST request only!', status=400)
-    payload = json.loads(request.body)
 
-    DATA = web_scrap.source_control["colamanga"].get_list.scrap(translate=payload.get("translate"))
+    DATA = web_scrap.source_control["colamanga"].get_list.scrap()
 
     return JsonResponse({"data":DATA}) 
 

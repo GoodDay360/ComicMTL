@@ -42,8 +42,8 @@ const ShowList = ({itemSelected,setItemSelected}:any) => {
 
             let __translate:any = await storage.get("explore_translate")
             if (!__translate) {
-                __translate = {state:false,from:"zh",to:"en"}
-                await storage.store("explore_translate",JSON.stringify({state:false,from:"zh",to:"en"}))
+                __translate = {state:false,from:"auto",to:"en"}
+                await storage.store("explore_translate",JSON.stringify(__translate))
             }else __translate = JSON.parse(__translate)
 
             setTranslate(__translate)
@@ -151,6 +151,10 @@ const ShowList = ({itemSelected,setItemSelected}:any) => {
 
                             label='From Language' 
                             data={[
+                                { 
+                                    label: "Auto", 
+                                    value: 'auto' 
+                                },
                                 { 
                                     label: "Chinese", 
                                     value: 'zh' 

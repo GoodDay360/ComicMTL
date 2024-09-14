@@ -1,7 +1,6 @@
 from pprint import pprint
 from ..utils import SeleniumScraper
 from bs4 import BeautifulSoup
-from backend.module.utils import text_translator
 import json, threading, uuid, time
 
 from backend.models.model_cache import RequestCache
@@ -48,7 +47,7 @@ thread.daemon = True
 thread.start()
 
 
-def scrap(translate={},orderBy:str="weeklyCount",page:int=1):
+def scrap(orderBy:str="weeklyCount",page:int=1):
     global scraper, RequestContextManager, RequestQueueID
     with RequestContextManager() as queue_id:
         while RequestQueueID != queue_id: pass
@@ -66,13 +65,11 @@ def scrap(translate={},orderBy:str="weeklyCount",page:int=1):
             DATA = []
             for li in li_list:
                 object = {}
-                if translate.get("state"): 
-                    object["title"] = text_translator.translate(
-                        text=li.find("a", {"class": "fed-list-title"}).text,
-                        from_code=translate.get("from"),
-                        to_code=translate.get("to")
-                    )
-                else: object["title"] = li.find("a", {"class": "fed-list-title"}).text
+                title = li.find("a", {"class": "fed-list-title"}).text
+
+                object["title"] = title
+
+                
                 id = li.find("a", {"class": "fed-list-pics"}).get("href").strip("/")
                 object["id"] = id
                 cover_link_split = li.find("a", {"class": "fed-list-pics"}).get("data-original").split("/")
