@@ -43,12 +43,13 @@ export default function RootLayout() {
   useEffect(() => {
     if (loaded) {
       (async ()=>{
-        const THEME:any = await storage.get("theme")
-        const API_BASE:any = await storage.get("API_BASE")
+        const THEME = await storage.get("theme")
+
+        const API_BASE:any = await storage.get("CUSTOM_API_BASE") || process.env.EXPO_PUBLIC_DEFAULT_API_BASE
         if (!THEME) await storage.store("theme","DARK_GREEN")
-        if (!API_BASE) await storage.store("API_BASE","http://192.168.0.100:8000")
         setThemeTypeContext(`${await storage.get("theme")}`)
-        setApiBaseContext(`${await storage.get("API_BASE")}`)
+        setApiBaseContext(API_BASE)
+        console.log(process.env.EXPO_PUBLIC_DEFAULT_API_BASE)
         SplashScreen.hideAsync();
       })()
     }

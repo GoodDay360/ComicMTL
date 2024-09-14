@@ -7,7 +7,11 @@ class storage {
   
     async store(key:string,value:string)  {
       return await AsyncStorage.setItem(key, value);
-  };
+    };
+    
+    async remove(key:string,value:string)  {
+      return await AsyncStorage.removeItem(key);
+    };
 }
 
 export default new storage();

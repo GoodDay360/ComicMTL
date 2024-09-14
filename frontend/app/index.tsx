@@ -11,7 +11,7 @@ const Index = () => {
     const pathname = usePathname()
 
 
-    if (pathname === "/") return (<Redirect href="/recent" />)
+    if (pathname === "/") return (<Redirect href="/explore" />)
 
 }
 

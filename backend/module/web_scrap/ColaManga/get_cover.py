@@ -1,16 +1,14 @@
 
 from ..utils import SeleniumScraper
-import json, os, sys
+import json, os, sys, base64, threading, uuid
 from core.settings import BASE_DIR
 
-
-import  base64, threading, time, uuid
 
 from selenium.webdriver.common.by import By
 from backend.models.model_cache import RequestCache
 from backend.module.utils import date_utils
 
-scraper = None
+scraper = SeleniumScraper()
 RequestQueueRoom = "colamanga_get_cover"
 RequestQueueID = None
 
@@ -48,6 +46,7 @@ def RequestQueueManager():
 thread = threading.Thread(target=RequestQueueManager)
 thread.daemon = True
 thread.start()
+
 
 def scrap(id:int=None,cover_id:int=None):
     if not id: raise ValueError("The 'id' parameter is required.")
@@ -113,11 +112,3 @@ def scrap(id:int=None,cover_id:int=None):
 
 if __name__ == "__main__":
     DATA = scrap(page=1,search="妖")
-
-    
-    # with open("./temp.html","w", encoding='utf-8') as f:
-
-    #     f.write(ul.prettify())  # Write each element prettified
-
-    
-    # pprint(DATA)

@@ -52,7 +52,6 @@ def get(request):
 def get_cover(request,source,id,cover_id):
     try:
         DATA = web_scrap.source_control[source].get_cover.scrap(id=id,cover_id=cover_id)
-        if not DATA: return HttpResponseBadRequest(str(e), status=500)
         response = HttpResponse(DATA, content_type="image/png")
         response['Content-Disposition'] = f'inline; filename="{id}.png"'
         return response

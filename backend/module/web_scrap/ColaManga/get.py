@@ -7,7 +7,7 @@ import os, threading, uuid, time
 from backend.models.model_cache import RequestCache
 from backend.module.utils import date_utils
 
-scraper = None
+scraper = SeleniumScraper()
 
 RequestQueueRoom = "colamanga_get"
 RequestQueueID = None

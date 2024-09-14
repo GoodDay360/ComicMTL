@@ -89,7 +89,9 @@ const ShowList = ({itemSelected,setItemSelected}:any) => {
     return (<>{(styles) ?
     <ScrollView style={styles.screen_container}
         refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl refreshing={refreshing} onRefresh={()=>{
+                if (!isLoading) onRefresh()
+            }} />
         }
         onScroll={(event) => {onScroll(event)}}
         scrollEventThrottle={16}
@@ -229,7 +231,7 @@ const ShowList = ({itemSelected,setItemSelected}:any) => {
                         onPress={() => {setItemSelected(item.id)}}
                     >
                         <View style={styles.item_box}>
-                            <Image source={{uri:`${apiBaseContext}${item.cover}`}} style={styles.item_cover}
+                            <Image onError={(error)=>{console.log("load image error",error)}} source={{uri:`${apiBaseContext}${item.cover}`}} style={styles.item_cover}
                                 contentFit="cover" transition={1000}
                             />
                             <Text style={styles.item_title}>{item.title}</Text>

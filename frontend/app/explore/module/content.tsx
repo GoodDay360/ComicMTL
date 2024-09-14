@@ -25,5 +25,6 @@ export const get_list = (setIsLoading:any,translate:any,SET_CONTENT:any,API_BASE
         
     })()}).catch((error) => {
         console.log(error)
+        setIsLoading(false)
     })
 }

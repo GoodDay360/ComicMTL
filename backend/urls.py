@@ -6,7 +6,6 @@ from backend.api import web_scrap, test
 
 
 urlpatterns = [
-    
     path('web_scrap/get_list/', web_scrap.get_list),
     path('web_scrap/search/', web_scrap.search),
     path('web_scrap/get/', web_scrap.get),
