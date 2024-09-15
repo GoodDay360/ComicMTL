@@ -83,7 +83,7 @@ class ImageStorage_Web {
                         }
 
                         try {
-                            const response = await axios.get(link, { responseType: 'blob' });
+                            const response = await axios.get(link, { responseType: 'blob', timeout: 60000 });
                             const data = response.data;
                             await this.store(link, data);
                             await this.removeOldImages()
@@ -202,7 +202,7 @@ class ImageStorage_Mobile {
             if (result.count >= MAX_ROW) {
                 await db.runAsync('DELETE FROM images WHERE timestamp = (SELECT MIN(timestamp) FROM images);')
             }
-            const response = await axios.get(link, {responseType: 'arraybuffer'})
+            const response = await axios.get(link, {responseType: 'arraybuffer', timeout: 60000});
             const data = Buffer.from(response.data, 'binary').toString('base64');
             await this.store(link, data);
 
