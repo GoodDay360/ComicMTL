@@ -7,7 +7,7 @@ import { useWindowDimensions, View } from 'react-native';
 import 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Menu from '@/components/menu/menu';
-import storage from '@/constants/module/storage';
+import Storage from '@/constants/module/storage';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import Theme from '@/constants/theme';
 import { CONTEXT } from '@/constants/module/context';
@@ -43,11 +43,11 @@ export default function RootLayout() {
   useEffect(() => {
     if (loaded) {
       (async ()=>{
-        const THEME = await storage.get("theme")
+        const THEME = await Storage.get("theme")
+        if (!THEME) await Storage.store("theme","DARK_GREEN")
+        setThemeTypeContext(`${await Storage.get("theme")}`)
 
-        const API_BASE:any = await storage.get("CUSTOM_API_BASE") || process.env.EXPO_PUBLIC_DEFAULT_API_BASE
-        if (!THEME) await storage.store("theme","DARK_GREEN")
-        setThemeTypeContext(`${await storage.get("theme")}`)
+        const API_BASE:any = await Storage.get("CUSTOM_API_BASE") || process.env.EXPO_PUBLIC_DEFAULT_API_BASE
         setApiBaseContext(API_BASE)
         console.log(process.env.EXPO_PUBLIC_DEFAULT_API_BASE)
         SplashScreen.hideAsync();

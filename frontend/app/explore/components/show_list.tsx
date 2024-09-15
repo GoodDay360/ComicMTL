@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useContext, useRef } from 'react';
 import { Link } from 'expo-router';
-import { Image } from 'expo-image';
+import Image from '@/components/Image';
 import { StyleSheet, View, useWindowDimensions, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Icon, MD3Colors, Button, Text } from 'react-native-paper';
@@ -10,10 +10,12 @@ import Dropdown from '@/components/dropdown';
 
 import Theme from '@/constants/theme';
 import { __styles } from '../stylesheet/styles';
-import storage from '@/constants/module/storage';
+import Storage from '@/constants/module/storage';
+import ImageStorage from '@/constants/module/image_storage';
 import { CONTEXT } from '@/constants/module/context';
 import { get_list } from '@/app/explore/module/content'
 import { transformAsync } from '@babel/core';
+
 
 
 
@@ -40,10 +42,10 @@ const ShowList = ({itemSelected,setItemSelected}:any) => {
         (async ()=>{
             setStyles(__styles(themeTypeContext,Dimensions))
 
-            let __translate:any = await storage.get("explore_translate")
+            let __translate:any = await Storage.get("explore_translate")
             if (!__translate) {
                 __translate = {state:false,from:"auto",to:"en"}
-                await storage.store("explore_translate",JSON.stringify(__translate))
+                await Storage.store("explore_translate",JSON.stringify(__translate))
             }else __translate = JSON.parse(__translate)
 
             setTranslate(__translate)
@@ -85,6 +87,7 @@ const ShowList = ({itemSelected,setItemSelected}:any) => {
         
     },[])
 
+    
 
     return (<>{(styles) ?
     <ScrollView style={styles.screen_container}
@@ -165,7 +168,7 @@ const ShowList = ({itemSelected,setItemSelected}:any) => {
                             value={translate.from}
                             onChange={async (item:any) => {
                                 setTranslate({...translate,from:item.value})
-                                await storage.store("explore_translate",JSON.stringify({...translate,from:item.value}))
+                                await Storage.store("explore_translate",JSON.stringify({...translate,from:item.value}))
                             }}
                         />
                     </View>
@@ -183,7 +186,7 @@ const ShowList = ({itemSelected,setItemSelected}:any) => {
                             value={translate.to}
                             onChange={async (item:any) => {
                                 setTranslate({...translate,to:item.value})
-                                await storage.store("explore_translate",JSON.stringify({...translate,to:item.value}))
+                                await Storage.store("explore_translate",JSON.stringify({...translate,to:item.value}))
                             }}
                         />
                     </View>
@@ -204,10 +207,10 @@ const ShowList = ({itemSelected,setItemSelected}:any) => {
                         onPress={async () => {
                             if (translate.state){
                                 setTranslate({...translate,state:false})
-                                await storage.store("explore_translate",JSON.stringify({...translate,state:false}))
+                                await Storage.store("explore_translate",JSON.stringify({...translate,state:false}))
                             }else{
                                 setTranslate({...translate,state:true})
-                                await storage.store("explore_translate",JSON.stringify({...translate,state:true}))
+                                await Storage.store("explore_translate",JSON.stringify({...translate,state:true}))
                             }
                             
                         }}
@@ -231,7 +234,7 @@ const ShowList = ({itemSelected,setItemSelected}:any) => {
                         onPress={() => {setItemSelected(item.id)}}
                     >
                         <View style={styles.item_box}>
-                            <Image onError={(error)=>{console.log("load image error",error)}} source={{uri:`${apiBaseContext}${item.cover}`}} style={styles.item_cover}
+                            <Image onError={(error:any)=>{console.log("load image error",error)}} source={{uri:`${apiBaseContext}${item.cover}`}} style={styles.item_cover}
                                 contentFit="cover" transition={1000}
                             />
                             <Text style={styles.item_title}>{item.title}</Text>
