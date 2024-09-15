@@ -1,11 +1,16 @@
 import axios from 'axios';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';dayjs.extend(utc);
+import { Platform } from 'react-native';
+
+
 
 const DATABASE_NAME = 'ImageDB';
 const MAX_ROW = 50;
 const MAX_AGE = 3; // in days
 
-class ImageStorage {
+
+class ImageStorage_Web {
     private static db: IDBDatabase;
 
     // Initialize the database
@@ -156,6 +161,12 @@ class ImageStorage {
             console.log('Error removing old images:', transaction.error);
         };
     }
+}
+
+var ImageStorage:any
+
+if (Platform.OS === "web"){
+    ImageStorage = ImageStorage_Web
 }
 
 export default ImageStorage;
