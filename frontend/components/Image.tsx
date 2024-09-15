@@ -10,13 +10,20 @@ const Image = ({source, style, onError, contentFit, transition}:any) => {
     useEffect(()=>{
         (async ()=>{
             if (source.hasOwnProperty("uri")){
-                const IMAGE:any = await ImageStorage.get(source.uri);
-                const arrayBuffer = await IMAGE.arrayBuffer();
-                const buffer = Buffer.from(arrayBuffer);
-                setImageData({uri:`data:${IMAGE.type};base64,${buffer.toString('base64')}`})
+                const result:any = await ImageStorage.get(source.uri);
+                if (result.type === "blob"){
+
+                    const arrayBuffer = await result.data.arrayBuffer();
+                    const buffer = Buffer.from(arrayBuffer);
+                    setImageData({uri:`data:${result.data.type};base64,${buffer.toString('base64')}`})
+                }else if(result.type === "base64"){
+                    setImageData({uri:`data:image/png;base64,${result.data}`})
+                }
+                
             }else{
                 setImageData(source)
             }
+
             
         })()
     },[])

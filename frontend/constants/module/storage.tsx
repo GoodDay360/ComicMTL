@@ -83,9 +83,16 @@ class Storage_Web {
 
 class Storage_Mobile{
 
-    static async store(key: string, value: any): Promise<void> {
+    private static DATABASE:any = null
+
+    private static async get_database(){
+        if (!this.DATABASE) this.DATABASE = await SQLite.openDatabaseAsync(DATABASE_NAME);
+        return this.DATABASE
+    }
+
+    static async store(key: string, value: any) {
         try{
-            const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
+            const db = await this.get_database();
             await db.runAsync('CREATE TABLE IF NOT EXISTS storage (key TEXT PRIMARY KEY NOT NULL, value TEXT);')
             await db.runAsync(
                 'INSERT OR REPLACE INTO storage (key, value) VALUES (?, ?);', key, value
@@ -94,9 +101,9 @@ class Storage_Mobile{
         }catch(error){console.log(error)}
     }
 
-    static async get(key: string): Promise<any> {
+    static async get(key: string) {
         try {
-            const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
+            const db = await this.get_database();
             await db.runAsync('CREATE TABLE IF NOT EXISTS storage (key TEXT PRIMARY KEY NOT NULL, value TEXT);')
             const DATA:any = await db.getFirstAsync(
                 'SELECT value FROM storage WHERE key = ?;', key
@@ -107,9 +114,9 @@ class Storage_Mobile{
         }catch(error){console.log(error)}
     }
     
-    static async remove(key: string): Promise<void> {
+    static async remove(key: string) {
         try{
-            const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
+            const db = await this.get_database();
             await db.runAsync('CREATE TABLE IF NOT EXISTS storage (key TEXT PRIMARY KEY NOT NULL, value TEXT);')
             await db.runAsync(
                 'DELETE FROM storage WHERE key = ?;', key

@@ -3,6 +3,8 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';dayjs.extend(utc);
 import { Platform } from 'react-native';
 
+import * as SQLite from 'expo-sqlite';
+const Buffer = require('buffer/').Buffer
 
 
 const DATABASE_NAME = 'ImageDB';
@@ -49,7 +51,7 @@ class ImageStorage_Web {
         const db = await this.getDB();
         const transaction = db.transaction('images', 'readwrite');
         const store = transaction.objectStore('images');
-        const timestamp = new Date().toISOString();
+        const timestamp = dayjs().unix();
 
         store.put({ link, data, timestamp });
 
@@ -59,7 +61,7 @@ class ImageStorage_Web {
     }
 
     // Get image data
-    static async get(link: string): Promise<Blob | null> {
+    static async get(link: string): Promise<Object | null> {
         const db = await this.getDB();
         const transaction = db.transaction('images', 'readonly');
         const store = transaction.objectStore('images');
@@ -71,7 +73,7 @@ class ImageStorage_Web {
                 const result = request.result;
 
                 if (result) {
-                    resolve(result.data);
+                    resolve({type:"blob",data:result.data});
                 } else {
                     const countRequest = store.count();
 
@@ -84,7 +86,8 @@ class ImageStorage_Web {
                             const response = await axios.get(link, { responseType: 'blob' });
                             const data = response.data;
                             await this.store(link, data);
-                            resolve(data);
+                            await this.removeOldImages()
+                            resolve({type:"blob",data:data});
                         } catch (error) {
                             console.log('Error fetching image:', error);
                             reject(error);
@@ -163,10 +166,68 @@ class ImageStorage_Web {
     }
 }
 
-var ImageStorage:any
+class ImageStorage_Mobile {
+    private static DATABASE:any = null
 
+    private static async get_database(){
+        if (!this.DATABASE) this.DATABASE = await SQLite.openDatabaseAsync(DATABASE_NAME);
+        // await db.runAsync('DROP TABLE IF EXISTS images;')
+        await this.DATABASE.runAsync(`CREATE TABLE IF NOT EXISTS images (
+            link TEXT PRIMARY KEY NOT NULL,
+            data TEXT NOT NULL,
+            timestamp INTEGER NOT NULL
+        );`)
+        return this.DATABASE
+    }
+
+    static async store(link: string, data: Blob): Promise<void> {
+        const db = await this.get_database()
+        const timestamp = dayjs().unix();
+        
+        
+        await db.runAsync('INSERT OR REPLACE INTO images (link, data, timestamp) VALUES (?, ?, ?);',link, data, timestamp)
+    }
+
+    static async get(link: string) {
+        const db = await this.get_database()
+        
+        const result = await db.getFirstAsync('SELECT * FROM images WHERE link = ?;',link)
+        
+        if (result) {
+            // Image link exists, return the data
+            
+            return {type:"base64",data:result.data}
+        }else{
+            const result = await db.getFirstAsync('SELECT COUNT(*) as count FROM images;')
+            if (result.count >= MAX_ROW) {
+                await db.runAsync('DELETE FROM images WHERE timestamp = (SELECT MIN(timestamp) FROM images);')
+            }
+            const response = await axios.get(link, {responseType: 'arraybuffer'})
+            const data = Buffer.from(response.data, 'binary').toString('base64');
+            await this.store(link, data);
+
+
+            // DELETE images older than MAX_AGE days
+            const thresholdDate = dayjs().subtract(MAX_AGE * 24 * 60 * 60, 'second').unix();
+            await db.runAsync('DELETE FROM images WHERE timestamp < ?;',thresholdDate);
+            
+            return {type:"base64",data:data}
+        }
+    }
+
+    static async remove(link: string) {
+        const db = await this.get_database()    
+        await db.runAsync('DELETE FROM images WHERE link = ?;',link)
+    }
+}
+
+
+
+var ImageStorage:any
 if (Platform.OS === "web"){
     ImageStorage = ImageStorage_Web
+}else{
+    ImageStorage = ImageStorage_Mobile
 }
 
 export default ImageStorage;

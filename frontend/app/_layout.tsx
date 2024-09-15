@@ -68,6 +68,7 @@ export default function RootLayout() {
                   display: 'flex', 
                   flex: 1, 
                   flexDirection: Dimensions.width <= 720 ? 'column' : 'row-reverse',
+                  backgroundColor: Theme[themeTypeContext].background_color
                 }}>
                 <Stack screenOptions={{ headerShown: false }}>
                   <Stack.Screen name="+not-found" />
