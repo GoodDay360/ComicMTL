@@ -152,7 +152,7 @@ class ImageStorage_Web {
             const cursor = request.result;
             if (cursor) {
                 const record = cursor.value;
-                const age = dayjs().diff(dayjs(record.timestamp), 'day');
+                const age = dayjs().diff(dayjs.unix(record.timestamp), 'day');
                 if (age > MAX_AGE) {
                     store.delete(cursor.key);
                 }
