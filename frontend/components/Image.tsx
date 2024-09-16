@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { Image as _Image } from 'expo-image';
 import { View } from "react-native"
 import ImageStorage from "@/constants/module/image_storage";
-const Buffer = require('buffer/').Buffer
+import blobToBase64 from "@/constants/module/blob_to_base64";
 
 const Image = ({source, style, onError, contentFit, transition}:any) => {
     const [imageData, setImageData]:any = useState(null)
@@ -12,12 +12,11 @@ const Image = ({source, style, onError, contentFit, transition}:any) => {
             if (source.hasOwnProperty("uri")){
                 const result:any = await ImageStorage.get(source.uri);
                 if (result.type === "blob"){
-
-                    const arrayBuffer = await result.data.arrayBuffer();
-                    const buffer = Buffer.from(arrayBuffer);
-                    setImageData({uri:`data:${result.data.type};base64,${buffer.toString('base64')}`})
+                    setImageData({uri:blobToBase64(result.data)})
                 }else if(result.type === "base64"){
-                    setImageData({uri:`data:image/png;base64,${result.data}`})
+                    setImageData({uri:result.data})
+                }else if (result.type === "file_path"){
+                    setImageData({uri:result.data})
                 }
                 
             }else{

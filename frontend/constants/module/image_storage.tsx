@@ -4,7 +4,10 @@ import utc from 'dayjs/plugin/utc';dayjs.extend(utc);
 import { Platform } from 'react-native';
 
 import * as SQLite from 'expo-sqlite';
-const Buffer = require('buffer/').Buffer
+
+import * as FileSystem from 'expo-file-system';
+
+import blobToBase64 from '@/constants/module/blob_to_base64';
 
 
 const DATABASE_NAME = 'ImageDB';
@@ -166,58 +169,107 @@ class ImageStorage_Web {
     }
 }
 
-class ImageStorage_Mobile {
-    private static DATABASE:any = null
 
-    private static async get_database(){
-        if (!this.DATABASE) this.DATABASE = await SQLite.openDatabaseAsync(DATABASE_NAME);
-        // await db.runAsync('DROP TABLE IF EXISTS images;')
-        await this.DATABASE.runAsync(`CREATE TABLE IF NOT EXISTS images (
+
+class ImageStorage_Mobile {
+    private static DATABASE:any = new Promise(async (resolve, reject) => {
+        const _DATABASE = await SQLite.openDatabaseAsync(DATABASE_NAME)
+        await _DATABASE.runAsync(`CREATE TABLE IF NOT EXISTS images (
             link TEXT PRIMARY KEY NOT NULL,
-            data TEXT NOT NULL,
+            file_path TEXT NOT NULL,
             timestamp INTEGER NOT NULL
         );`)
-        return this.DATABASE
-    }
+        resolve(_DATABASE)
+    })
 
-    static async store(link: string, data: Blob): Promise<void> {
-        const db = await this.get_database()
+
+    static async store(link: string, file_path: string): Promise<void> {
+        const db = await this.DATABASE
         const timestamp = dayjs().unix();
         
-        
-        await db.runAsync('INSERT OR REPLACE INTO images (link, data, timestamp) VALUES (?, ?, ?);',link, data, timestamp)
+        await db.runAsync('INSERT OR REPLACE INTO images (link, file_path, timestamp) VALUES (?, ?, ?);',link, file_path, timestamp)
     }
 
     static async get(link: string) {
-        const db = await this.get_database()
-        
-        const result = await db.getFirstAsync('SELECT * FROM images WHERE link = ?;',link)
-        
-        if (result) {
-            // Image link exists, return the data
+        try{
+            const db = await this.DATABASE
+
+            // Remove all unmatched image in sqlite and local
+            const file_path_list = (await db.getAllAsync('SELECT file_path FROM images')).map((item:any) => item.file_path);
             
-            return {type:"base64",data:result.data}
-        }else{
-            const result = await db.getFirstAsync('SELECT COUNT(*) as count FROM images;')
-            if (result.count >= MAX_ROW) {
-                await db.runAsync('DELETE FROM images WHERE timestamp = (SELECT MIN(timestamp) FROM images);')
+
+            const dir_path = FileSystem.cacheDirectory + 'ComicMTL/'+ 'cover/';
+            const local_file_path_list = (await FileSystem.readDirectoryAsync(dir_path)).map(file => dir_path + file);;
+            const result_list = local_file_path_list.filter(item => !file_path_list.includes(item));
+            for (const file_path of result_list) {
+                try {
+                    // Delete the file
+                    await FileSystem.deleteAsync(file_path);
+
+                } catch (error) {
+                    console.error('#0 Error deleting file from cache:', error);
+                }
             }
-            const response = await axios.get(link, {responseType: 'arraybuffer', timeout: 60000});
-            const data = Buffer.from(response.data, 'binary').toString('base64');
-            await this.store(link, data);
 
-
-            // DELETE images older than MAX_AGE days
-            const thresholdDate = dayjs().subtract(MAX_AGE * 24 * 60 * 60, 'second').unix();
-            await db.runAsync('DELETE FROM images WHERE timestamp < ?;',thresholdDate);
+            const result = await db.getFirstAsync('SELECT * FROM images WHERE link = ?;',link)
             
-            return {type:"base64",data:data}
-        }
-    }
+            if (result) {
+                // Image link exists, return the data
+                
+                return {type:"file_path",data:result.file_path}
+            }else{
+                const result = await db.getFirstAsync('SELECT COUNT(*) as count FROM images;')
+                if (result.count >= MAX_ROW) {
+                    const result =await db.getFirstAsync('SELECT * FROM images WHERE timestamp = (SELECT MIN(timestamp) FROM images);')
+                    if (result) {
+                        try {
+                            // Delete the file
+                            const filePath = result.file_path;
+                            await FileSystem.deleteAsync(filePath);
+    
+                        } catch (error) {
+                            console.error('#1 Error deleting file from cache:', error);
+                        }
+                        await db.runAsync('DELETE FROM images WHERE timestamp = (SELECT MIN(timestamp) FROM images);')
+                    }
+                    
+                }
+                const response = await axios.get(link, { responseType: 'blob', timeout: 60000 });
+                const filename = response.headers['content-disposition'].match(/filename="([^"]+)"/)[1]
+                const base64:string = await blobToBase64(response.data);
+                
 
-    static async remove(link: string) {
-        const db = await this.get_database()    
-        await db.runAsync('DELETE FROM images WHERE link = ?;',link)
+                const dir_path = FileSystem.cacheDirectory + "ComicMTL/" + "cover/"
+                const dirInfo = await FileSystem.getInfoAsync(dir_path);
+                if (!dirInfo.exists) {
+                    await FileSystem.makeDirectoryAsync(dir_path, { intermediates: true });
+                }
+                const file_path = dir_path + filename;
+                await FileSystem.writeAsStringAsync(file_path, base64.split(',')[1], {
+                    encoding: FileSystem.EncodingType.Base64,
+                });
+                await this.store(link, file_path);
+
+                // DELETE images older than MAX_AGE days
+                const thresholdDate = dayjs().subtract(MAX_AGE * 24 * 60 * 60, 'second').unix();
+                const rows = await db.getAllAsync('SELECT * FROM images WHERE timestamp < ?;',thresholdDate);
+                for (const row of rows) {
+                    const row_file_path = row.file_path;
+                    try {
+                        // Delete the file
+                        await FileSystem.deleteAsync(row_file_path);
+                        await db.runAsync('DELETE FROM images WHERE link = ?;',row.link);
+
+                    } catch (error) {
+                        console.error('#2 Error deleting file from cache:', error);
+                    }
+                }
+                return {type:"file_path",data:file_path}
+            }
+        }catch(error){
+            console.error(error)
+            return {}
+        }
     }
 }
 
