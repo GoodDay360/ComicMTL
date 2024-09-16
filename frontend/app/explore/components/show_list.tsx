@@ -215,7 +215,7 @@ const ShowList = ({itemSelected,setItemSelected}:any) => {
                             
                         }}
                     >
-                        {translate.state ? "Disable Transation" : "Enable Transation"}
+                        {translate.state ? "Disable Translation" : "Enable Translation"}
                     </Button>
 
                     

@@ -27,7 +27,7 @@ class RequestContextManager:
         global RequestQueueID
         while True:
             try:
-                RequestCache.objects.filter(room=RequestQueueRoom,client=self.id).delete()
+                if RequestQueueID: RequestCache.objects.filter(room=RequestQueueRoom,client=self.id).delete()
                 if RequestQueueID == self.id: RequestQueueID = None
                 break
             except Exception as e: print(f"Error Exiting Room: {RequestQueueRoom}.\n {e}\nRetrying...")
@@ -49,6 +49,7 @@ thread.start()
 
 def scrap(orderBy:str="weeklyCount",page:int=1):
     global scraper, RequestContextManager, RequestQueueID
+    
     with RequestContextManager() as queue_id:
         while RequestQueueID != queue_id: pass
         try:
