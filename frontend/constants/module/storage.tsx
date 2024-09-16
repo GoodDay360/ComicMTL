@@ -81,13 +81,19 @@ class Storage_Web {
     }
 }
 
-class Storage_Mobile{
 
-    private static DATABASE:any = new Promise(async (resolve, reject) => {
-        resolve(await SQLite.openDatabaseAsync(DATABASE_NAME))
-    })
+class Storage_Native{
 
-    static async store(key: string, value: any) {
+    private DATABASE:any
+    
+    constructor() {
+        this.DATABASE = new Promise(async (resolve, reject) => {
+            resolve(await SQLite.openDatabaseAsync(DATABASE_NAME))
+        })
+    
+    }
+    
+    public async store(key: string, value: any) {
         try{
             const db = await this.DATABASE;
             await db.runAsync('CREATE TABLE IF NOT EXISTS storage (key TEXT PRIMARY KEY NOT NULL, value TEXT);')
@@ -98,7 +104,7 @@ class Storage_Mobile{
         }catch(error){console.log(error)}
     }
 
-    static async get(key: string) {
+    public async get(key: string) {
         try {
             const db = await this.DATABASE;
             await db.runAsync('CREATE TABLE IF NOT EXISTS storage (key TEXT PRIMARY KEY NOT NULL, value TEXT);')
@@ -111,7 +117,7 @@ class Storage_Mobile{
         }catch(error){console.log(error)}
     }
     
-    static async remove(key: string) {
+    public async remove(key: string) {
         try{
             const db = await this.DATABASE;
             await db.runAsync('CREATE TABLE IF NOT EXISTS storage (key TEXT PRIMARY KEY NOT NULL, value TEXT);')
@@ -128,7 +134,7 @@ var Storage:any
 if (Platform.OS === "web") {
   Storage = Storage_Web;
 }else{
-    Storage = Storage_Mobile;
+    Storage = new Storage_Native();
 }
 
 export default Storage

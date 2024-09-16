@@ -64,7 +64,7 @@ class ImageStorage_Web {
     }
 
     // Get image data
-    static async get(link: string): Promise<Object | null> {
+    static async get(link: string, signal: AbortSignal): Promise<Object | null> {
         const db = await this.getDB();
         const transaction = db.transaction('images', 'readonly');
         const store = transaction.objectStore('images');
@@ -86,7 +86,7 @@ class ImageStorage_Web {
                         }
 
                         try {
-                            const response = await axios.get(link, { responseType: 'blob', timeout: 60000 });
+                            const response = await axios.get(link, { responseType: 'blob', timeout: 60000, signal: signal });
                             const data = response.data;
                             await this.store(link, data);
                             await this.removeOldImages()
@@ -171,33 +171,36 @@ class ImageStorage_Web {
 
 
 
-class ImageStorage_Mobile {
-    private static DATABASE:any = new Promise(async (resolve, reject) => {
-        const _DATABASE = await SQLite.openDatabaseAsync(DATABASE_NAME)
-        await _DATABASE.runAsync(`CREATE TABLE IF NOT EXISTS images (
-            link TEXT PRIMARY KEY NOT NULL,
-            file_path TEXT NOT NULL,
-            timestamp INTEGER NOT NULL
-        );`)
-        resolve(_DATABASE)
-    })
+class ImageStorage_Native {
+    private DATABASE:any
+
+    constructor() {
+        this.DATABASE = new Promise(async (resolve, reject) => {
+            const _DATABASE = await SQLite.openDatabaseAsync(DATABASE_NAME)
+            await _DATABASE.runAsync(`DROP TABLE IF EXISTS images;`)
+            await _DATABASE.runAsync(`CREATE TABLE IF NOT EXISTS images (
+                link TEXT PRIMARY KEY NOT NULL,
+                file_path TEXT NOT NULL,
+                timestamp INTEGER NOT NULL
+            );`)
+            resolve(_DATABASE)
+        })
+    }
 
 
-    static async store(link: string, file_path: string): Promise<void> {
+    public async store(link: string, file_path: string): Promise<void> {
         const db = await this.DATABASE
         const timestamp = dayjs().unix();
         
         await db.runAsync('INSERT OR REPLACE INTO images (link, file_path, timestamp) VALUES (?, ?, ?);',link, file_path, timestamp)
     }
 
-    static async get(link: string) {
+    public async get(link: string, signal: AbortSignal) {
         try{
             const db = await this.DATABASE
 
             // Remove all unmatched image in sqlite and local
             const file_path_list = (await db.getAllAsync('SELECT file_path FROM images')).map((item:any) => item.file_path);
-            
-
             const dir_path = FileSystem.cacheDirectory + 'ComicMTL/'+ 'cover/';
             const local_file_path_list = (await FileSystem.readDirectoryAsync(dir_path)).map(file => dir_path + file);;
             const result_list = local_file_path_list.filter(item => !file_path_list.includes(item));
@@ -207,15 +210,13 @@ class ImageStorage_Mobile {
                     await FileSystem.deleteAsync(file_path);
 
                 } catch (error) {
-                    console.error('#0 Error deleting file from cache:', error);
+                    console.log('#0 Error deleting file from cache:', error);
                 }
             }
-
+            // Check if image link exists in sqlite
             const result = await db.getFirstAsync('SELECT * FROM images WHERE link = ?;',link)
-            
             if (result) {
                 // Image link exists, return the data
-                
                 return {type:"file_path",data:result.file_path}
             }else{
                 const result = await db.getFirstAsync('SELECT COUNT(*) as count FROM images;')
@@ -234,7 +235,7 @@ class ImageStorage_Mobile {
                     }
                     
                 }
-                const response = await axios.get(link, { responseType: 'blob', timeout: 60000 });
+                const response = await axios.get(link, { responseType: 'blob', timeout: 60000, signal: signal });
                 const filename = response.headers['content-disposition'].match(/filename="([^"]+)"/)[1]
                 const base64:string = await blobToBase64(response.data);
                 
@@ -267,7 +268,7 @@ class ImageStorage_Mobile {
                 return {type:"file_path",data:file_path}
             }
         }catch(error){
-            console.error(error)
+            console.log(error)
             return {}
         }
     }
@@ -279,7 +280,7 @@ var ImageStorage:any
 if (Platform.OS === "web"){
     ImageStorage = ImageStorage_Web
 }else{
-    ImageStorage = ImageStorage_Mobile
+    ImageStorage = new ImageStorage_Native()
 }
 
 export default ImageStorage;

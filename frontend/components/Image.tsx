@@ -7,12 +7,16 @@ import blobToBase64 from "@/constants/module/blob_to_base64";
 const Image = ({source, style, onError, contentFit, transition}:any) => {
     const [imageData, setImageData]:any = useState(null)
 
+
     useEffect(()=>{
+        const controller = new AbortController();
+        const signal = controller.signal;
+
         (async ()=>{
             if (source.hasOwnProperty("uri")){
-                const result:any = await ImageStorage.get(source.uri);
+                const result:any = await ImageStorage.get(source.uri,signal);
                 if (result.type === "blob"){
-                    setImageData({uri:blobToBase64(result.data)})
+                    setImageData({uri:await blobToBase64(result.data)})
                 }else if(result.type === "base64"){
                     setImageData({uri:result.data})
                 }else if (result.type === "file_path"){
@@ -25,6 +29,9 @@ const Image = ({source, style, onError, contentFit, transition}:any) => {
 
             
         })()
+        return () => {
+            controller.abort();
+        };
     },[])
 
     return (imageData 
