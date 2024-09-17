@@ -49,7 +49,7 @@ const ShowList = ({itemSelected,setItemSelected}:any) => {
             }else __translate = JSON.parse(__translate)
 
             setTranslate(__translate)
-            get_list(setIsLoading,__translate,SET_CONTENT,apiBaseContext)
+            // get_list(setIsLoading,__translate,SET_CONTENT,apiBaseContext)
         })()
     },[])
 

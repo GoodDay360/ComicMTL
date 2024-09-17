@@ -12,7 +12,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import Theme from '@/constants/theme';
 import { CONTEXT } from '@/constants/module/context';
 import { AnimatePresence } from 'moti';
-
+import { WebView } from 'react-native-webview';
 
 
 
@@ -27,7 +27,10 @@ export default function RootLayout() {
   const [themeTypeContext,setThemeTypeContext]:any = useState("")
   const [apiBaseContext, setApiBaseContext]:any = useState("")
 
+
   const MemoMenu = memo(Menu)
+
+
 
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -51,6 +54,7 @@ export default function RootLayout() {
         setApiBaseContext(API_BASE)
         console.log(process.env.EXPO_PUBLIC_DEFAULT_API_BASE)
         SplashScreen.hideAsync();
+
       })()
     }
   }, [loaded]);
@@ -61,22 +65,26 @@ export default function RootLayout() {
 
   return (<>{loaded && themeTypeContext && apiBaseContext && <>
     <SafeAreaView style={{flex:1,backgroundColor:Theme[themeTypeContext].background_color}}>
-      <CONTEXT.Provider value={{themeTypeContext, setThemeTypeContext, showMenuContext, setShowMenuContext, apiBaseContext, setApiBaseContext}}>
-        <AnimatePresence>
-          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-              <View style={{
-                  display: 'flex', 
-                  flex: 1, 
-                  flexDirection: Dimensions.width <= 720 ? 'column' : 'row-reverse',
-                  backgroundColor: Theme[themeTypeContext].background_color
-                }}>
-                <Stack screenOptions={{ headerShown: false }}>
-                  <Stack.Screen name="+not-found" />
-                </Stack>
-                {showMenuContext && <MemoMenu/>}
-              </View>
-          </ThemeProvider>
-        </AnimatePresence>
+      <CONTEXT.Provider value={{themeTypeContext, setThemeTypeContext, setShowMenuContext, apiBaseContext, setApiBaseContext}}>
+        <View style={{width:"100%",height:"100%",backgroundColor: Theme[themeTypeContext].background_color}}>
+          <AnimatePresence>
+            <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                <View style={{
+                    display: 'flex', 
+                    flex: 1, 
+                    flexDirection: Dimensions.width <= 720 ? 'column' : 'row-reverse',                 
+                  }}>
+                    
+                  <Stack screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name="+not-found" />
+                    
+                  </Stack>
+                  
+                  {showMenuContext && <MemoMenu/>}
+                </View>
+            </ThemeProvider>
+          </AnimatePresence>
+        </View>
       </CONTEXT.Provider>
     </SafeAreaView>
   </>}</>);

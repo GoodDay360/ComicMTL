@@ -10,6 +10,8 @@ import storage from '@/constants/module/storage';
 import { CONTEXT } from '@/constants/module/context';
 import { get_list } from '@/app/explore/module/content'
 import ShowList from './components/show_list';
+import { WebView } from 'react-native-webview';
+
 
 
 const Explore = () => {
@@ -18,6 +20,7 @@ const Explore = () => {
 
 
     return (<>
+
         <ShowList itemSelected={itemSelectedId} setItemSelected={setItemSelectedId} />
     </>);
 }
