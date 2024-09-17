@@ -106,7 +106,7 @@ class ImageStorage_Web {
                             
                         } catch (error) {
                             console.log('Error fetching image:', error);
-                            reject(error);
+                            
                         }
                     };
 
@@ -292,12 +292,12 @@ class ImageStorage_Native {
                     }).catch((error) => {
                         if (error.status === 511) setShowCloudflareTurnstile(true)
                         console.log(error)
-                        reject(error)
+                        
                     });
                 }
             }catch(error){
                 console.log(error)
-                reject(error)
+                
             }
         })
     }
