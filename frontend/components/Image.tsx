@@ -4,7 +4,7 @@ import { View } from "react-native"
 import ImageStorage from "@/constants/module/image_storage";
 import blobToBase64 from "@/constants/module/blob_to_base64";
 
-const Image = ({source, style, onError, contentFit, transition}:any) => {
+const Image = ({setShowCloudflareTurnstile, source, style, onError, contentFit, transition}:any) => {
     const [imageData, setImageData]:any = useState(null)
 
 
@@ -14,7 +14,7 @@ const Image = ({source, style, onError, contentFit, transition}:any) => {
 
         (async ()=>{
             if (source.hasOwnProperty("uri")){
-                const result:any = await ImageStorage.get(source.uri,signal);
+                const result:any = await ImageStorage.get(setShowCloudflareTurnstile,source.uri,signal);
                 if (result.type === "blob"){
                     setImageData({uri:await blobToBase64(result.data)})
                 }else if(result.type === "base64"){

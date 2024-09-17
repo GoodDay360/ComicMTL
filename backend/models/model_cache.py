@@ -1,18 +1,15 @@
 from django.db import models
-
-# Create your models here.
+from backend.module.utils import date_utils
 
 class RequestCache(models.Model):
     room = models.TextField()
-    client = models.UUIDField()
-    datetime = models.DateTimeField(auto_now=True)
-    def save(self, *args, **kwargs):
-        super(RequestCache, self).save(*args, **kwargs)
+    client = models.UUIDField(primary_key=True)
+    datetime = models.DateTimeField(default=date_utils.utc_time().get)
 
-# class SocketCache(models.Model):
-#     room = models.TextField()
-#     channel = models.TextField()
-    
+class CloudflareTurnStileCache(models.Model):
+    token = models.TextField(primary_key=True)
+    datetime = models.DateTimeField(default=date_utils.utc_time().get)
+
     
     
     

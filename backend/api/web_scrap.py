@@ -11,20 +11,22 @@ from backend.module import web_scrap
 from backend.module.utils import manage_image
 from backend.models.model_cache import RequestCache
 from core.settings import BASE_DIR
+from backend.module.utils import cloudflare_turnstile
+
 
 env = environ.Env()
-
 
 
 @csrf_exempt
 @ratelimit(key='ip', rate='60/m')
 def get_list(request):
     if request.method != "POST": return HttpResponseBadRequest('Allowed POST request only!', status=400)
-
+    token = request.META.get('HTTP_X_CLOUDFLARE_TURNSTILE_TOKEN')
+    if not cloudflare_turnstile.check(token): return HttpResponseBadRequest('Cloudflare turnstile token not existed or expired!', status=511)
+    
     DATA = web_scrap.source_control["colamanga"].get_list.scrap()
 
     return JsonResponse({"data":DATA}) 
-
 
 
 @ratelimit(key='ip', rate='60/m')
@@ -50,6 +52,9 @@ def get(request):
 
 @ratelimit(key='ip', rate='60/m')
 def get_cover(request,source,id,cover_id):
+    token = request.META.get('HTTP_X_CLOUDFLARE_TURNSTILE_TOKEN')
+    if not cloudflare_turnstile.check(token): return HttpResponseBadRequest('Cloudflare turnstile token not existed or expired!', status=511)
+    
     try:
         DATA = web_scrap.source_control[source].get_cover.scrap(id=id,cover_id=cover_id)
         response = HttpResponse(DATA, content_type="image/png")

@@ -39,7 +39,7 @@ def RequestQueueManager():
         try:
             if not RequestQueueID: 
                 if RequestCache.objects.filter(room=RequestQueueRoom).count():
-                    RequestCache.objects.filter(room=RequestQueueRoom,datetime__lte= date_utils.utc_time().add((-5,'minute')).get()).delete()
+                    RequestCache.objects.filter(room=RequestQueueRoom,datetime__lte= date_utils.utc_time().add(-5,'minute').get()).delete()
                     RequestQueueID = RequestCache.objects.filter(room=RequestQueueRoom).order_by("datetime").values("client").first().get("client")
         except Exception as e: print(f"Error Room: {RequestQueueRoom}.\n {e}\nRetrying...")
         

@@ -20,7 +20,7 @@ import { transformAsync } from '@babel/core';
 
 
 
-const ShowList = ({itemSelected,setItemSelected}:any) => {
+const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelected,setItemSelected}:any) => {
     
 
     const {showMenuContext, setShowMenuContext}:any = useContext(CONTEXT)
@@ -53,7 +53,7 @@ const ShowList = ({itemSelected,setItemSelected}:any) => {
             }else __translate = JSON.parse(__translate)
 
             setTranslate(__translate)
-            get_list(signal,setIsLoading,__translate,SET_CONTENT,apiBaseContext)
+            get_list(setShowCloudflareTurnstile,signal,setIsLoading,__translate,SET_CONTENT,apiBaseContext)
         })()
 
         return () => {
@@ -67,7 +67,7 @@ const ShowList = ({itemSelected,setItemSelected}:any) => {
         if (!(styles && themeTypeContext && apiBaseContext)) return
         setIsLoading(true);
         SET_CONTENT([])
-        get_list(signal,setIsLoading,translate,SET_CONTENT,apiBaseContext)
+        get_list(setShowCloudflareTurnstile,signal,setIsLoading,translate,SET_CONTENT,apiBaseContext)
     }
 
 
@@ -236,13 +236,13 @@ const ShowList = ({itemSelected,setItemSelected}:any) => {
         
         <View style={styles.body_container}>
             {isLoading
-                ? <Image source={require("@/assets/gif/cat-loading.gif")} style={{width:((Dimensions.width+Dimensions.height)/2)*0.15,height:((Dimensions.width+Dimensions.height)/2)*0.15}}/>
+                ? <Image setShowCloudflareTurnstile={setShowCloudflareTurnstile} source={require("@/assets/gif/cat-loading.gif")} style={{width:((Dimensions.width+Dimensions.height)/2)*0.15,height:((Dimensions.width+Dimensions.height)/2)*0.15}}/>
                 : <>{CONTENT.map((item:any,index:number)=>(
                     <Pressable key={index}
                         onPress={() => {setItemSelected(item.id)}}
                     >
                         <View style={styles.item_box}>
-                            <Image onError={(error:any)=>{console.log("load image error",error)}} source={{uri:`${apiBaseContext}${item.cover}`}} style={styles.item_cover}
+                            <Image setShowCloudflareTurnstile={setShowCloudflareTurnstile} onError={(error:any)=>{console.log("load image error",error)}} source={{uri:`${apiBaseContext}${item.cover}`}} style={styles.item_cover}
                                 contentFit="cover" transition={1000}
                             />
                             <Text style={styles.item_title}>{item.title}</Text>

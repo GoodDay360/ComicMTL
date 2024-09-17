@@ -1,11 +1,13 @@
 
 from django.contrib import admin
 from django.urls import path, include, re_path
-from backend.api import web_scrap, test
+from backend.api import test, web_scrap, cloudflare_turnstile
 
 
 
 urlpatterns = [
+    path("cloudflare_turnstile/verify/", cloudflare_turnstile.verify),
+    
     path('web_scrap/get_list/', web_scrap.get_list),
     path('web_scrap/search/', web_scrap.search),
     path('web_scrap/get/', web_scrap.get),

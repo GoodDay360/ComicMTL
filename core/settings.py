@@ -4,6 +4,8 @@ import environ, dj_database_url
 import pymysql
 pymysql.install_as_MySQLdb()
 
+from corsheaders.defaults import default_headers
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -45,6 +47,9 @@ CSRF_USE_SESSIONS = True
 CSRF_COOKIE_HTTPONLY = True
 
 CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'X-CLOUDFLARE-TURNSTILE-TOKEN',
+]
 
 # Application definition
 INSTALLED_APPS = [

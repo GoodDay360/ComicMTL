@@ -8,11 +8,11 @@ class utc_time():
     def __init__(self) -> None:
         self.current_time = datetime.now()
     
+    
     def get(self):
        return self.current_time.astimezone(pytz.UTC)
    
-    def add(self, value):
-        amount, unit = value
+    def add(self, amount, unit):
         if unit == 'year':
             self.current_time += relativedelta(years=int(amount))
         elif unit == 'month':

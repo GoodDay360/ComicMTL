@@ -8,6 +8,7 @@ import * as SQLite from 'expo-sqlite';
 import * as FileSystem from 'expo-file-system';
 
 import blobToBase64 from '@/constants/module/blob_to_base64';
+import Storage from '@/constants/module/storage';
 
 
 const DATABASE_NAME = 'ImageDB';
@@ -64,7 +65,7 @@ class ImageStorage_Web {
     }
 
     // Get image data
-    static async get(link: string, signal: AbortSignal): Promise<Object | null> {
+    static async get(setShowCloudflareTurnstile:any, link: string, signal: AbortSignal): Promise<Object | null> {
         const db = await this.getDB();
         const transaction = db.transaction('images', 'readonly');
         const store = transaction.objectStore('images');
@@ -86,11 +87,23 @@ class ImageStorage_Web {
                         }
 
                         try {
-                            const response = await axios.get(link, { responseType: 'blob', timeout: 60000, signal: signal });
-                            const data = response.data;
-                            await this.store(link, data);
-                            await this.removeOldImages()
-                            resolve({type:"blob",data:data});
+                            await axios.get(link, { 
+                                responseType: 'blob', 
+                                timeout: 60000, 
+                                signal: signal,
+                                headers: {
+                                    'X-CLOUDFLARE-TURNSTILE-TOKEN': await Storage.get("cloudflare-turnstile-token")
+                                }, 
+                            }).then(async (response) => {
+                                const data = response.data;
+                                await this.store(link, data);
+                                await this.removeOldImages()
+                                resolve({type:"blob",data:data});
+                            }).catch((error) => {
+                                if (error.status === 511) setShowCloudflareTurnstile(true)
+                                console.log(error)
+                            });
+                            
                         } catch (error) {
                             console.log('Error fetching image:', error);
                             reject(error);
@@ -195,82 +208,99 @@ class ImageStorage_Native {
         await db.runAsync('INSERT OR REPLACE INTO images (link, file_path, timestamp) VALUES (?, ?, ?);',link, file_path, timestamp)
     }
 
-    public async get(link: string, signal: AbortSignal) {
-        try{
-            const db = await this.DATABASE
+    public async get(setShowCloudflareTurnstile:any,link: string, signal: AbortSignal) {
+        return new Promise(async (resolve, reject) => {
+            try{
+                const db = await this.DATABASE
 
-            // Remove all unmatched image in sqlite and local
-            const file_path_list = (await db.getAllAsync('SELECT file_path FROM images')).map((item:any) => item.file_path);
-            const dir_path = FileSystem.cacheDirectory + 'ComicMTL/'+ 'cover/';
-            const local_file_path_list = (await FileSystem.readDirectoryAsync(dir_path)).map(file => dir_path + file);;
-            const result_list = local_file_path_list.filter(item => !file_path_list.includes(item));
-            for (const file_path of result_list) {
-                try {
-                    // Delete the file
-                    await FileSystem.deleteAsync(file_path);
-
-                } catch (error) {
-                    console.log('#0 Error deleting file from cache:', error);
-                }
-            }
-            // Check if image link exists in sqlite
-            const result = await db.getFirstAsync('SELECT * FROM images WHERE link = ?;',link)
-            if (result) {
-                // Image link exists, return the data
-                return {type:"file_path",data:result.file_path}
-            }else{
-                const result = await db.getFirstAsync('SELECT COUNT(*) as count FROM images;')
-                if (result.count >= MAX_ROW) {
-                    const result =await db.getFirstAsync('SELECT * FROM images WHERE timestamp = (SELECT MIN(timestamp) FROM images);')
-                    if (result) {
-                        try {
-                            // Delete the file
-                            const filePath = result.file_path;
-                            await FileSystem.deleteAsync(filePath);
-    
-                        } catch (error) {
-                            console.error('#1 Error deleting file from cache:', error);
-                        }
-                        await db.runAsync('DELETE FROM images WHERE timestamp = (SELECT MIN(timestamp) FROM images);')
-                    }
-                    
-                }
-                const response = await axios.get(link, { responseType: 'blob', timeout: 60000, signal: signal });
-                const filename = response.headers['content-disposition'].match(/filename="([^"]+)"/)[1]
-                const base64:string = await blobToBase64(response.data);
-                
-
-                const dir_path = FileSystem.cacheDirectory + "ComicMTL/" + "cover/"
-                const dirInfo = await FileSystem.getInfoAsync(dir_path);
-                if (!dirInfo.exists) {
-                    await FileSystem.makeDirectoryAsync(dir_path, { intermediates: true });
-                }
-                const file_path = dir_path + filename;
-                await FileSystem.writeAsStringAsync(file_path, base64.split(',')[1], {
-                    encoding: FileSystem.EncodingType.Base64,
-                });
-                await this.store(link, file_path);
-
-                // DELETE images older than MAX_AGE days
-                const thresholdDate = dayjs().subtract(MAX_AGE * 24 * 60 * 60, 'second').unix();
-                const rows = await db.getAllAsync('SELECT * FROM images WHERE timestamp < ?;',thresholdDate);
-                for (const row of rows) {
-                    const row_file_path = row.file_path;
+                // Remove all unmatched image in sqlite and local
+                const file_path_list = (await db.getAllAsync('SELECT file_path FROM images')).map((item:any) => item.file_path);
+                const dir_path = FileSystem.cacheDirectory + 'ComicMTL/'+ 'cover/';
+                const local_file_path_list = (await FileSystem.readDirectoryAsync(dir_path)).map(file => dir_path + file);;
+                const result_list = local_file_path_list.filter(item => !file_path_list.includes(item));
+                for (const file_path of result_list) {
                     try {
                         // Delete the file
-                        await FileSystem.deleteAsync(row_file_path);
-                        await db.runAsync('DELETE FROM images WHERE link = ?;',row.link);
+                        await FileSystem.deleteAsync(file_path);
 
                     } catch (error) {
-                        console.error('#2 Error deleting file from cache:', error);
+                        console.log('#0 Error deleting file from cache:', error);
                     }
                 }
-                return {type:"file_path",data:file_path}
+                // Check if image link exists in sqlite
+                const result = await db.getFirstAsync('SELECT * FROM images WHERE link = ?;',link)
+                if (result) {
+                    // Image link exists, return the data
+                    resolve({type:"file_path",data:result.file_path})
+                }else{
+                    const result = await db.getFirstAsync('SELECT COUNT(*) as count FROM images;')
+                    if (result.count >= MAX_ROW) {
+                        const result =await db.getFirstAsync('SELECT * FROM images WHERE timestamp = (SELECT MIN(timestamp) FROM images);')
+                        if (result) {
+                            try {
+                                // Delete the file
+                                const filePath = result.file_path;
+                                await FileSystem.deleteAsync(filePath);
+        
+                            } catch (error) {
+                                console.error('#1 Error deleting file from cache:', error);
+                            }
+                            await db.runAsync('DELETE FROM images WHERE timestamp = (SELECT MIN(timestamp) FROM images);')
+                        }
+                        
+                    }
+                    await axios.get(link, { 
+                        responseType: 'blob', 
+                        timeout: 60000, 
+                        signal: signal,
+                        headers: {
+                            'X-CLOUDFLARE-TURNSTILE-TOKEN': await Storage.get("cloudflare-turnstile-token")
+                        }, 
+                    }).then(async (response) => {
+
+
+                    
+                        const filename = response.headers['content-disposition'].match(/filename="([^"]+)"/)[1]
+                        const base64:string = await blobToBase64(response.data);
+                        
+
+                        const dir_path = FileSystem.cacheDirectory + "ComicMTL/" + "cover/"
+                        const dirInfo = await FileSystem.getInfoAsync(dir_path);
+                        if (!dirInfo.exists) {
+                            await FileSystem.makeDirectoryAsync(dir_path, { intermediates: true });
+                        }
+                        const file_path = dir_path + filename;
+                        await FileSystem.writeAsStringAsync(file_path, base64.split(',')[1], {
+                            encoding: FileSystem.EncodingType.Base64,
+                        });
+                        await this.store(link, file_path);
+
+                        // DELETE images older than MAX_AGE days
+                        const thresholdDate = dayjs().subtract(MAX_AGE * 24 * 60 * 60, 'second').unix();
+                        const rows = await db.getAllAsync('SELECT * FROM images WHERE timestamp < ?;',thresholdDate);
+                        for (const row of rows) {
+                            const row_file_path = row.file_path;
+                            try {
+                                // Delete the file
+                                await FileSystem.deleteAsync(row_file_path);
+                                await db.runAsync('DELETE FROM images WHERE link = ?;',row.link);
+
+                            } catch (error) {
+                                console.error('#2 Error deleting file from cache:', error);
+                            }
+                        }
+                        resolve({type:"file_path",data:file_path})
+                    }).catch((error) => {
+                        if (error.status === 511) setShowCloudflareTurnstile(true)
+                        console.log(error)
+                        reject(error)
+                    });
+                }
+            }catch(error){
+                console.log(error)
+                reject(error)
             }
-        }catch(error){
-            console.log(error)
-            return {}
-        }
+        })
     }
 }
 

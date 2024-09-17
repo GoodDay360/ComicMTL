@@ -45,13 +45,18 @@ export default function RootLayout() {
   useEffect(() => {
     if (loaded) {
       (async ()=>{
+
         const THEME = await Storage.get("theme")
         if (!THEME) await Storage.store("theme","DARK_GREEN")
         setThemeTypeContext(`${await Storage.get("theme")}`)
 
         const API_BASE:any = await Storage.get("CUSTOM_API_BASE") || process.env.EXPO_PUBLIC_DEFAULT_API_BASE
+        await Storage.store("IN_USE_API_BASE", API_BASE)
+        
         setApiBaseContext(API_BASE)
-        console.log(process.env.EXPO_PUBLIC_DEFAULT_API_BASE)
+        
+
+
         SplashScreen.hideAsync();
 
       })()
