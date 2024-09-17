@@ -97,7 +97,7 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelect
 
     
 
-    return (<>{(styles) ?
+    return (<>{(styles && !isLoading) ?
     <ScrollView style={styles.screen_container}
         refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={()=>{
@@ -235,28 +235,26 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelect
         
         
         <View style={styles.body_container}>
-            {isLoading
-                ? <Image setShowCloudflareTurnstile={setShowCloudflareTurnstile} source={require("@/assets/gif/cat-loading.gif")} style={{width:((Dimensions.width+Dimensions.height)/2)*0.15,height:((Dimensions.width+Dimensions.height)/2)*0.15}}/>
-                : <>{CONTENT.map((item:any,index:number)=>(
-                    <Pressable key={index}
-                        onPress={() => {setItemSelected(item.id)}}
-                    >
-                        <View style={styles.item_box}>
-                            <Image setShowCloudflareTurnstile={setShowCloudflareTurnstile} onError={(error:any)=>{console.log("load image error",error)}} source={{uri:`${apiBaseContext}${item.cover}`}} style={styles.item_cover}
-                                contentFit="cover" transition={1000}
-                            />
-                            <Text style={styles.item_title}>{item.title}</Text>
-                        </View>
-                    </Pressable>
-                ))}</>
-            }
+            {CONTENT.map((item:any,index:number)=>(
+                <Pressable key={index}
+                    onPress={() => {setItemSelected(item.id)}}
+                >
+                    <View style={styles.item_box}>
+                        <Image setShowCloudflareTurnstile={setShowCloudflareTurnstile} onError={(error:any)=>{console.log("load image error",error)}} source={{uri:`${apiBaseContext}${item.cover}`}} style={styles.item_cover}
+                            contentFit="cover" transition={1000}
+                        />
+                        <Text style={styles.item_title}>{item.title}</Text>
+                    </View>
+                </Pressable>
+            ))}
 
         </View>
 
     </ScrollView>
-    : <></>
-    }
-    </>);
+    : <View style={{width:"100%",height:"100%",display:"flex",justifyContent:"center",alignItems:"center",backgroundColor:Theme[themeTypeContext].background_color}}>
+        <Image setShowCloudflareTurnstile={setShowCloudflareTurnstile} source={require("@/assets/gif/cat-loading.gif")} style={{width:((Dimensions.width+Dimensions.height)/2)*0.15,height:((Dimensions.width+Dimensions.height)/2)*0.15}}/>
+    </View>
+    }</>);
 }
 
 export default ShowList;

@@ -46,9 +46,9 @@ def RequestQueueManager():
                     RequestQueueID = RequestCache.objects.filter(room=RequestQueueRoom).order_by("datetime").values("client").first().get("client")
         except Exception as e: print(f"Error Room: {RequestQueueRoom}.\n {e}\nRetrying...")
         
-thread = threading.Thread(target=RequestQueueManager)
-thread.daemon = True
-thread.start()
+# thread = threading.Thread(target=RequestQueueManager)
+# thread.daemon = True
+# thread.start()
 
 
 def __scrollToBottom(driver:object=None):
