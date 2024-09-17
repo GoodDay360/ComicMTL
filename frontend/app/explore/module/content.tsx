@@ -1,12 +1,12 @@
 import axios from 'axios';
 import translator from '@/constants/module/translator';
 
-export const get_list = (setIsLoading:any,translate:any,SET_CONTENT:any,API_BASE:string) => {
+export const get_list = (signal:AbortSignal,setIsLoading:any,translate:any,SET_CONTENT:any,API_BASE:string) => {
 
     axios({
         method: 'post',
         url: `${API_BASE}/api/web_scrap/get_list/`,
-
+        signal:signal,
     }).then((response) => {(async () =>{
         
         const DATA = response.data.data

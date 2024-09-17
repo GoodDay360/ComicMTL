@@ -38,8 +38,12 @@ const ShowList = ({itemSelected,setItemSelected}:any) => {
     const [showOption, setShowOption]:any = useState({type:null})
     const [translate, setTranslate]:any = useState({});
     
+    const controller = new AbortController();
+    const signal = controller.signal;
+
     useEffect(() => { 
         (async ()=>{
+            
             setStyles(__styles(themeTypeContext,Dimensions))
 
             let __translate:any = await Storage.get("explore_translate")
@@ -49,8 +53,12 @@ const ShowList = ({itemSelected,setItemSelected}:any) => {
             }else __translate = JSON.parse(__translate)
 
             setTranslate(__translate)
-            // get_list(setIsLoading,__translate,SET_CONTENT,apiBaseContext)
+            get_list(signal,setIsLoading,__translate,SET_CONTENT,apiBaseContext)
         })()
+
+        return () => {
+            controller.abort();
+        };
     },[])
 
 
@@ -59,7 +67,7 @@ const ShowList = ({itemSelected,setItemSelected}:any) => {
         if (!(styles && themeTypeContext && apiBaseContext)) return
         setIsLoading(true);
         SET_CONTENT([])
-        get_list(setIsLoading,translate,SET_CONTENT,apiBaseContext)
+        get_list(signal,setIsLoading,translate,SET_CONTENT,apiBaseContext)
     }
 
 
