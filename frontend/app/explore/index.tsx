@@ -23,8 +23,6 @@ const Explore = () => {
     const {themeTypeContext, setThemeTypeContext}:any = useContext(CONTEXT)
     
     return (<>
-
-        
         {showCloudflareTurnstile 
             ? <View style={{width:"100%",height:"100%",display:"flex",justifyContent:"center",alignItems:"center",backgroundColor:Theme[themeTypeContext].background_color}}>
                 <CloudflareTurnstile 

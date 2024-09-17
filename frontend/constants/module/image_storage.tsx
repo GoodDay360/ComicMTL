@@ -87,7 +87,7 @@ class ImageStorage_Web {
                         }
 
                         try {
-                            await axios.get(link, { 
+                            const response = await axios.get(link, { 
                                 responseType: 'blob', 
                                 timeout: 60000, 
                                 signal: signal,
@@ -190,7 +190,6 @@ class ImageStorage_Native {
     constructor() {
         this.DATABASE = new Promise(async (resolve, reject) => {
             const _DATABASE = await SQLite.openDatabaseAsync(DATABASE_NAME)
-            await _DATABASE.runAsync(`DROP TABLE IF EXISTS images;`)
             await _DATABASE.runAsync(`CREATE TABLE IF NOT EXISTS images (
                 link TEXT PRIMARY KEY NOT NULL,
                 file_path TEXT NOT NULL,
@@ -243,7 +242,7 @@ class ImageStorage_Native {
                                 await FileSystem.deleteAsync(filePath);
         
                             } catch (error) {
-                                console.error('#1 Error deleting file from cache:', error);
+                                console.log('#1 Error deleting file from cache:', error);
                             }
                             await db.runAsync('DELETE FROM images WHERE timestamp = (SELECT MIN(timestamp) FROM images);')
                         }
@@ -286,7 +285,7 @@ class ImageStorage_Native {
                                 await db.runAsync('DELETE FROM images WHERE link = ?;',row.link);
 
                             } catch (error) {
-                                console.error('#2 Error deleting file from cache:', error);
+                                console.log('#2 Error deleting file from cache:', error);
                             }
                         }
                         resolve({type:"file_path",data:file_path})

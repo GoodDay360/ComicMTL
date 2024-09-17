@@ -100,7 +100,6 @@ class Storage_Native{
             await db.runAsync(
                 'INSERT OR REPLACE INTO storage (key, value) VALUES (?, ?);', key, value
             );
-            await db.closeAsync();
         }catch(error){console.log(error)}
     }
 
@@ -124,7 +123,6 @@ class Storage_Native{
             await db.runAsync(
                 'DELETE FROM storage WHERE key = ?;', key
             );
-            await db.closeAsync();
         }catch(error){console.log(error)}
     }
 }
