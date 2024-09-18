@@ -9,14 +9,13 @@ from backend.module.utils import date_utils
 
 scraper = None
 
-def scrap(type:int=1,page:int=1,search:str=""):
+def scrap(search:str=""):
     if not search: raise ValueError("The 'search' parameter is required.")
     global scraper
-    
 
     try:
-        url = f"https://www.colamanga.com/search?type={type}&page={page}&searchString={search}"
-        
+        url = f"https://www.colamanga.com/search?type={search.get("type")}&page={1}&searchString={search.get("text").replace(" ", "%20")}"
+        print(url)
         if not scraper: scraper = SeleniumScraper()
         driver = scraper.driver()
         driver.get(url)
@@ -32,9 +31,12 @@ def scrap(type:int=1,page:int=1,search:str=""):
             dt = dl.find("dt",{"class": "fed-deta-images"})
             a = dt.find("a",{"class": "fed-list-pics"})
             
-            object["cover"] = a.get("data-original")
-            object["id"] = a.get("href").strip("/")
-            object["lastest"] = a.find("span",{"class": "fed-list-remarks"}).text
+            id = a.get("href").strip("/")
+            object["id"] = id
+            
+            cover_link_split = a.get("data-original").split("/")
+            cover_id = cover_link_split[len(cover_link_split)-2]
+            object["cover"] = f"/api/web_scrap/colamanga/get_cover/{id}/{cover_id}/"
             
             dd = dl.find("dd",{"class": "fed-deta-content"})
 

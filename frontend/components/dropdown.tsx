@@ -9,13 +9,12 @@ const __style = (Dimensions:any,theme_type:string) => StyleSheet.create({
         display: "flex",
         flexDirection: "column",
         backgroundColor: Theme[theme_type].background_color,
-        padding: 16,
         gap: 8,
 
     },
     label: {
         color: Theme[theme_type].text_color,
-        fontSize: ((Dimensions.width+Dimensions.height)/2)*0.0225,
+        fontSize: ((Dimensions.width+Dimensions.height)/2)*0.0220,
         height:"auto",
         fontFamily: "roboto-medium",
     },
@@ -41,7 +40,7 @@ const __style = (Dimensions:any,theme_type:string) => StyleSheet.create({
         color: Theme[theme_type].text_color,
     },
     selectedTextStyle: {
-        fontSize: ((Dimensions.width+Dimensions.height)/2)*0.0225,
+        fontSize: ((Dimensions.width+Dimensions.height)/2)*0.0215,
         color: Theme[theme_type].text_color,
     },
     containerStyle: {

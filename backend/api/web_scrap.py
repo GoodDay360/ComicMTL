@@ -22,9 +22,12 @@ env = environ.Env()
 def get_list(request):
     if request.method != "POST": return HttpResponseBadRequest('Allowed POST request only!', status=400)
     token = request.META.get('HTTP_X_CLOUDFLARE_TURNSTILE_TOKEN')
-    if not cloudflare_turnstile.check(token): return HttpResponseBadRequest('Cloudflare turnstile token not existed or expired!', status=511)
+    payload = json.loads(request.body)
+    search = payload.get("search")
     
-    DATA = web_scrap.source_control["colamanga"].get_list.scrap()
+    if not cloudflare_turnstile.check(token): return HttpResponseBadRequest('Cloudflare turnstile token not existed or expired!', status=511)
+    if search.get("text"): DATA = web_scrap.source_control["colamanga"].search.scrap(search)
+    else: DATA = web_scrap.source_control["colamanga"].get_list.scrap()
 
     return JsonResponse({"data":DATA}) 
 

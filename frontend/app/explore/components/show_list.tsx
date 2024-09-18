@@ -38,7 +38,7 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelect
 
     const [showOption, setShowOption]:any = useState({type:null})
     const [translate, setTranslate]:any = useState({});
-    const [search, setSearch]:any = useState({search:"",filter:{}});
+    const [search, setSearch]:any = useState({text:"",type:1});
     
     
     const controller = new AbortController();
@@ -56,7 +56,7 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelect
             }else __translate = JSON.parse(__translate)
 
             setTranslate(__translate)
-            get_list(setShowCloudflareTurnstile,signal,setIsLoading,__translate,SET_CONTENT)
+            get_list(setShowCloudflareTurnstile,signal,setIsLoading,__translate,SET_CONTENT,search)
         })()
 
         return () => {
@@ -70,7 +70,7 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelect
         if (!(styles && themeTypeContext && apiBaseContext)) return
         setIsLoading(true);
         SET_CONTENT([])
-        get_list(setShowCloudflareTurnstile,signal,setIsLoading,translate,SET_CONTENT)
+        get_list(setShowCloudflareTurnstile,signal,setIsLoading,translate,SET_CONTENT,search)
     }
 
 
@@ -284,13 +284,74 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelect
                 >
                     <View style={{
                         display:"flex",
-                        flexDirection:"row",
+                        flexDirection: Dimensions.width <= 720 ? "column" : "row",
                         width:"100%",
-                        justifyContent:"space-around",
+                        alignItems:"center",
+                        justifyContent:"center",
                         gap:25,
                         
                     }}>
-                        <TextInput></TextInput>
+                        <View style={{flex:1,width:"100%"}}>
+                            <TextInput mode="outlined" label="Search"  textColor={Theme[themeTypeContext].text_color} 
+                                placeholder="Tip: search by using the original language for better results"
+                                style={{
+                                    
+                                    backgroundColor:Theme[themeTypeContext].background_color,
+                                    borderColor:Theme[themeTypeContext].border_color,
+                                    
+                                }}
+                                value={search.text}
+                                onChange={(event)=>{
+                                    setSearch({...search,text:event.nativeEvent.text})
+                                }}
+                            />
+                        </View>
+                        <View 
+                            style={{
+                                display:"flex",
+                                flexDirection:Dimensions.width <= 720 ? "row-reverse" : "row",
+                                gap:25, 
+                                justifyContent:"center",
+                                alignItems:"center",
+                            }}>
+                            <Button mode="contained" disabled={isLoading}
+                                style={{
+                            
+                                    borderRadius:5,
+                                    backgroundColor: "purple",
+                                }}
+                                labelStyle={{fontFamily:"roboto-medium",fontSize:(Dimensions.width+Dimensions.height)/2*0.0220}}
+                                onPress={()=>{
+                                    onRefresh()
+                                }}
+                            >
+                                Search
+                            </Button>
+                            <View style={{flexGrow:1}}>
+                                <Dropdown
+                                    theme_type={themeTypeContext}
+                                    Dimensions={Dimensions}
+
+                                    label='Search Type' 
+                                    data={[
+                                        { 
+                                            label: "Obscure ", 
+                                            value: 1
+                                        },
+                                        { 
+                                            label: "Precise", 
+                                            value: 2
+                                        },
+                                    ]}
+                                    value={search.type}
+                                    onChange={(item:any) => {
+                                        setSearch({...search,type:item.value})
+                                    }}
+                                />
+                            </View>
+                        </View>
+
+                        
                     </View>
                 </View>
             }

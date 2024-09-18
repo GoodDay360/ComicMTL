@@ -2,7 +2,7 @@ import axios from 'axios';
 import translator from '@/constants/module/translator';
 import Storage from '@/constants/module/storage';
 
-export const get_list = async (setShowCloudflareTurnstile:any,signal:AbortSignal,setIsLoading:any,translate:any,SET_CONTENT:any) => {
+export const get_list = async (setShowCloudflareTurnstile:any,signal:AbortSignal,setIsLoading:any,translate:any,SET_CONTENT:any,search:any) => {
     const API_BASE = await Storage.get("IN_USE_API_BASE")
     axios({
         method: 'post',
@@ -10,6 +10,7 @@ export const get_list = async (setShowCloudflareTurnstile:any,signal:AbortSignal
         headers: {
             'X-CLOUDFLARE-TURNSTILE-TOKEN': await Storage.get("cloudflare-turnstile-token")
         },
+        data: {search:search},
         timeout: 60000,
         signal:signal,
     }).then((response) => {(async () =>{

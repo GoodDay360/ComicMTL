@@ -16,10 +16,10 @@ def verify(request):
     if request.method != "POST": return HttpResponseBadRequest('Allowed POST request only!', status=400)
     client_ip, is_routable = get_client_ip(request)
     payload = json.loads(request.body)
-    
+    token = payload.get("token")
     form_data = {
         "secret": env("CLOUDFLARE_TURNSTILE_SECRET"),
-        "response": payload.get("token"),
+        "response": token,
         "remoteip": client_ip
     }
     req = requests.post(
@@ -29,6 +29,6 @@ def verify(request):
     result = req.json()
     status = result.get("success")
     if (status): 
-        CloudflareTurnStileCache(token=payload.get("token")).save()
+        CloudflareTurnStileCache(token=token).save()
         return JsonResponse(result)
     else: return HttpResponseBadRequest('Cloudflare turnstile token verificaion failed!', status=511)

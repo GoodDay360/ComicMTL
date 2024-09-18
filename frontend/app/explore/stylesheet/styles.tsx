@@ -67,7 +67,7 @@ export const __styles:any = (theme_type:string,Dimensions:any) => {
             backgroundColor: Theme[theme_type].background_color,
             rowGap:25,
             columnGap:15,
-            padding:15,
+            padding:15, paddingTop:25,
             justifyContent:"space-evenly",
             alignItems:"flex-start",
         },
