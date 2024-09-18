@@ -3,7 +3,7 @@ import { Link } from 'expo-router';
 import Image from '@/components/Image';
 import { StyleSheet, useWindowDimensions, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Icon, MD3Colors, Button, Text } from 'react-native-paper';
+import { Icon, MD3Colors, Button, Text, TextInput } from 'react-native-paper';
 import CountryFlag from "react-native-country-flag";
 import Dropdown from '@/components/dropdown';
 
@@ -38,6 +38,8 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelect
 
     const [showOption, setShowOption]:any = useState({type:null})
     const [translate, setTranslate]:any = useState({});
+    const [search, setSearch]:any = useState({search:"",filter:{}});
+    
     
     const controller = new AbortController();
     const signal = controller.signal;
@@ -54,7 +56,7 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelect
             }else __translate = JSON.parse(__translate)
 
             setTranslate(__translate)
-            get_list(setShowCloudflareTurnstile,signal,setIsLoading,__translate,SET_CONTENT,apiBaseContext)
+            get_list(setShowCloudflareTurnstile,signal,setIsLoading,__translate,SET_CONTENT)
         })()
 
         return () => {
@@ -68,7 +70,7 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelect
         if (!(styles && themeTypeContext && apiBaseContext)) return
         setIsLoading(true);
         SET_CONTENT([])
-        get_list(setShowCloudflareTurnstile,signal,setIsLoading,translate,SET_CONTENT,apiBaseContext)
+        get_list(setShowCloudflareTurnstile,signal,setIsLoading,translate,SET_CONTENT)
     }
 
 
@@ -124,16 +126,20 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelect
                         }else{
                             setShowOption({type:"translate"})
                         }
-                        
-
                     }}
                 >
                     <Icon source={translate.state ? "translate" : "translate-off"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={Theme[themeTypeContext].icon_color}/>
                 </Button>
                 
 
-                <Button mode={"outlined"} style={styles.header_search_button}
-                    onPress={() => {setShowOption({type:"search"})}}
+                <Button mode={"outlined"} style={{...styles.header_search_button,backgroundColor: showOption.type === "search" ? Theme[themeTypeContext].button_selected_color : "transparent"}}
+                    onPress={() => {
+                        if (showOption.type === "search"){
+                            setShowOption({type:null})
+                        }else{
+                            setShowOption({type:"search"})
+                        }
+                    }}
                 >
                     <Icon source={"magnify"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={Theme[themeTypeContext].icon_color}/>
                 </Button>
@@ -148,8 +154,8 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelect
 
         </View>
         
-            {showOption.type === "translate" 
-                ? <View style={styles.option_container}
+            {showOption.type === "translate" &&
+                <View style={styles.option_container}
                     from={{
                         opacity: 0,
                         scale: 0.9,
@@ -251,10 +257,43 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelect
                         
                     </View>
                 </View>
-                : <></>
-
             }
-        
+
+            {showOption.type === "search" &&
+                <View style={styles.option_container}
+                    from={{
+                        opacity: 0,
+                        scale: 0.9,
+                    }}
+                    animate={{
+                        opacity: 1,
+                        scale: 1,
+                    }}
+                    exit={{
+                        opacity: 0,
+                        scale: 0.5,
+                    }}
+                    transition={{
+                        type: 'timing',
+                        duration: 500,
+                    }}
+                    exitTransition={{
+                        type: 'timing',
+                        duration: 250,
+                    }}
+                >
+                    <View style={{
+                        display:"flex",
+                        flexDirection:"row",
+                        width:"100%",
+                        justifyContent:"space-around",
+                        gap:25,
+                        
+                    }}>
+                        <TextInput></TextInput>
+                    </View>
+                </View>
+            }
         
         
         <View style={styles.body_container}>

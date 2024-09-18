@@ -2,8 +2,8 @@ import axios from 'axios';
 import translator from '@/constants/module/translator';
 import Storage from '@/constants/module/storage';
 
-export const get_list = async (setShowCloudflareTurnstile:any,signal:AbortSignal,setIsLoading:any,translate:any,SET_CONTENT:any,API_BASE:string) => {
-    
+export const get_list = async (setShowCloudflareTurnstile:any,signal:AbortSignal,setIsLoading:any,translate:any,SET_CONTENT:any) => {
+    const API_BASE = await Storage.get("IN_USE_API_BASE")
     axios({
         method: 'post',
         url: `${API_BASE}/api/web_scrap/get_list/`,
