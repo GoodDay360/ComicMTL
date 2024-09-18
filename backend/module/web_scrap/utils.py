@@ -16,7 +16,7 @@ class SeleniumScraper:
         chrome_options.add_argument('--no-sandbox')
         chrome_options.add_argument("--no-quit")
         chrome_options.add_argument('--disable-dev-shm-usage')
-        
+        chrome_options.add_argument('--disable-blink-features=AutomationControlled')
         chrome_options.set_capability('goog:loggingPrefs', {'performance': 'ALL'})
         self.__driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
         
