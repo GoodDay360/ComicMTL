@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useContext, useRef } from 'react';
 import { Link } from 'expo-router';
 import Image from '@/components/Image';
-import { StyleSheet, View, useWindowDimensions, ScrollView, Pressable, RefreshControl } from 'react-native';
+import { StyleSheet, useWindowDimensions, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Icon, MD3Colors, Button, Text } from 'react-native-paper';
 import CountryFlag from "react-native-country-flag";
@@ -15,6 +15,7 @@ import ImageStorage from '@/constants/module/image_storage';
 import { CONTEXT } from '@/constants/module/context';
 import { get_list } from '@/app/explore/module/content'
 import { transformAsync } from '@babel/core';
+import { View, AnimatePresence } from 'moti';
 
 
 
@@ -146,92 +147,114 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelect
             
 
         </View>
-
-        {showOption.type === "translate" 
-            ? <View style={styles.option_container}>
-                <View style={{
-                    display:"flex",
-                    flexDirection:"row",
-                    width:"100%",
-                    justifyContent:"space-around",
-                    gap:25,
-                    
-                }}>
-                    <View style={{flexGrow:1,}}>
-                        <Dropdown
-                            theme_type={themeTypeContext}
-                            Dimensions={Dimensions}
-
-                            label='From Language' 
-                            data={[
-                                { 
-                                    label: "Auto", 
-                                    value: 'auto' 
-                                },
-                                { 
-                                    label: "Chinese", 
-                                    value: 'zh' 
-                                },
-                            ]}
-                            value={translate.from}
-                            onChange={async (item:any) => {
-                                setTranslate({...translate,from:item.value})
-                                await Storage.store("explore_translate",JSON.stringify({...translate,from:item.value}))
-                            }}
-                        />
-                    </View>
-                    <View style={{flexGrow:1,}}>
-                        <Dropdown
-                            theme_type={themeTypeContext}
-                            Dimensions={Dimensions}
-                            label='To Language' 
-                            data={[
-                                { 
-                                    label: "English", 
-                                    value: 'en' 
-                                },
-                            ]}
-                            value={translate.to}
-                            onChange={async (item:any) => {
-                                setTranslate({...translate,to:item.value})
-                                await Storage.store("explore_translate",JSON.stringify({...translate,to:item.value}))
-                            }}
-                        />
-                    </View>
-                </View>
-                <View style={{
-                    width:"100%",
-                    display:"flex",
-                    alignItems:"center",
-                    justifyContent:"center",
-                    flexDirection:"row",
-                }}>
-                    
-                    <Button mode={"contained"} style={{
-                        width:"auto",
-                        borderRadius:8,
-                        backgroundColor: translate.state ? "red": "green",
+        
+            {showOption.type === "translate" 
+                ? <View style={styles.option_container}
+                    from={{
+                        opacity: 0,
+                        scale: 0.9,
                     }}
-                        onPress={async () => {
-                            if (translate.state){
-                                setTranslate({...translate,state:false})
-                                await Storage.store("explore_translate",JSON.stringify({...translate,state:false}))
-                            }else{
-                                setTranslate({...translate,state:true})
-                                await Storage.store("explore_translate",JSON.stringify({...translate,state:true}))
-                            }
-                            
+                    animate={{
+                        opacity: 1,
+                        scale: 1,
+                    }}
+                    exit={{
+                        opacity: 0,
+                        scale: 0.5,
+                    }}
+                    transition={{
+                        type: 'timing',
+                        duration: 500,
+                    }}
+                    exitTransition={{
+                        type: 'timing',
+                        duration: 250,
+                    }}
+                >
+                    <View style={{
+                        display:"flex",
+                        flexDirection:"row",
+                        width:"100%",
+                        justifyContent:"space-around",
+                        gap:25,
+                        
+                    }}>
+                        <View style={{flexGrow:1,}}>
+                            <Dropdown
+                                theme_type={themeTypeContext}
+                                Dimensions={Dimensions}
+
+                                label='From Language' 
+                                data={[
+                                    { 
+                                        label: "Auto", 
+                                        value: 'auto' 
+                                    },
+                                    { 
+                                        label: "Chinese", 
+                                        value: 'zh' 
+                                    },
+                                ]}
+                                value={translate.from}
+                                onChange={async (item:any) => {
+                                    setTranslate({...translate,from:item.value})
+                                    await Storage.store("explore_translate",JSON.stringify({...translate,from:item.value}))
+                                }}
+                            />
+                        </View>
+                        <View style={{flexGrow:1,}}>
+                            <Dropdown
+                                theme_type={themeTypeContext}
+                                Dimensions={Dimensions}
+                                label='To Language' 
+                                data={[
+                                    { 
+                                        label: "English", 
+                                        value: 'en' 
+                                    },
+                                ]}
+                                value={translate.to}
+                                onChange={async (item:any) => {
+                                    setTranslate({...translate,to:item.value})
+                                    await Storage.store("explore_translate",JSON.stringify({...translate,to:item.value}))
+                                }}
+                            />
+                        </View>
+                    </View>
+                    <View style={{
+                        width:"100%",
+                        display:"flex",
+                        alignItems:"center",
+                        justifyContent:"center",
+                        flexDirection:"row",
+                    }}>
+                        
+                        <Button mode={"contained"} style={{
+                            width:"auto",
+                            borderRadius:8,
+                            backgroundColor: translate.state ? "red": "green",
                         }}
-                    >
-                        {translate.state ? "Disable Translation" : "Enable Translation"}
-                    </Button>
+                            onPress={async () => {
+                                if (translate.state){
+                                    setTranslate({...translate,state:false})
+                                    await Storage.store("explore_translate",JSON.stringify({...translate,state:false}))
+                                }else{
+                                    setTranslate({...translate,state:true})
+                                    await Storage.store("explore_translate",JSON.stringify({...translate,state:true}))
+                                }
+                                
+                            }}
+                        >
+                            {translate.state ? "Disable Translation" : "Enable Translation"}
+                        </Button>
 
-                    
+                        
+                    </View>
                 </View>
-            </View>
-            : <></>
+                : <></>
 
-        }
+            }
+        
         
         
         <View style={styles.body_container}>

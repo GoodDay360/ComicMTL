@@ -11,8 +11,6 @@ import time, threading
 
 class SeleniumScraper:
     def __init__(self):
-
-        WINDOW_SIZE = "1920,1080"
         chrome_options = Options()
         chrome_options.add_argument("--headless")
         chrome_options.add_argument('--no-sandbox')
@@ -22,13 +20,6 @@ class SeleniumScraper:
         chrome_options.set_capability('goog:loggingPrefs', {'performance': 'ALL'})
         self.__driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
         
-    
-    def __enter__(self):
-        pass
-    
-    def __exit__(self):
-        pass
-    
     
     def driver(self):
         return self.__driver

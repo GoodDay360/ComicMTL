@@ -7,7 +7,7 @@ import { Icon, MD3Colors, Button, Text } from 'react-native-paper';
 import Theme from '@/constants/theme';
 import {useWindowDimensions} from 'react-native';
 import { CONTEXT } from '@/constants/module/context';
-import { View, AnimatePresence } from 'moti';
+import { View } from 'moti';
 
 const MenuButton = ({pathname, label, icon}:any) => {
     const [style, setStyle]:any = useState("")

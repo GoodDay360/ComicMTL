@@ -72,6 +72,7 @@ INSTALLED_APPS = [
 
 
 MIDDLEWARE = [
+    'core.middleware.SequentialRequestMiddleware',
     
     "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',

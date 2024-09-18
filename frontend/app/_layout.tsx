@@ -71,23 +71,23 @@ export default function RootLayout() {
     <SafeAreaView style={{flex:1,backgroundColor:Theme[themeTypeContext].background_color}}>
       <CONTEXT.Provider value={{themeTypeContext, setThemeTypeContext, setShowMenuContext, apiBaseContext, setApiBaseContext}}>
         <View style={{width:"100%",height:"100%",backgroundColor: Theme[themeTypeContext].background_color}}>
-          <AnimatePresence>
-            <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-                <View style={{
-                    display: 'flex', 
-                    flex: 1, 
-                    flexDirection: Dimensions.width <= 720 ? 'column' : 'row-reverse',                 
-                  }}>
-                    
-                  <Stack screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name="+not-found" />
-                    
-                  </Stack>
+          
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+              <View style={{
+                  display: 'flex', 
+                  flex: 1, 
+                  flexDirection: Dimensions.width <= 720 ? 'column' : 'row-reverse',                 
+                }}>
                   
-                  {showMenuContext && <MemoMenu/>}
-                </View>
-            </ThemeProvider>
-          </AnimatePresence>
+                <Stack screenOptions={{ headerShown: false }}>
+                  <Stack.Screen name="+not-found" />
+                  
+                </Stack>
+                
+                {showMenuContext && <MemoMenu/>}
+              </View>
+          </ThemeProvider>
+          
         </View>
       </CONTEXT.Provider>
     </SafeAreaView>

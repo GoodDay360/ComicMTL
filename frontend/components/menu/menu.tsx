@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, usePathname } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View} from 'react-native';
 import { __styles } from './stylesheet/styles';
 import storage from '@/constants/module/storage';
 import { Icon, MD3Colors, Button } from 'react-native-paper';
@@ -25,7 +25,9 @@ const Menu = () => {
 
     return (<>{style && themeType && <>
         {Dimensions.width <= 720
-            ? <View style={style.menu_container}>
+            ? <View
+                style={style.menu_container}
+            >
                 <MenuButton pathname="/recent" label="Recent" icon="history"/>
                 <MenuButton pathname="/bookmark" label="Bookmark" icon="bookmark"/>
                 <MenuButton pathname="/explore" label="Explore" icon="compass"/>
