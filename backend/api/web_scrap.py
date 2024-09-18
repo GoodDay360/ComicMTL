@@ -25,7 +25,7 @@ def get_list(request):
     payload = json.loads(request.body)
     search = payload.get("search")
     page = payload.get("page")
-    print(page)
+    
     if not cloudflare_turnstile.check(token): return HttpResponseBadRequest('Cloudflare turnstile token not existed or expired!', status=511)
     if search.get("text"): DATA = web_scrap.source_control["colamanga"].search.scrap(search=search,page=page)
     else: DATA = web_scrap.source_control["colamanga"].get_list.scrap(page=page)
@@ -62,7 +62,7 @@ def get_cover(request,source,id,cover_id):
     try:
         DATA = web_scrap.source_control[source].get_cover.scrap(id=id,cover_id=cover_id)
         response = HttpResponse(DATA, content_type="image/png")
-        response['Content-Disposition'] = f'inline; filename="{id}.png"'
+        response['Content-Disposition'] = f'inline; filename="{id}-{cover_id}.png"'
         return response
     except Exception as e:
         return HttpResponseBadRequest(str(e), status=500)

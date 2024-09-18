@@ -388,6 +388,7 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelect
                         flexDirection:"row",
                         justifyContent:"center",
                         gap:8,
+                        padding:12,
                     }}
                 >
                     <Button mode='outlined' 
