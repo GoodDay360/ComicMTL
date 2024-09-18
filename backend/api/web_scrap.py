@@ -24,10 +24,11 @@ def get_list(request):
     token = request.META.get('HTTP_X_CLOUDFLARE_TURNSTILE_TOKEN')
     payload = json.loads(request.body)
     search = payload.get("search")
-    
+    page = payload.get("page")
+    print(page)
     if not cloudflare_turnstile.check(token): return HttpResponseBadRequest('Cloudflare turnstile token not existed or expired!', status=511)
-    if search.get("text"): DATA = web_scrap.source_control["colamanga"].search.scrap(search)
-    else: DATA = web_scrap.source_control["colamanga"].get_list.scrap()
+    if search.get("text"): DATA = web_scrap.source_control["colamanga"].search.scrap(search=search,page=page)
+    else: DATA = web_scrap.source_control["colamanga"].get_list.scrap(page=page)
 
     return JsonResponse({"data":DATA}) 
 

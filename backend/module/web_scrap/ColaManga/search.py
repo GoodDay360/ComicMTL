@@ -9,12 +9,12 @@ from backend.module.utils import date_utils
 
 scraper = None
 
-def scrap(search:str=""):
+def scrap(search:str="",page:int=1):
     if not search: raise ValueError("The 'search' parameter is required.")
     global scraper
 
     try:
-        url = f"https://www.colamanga.com/search?type={search.get("type")}&page={1}&searchString={search.get("text").replace(" ", "%20")}"
+        url = f"https://www.colamanga.com/search?type={search.get("type")}&page={page}&searchString={search.get("text").replace(" ", "%20")}"
         print(url)
         if not scraper: scraper = SeleniumScraper()
         driver = scraper.driver()

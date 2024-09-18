@@ -90,7 +90,7 @@ class ImageStorage_Web {
                         }
 
                         try {
-                            const response = await axios.get(link, { 
+                            axios.get(link, { 
                                 responseType: 'blob', 
                                 timeout: 60000, 
                                 signal: signal,
@@ -224,7 +224,7 @@ class ImageStorage_Native {
                 for (const file_path of result_list) {
                     try {
                         // Delete the file
-                        await FileSystem.deleteAsync(file_path);
+                        await FileSystem.deleteAsync(file_path, { idempotent: true });
 
                     } catch (error) {
                         resolve({type:"error",data:error})
@@ -233,10 +233,11 @@ class ImageStorage_Native {
                 }
                 // Check if image link exists in sqlite and filesystem
                 const result = await db.getFirstAsync('SELECT * FROM images WHERE link = ?;',link)
-                const local_exist = await FileSystem.getInfoAsync(result.file_path)
-                if (result && local_exist.exists) {
+                const local_exist = result ? (await FileSystem.getInfoAsync(result.file_path)).exists : false
+                if (result && local_exist) {
                     // Image link exists, return the data
                     resolve({type:"file_path",data:result.file_path})
+                    
                 }else{
                     const result = await db.getFirstAsync('SELECT COUNT(*) as count FROM images;')
                     if (result.count >= MAX_ROW) {
@@ -245,7 +246,7 @@ class ImageStorage_Native {
                             try {
                                 // Delete the file
                                 const filePath = result.file_path;
-                                await FileSystem.deleteAsync(filePath);
+                                await FileSystem.deleteAsync(filePath, { idempotent: true });
         
                             } catch (error) {
                                 resolve({type:"error",data:error})
@@ -255,7 +256,7 @@ class ImageStorage_Native {
                         }
                         
                     }
-                    await axios.get(link, { 
+                    axios.get(link, { 
                         responseType: 'blob', 
                         timeout: 60000, 
                         signal: signal,
@@ -288,7 +289,7 @@ class ImageStorage_Native {
                             const row_file_path = row.file_path;
                             try {
                                 // Delete the file
-                                await FileSystem.deleteAsync(row_file_path);
+                                await FileSystem.deleteAsync(row_file_path, { idempotent: true });
                                 await db.runAsync('DELETE FROM images WHERE link = ?;',row.link);
 
                             } catch (error) {

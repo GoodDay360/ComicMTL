@@ -3,7 +3,7 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState, useContext, createContext, memo } from 'react';
-import { useWindowDimensions, View } from 'react-native';
+import { useWindowDimensions, View, Text } from 'react-native';
 import 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Menu from '@/components/menu/menu';
@@ -25,6 +25,7 @@ export default function RootLayout() {
   const [showMenuContext,setShowMenuContext]:any = useState(true)
   const [themeTypeContext,setThemeTypeContext]:any = useState("")
   const [apiBaseContext, setApiBaseContext]:any = useState("")
+  const [widgetContext, setWidgetContext]:any = useState({state:false,component:null})
 
 
   const MemoMenu = memo(Menu)
@@ -69,14 +70,37 @@ export default function RootLayout() {
 
   return (<>{loaded && themeTypeContext && apiBaseContext && <>
     <SafeAreaView style={{flex:1,backgroundColor:Theme[themeTypeContext].background_color}}>
-      <CONTEXT.Provider value={{themeTypeContext, setThemeTypeContext, setShowMenuContext, apiBaseContext, setApiBaseContext}}>
+      <CONTEXT.Provider value={{
+          themeTypeContext, setThemeTypeContext, 
+          showMenuContext, setShowMenuContext, 
+          apiBaseContext, setApiBaseContext,
+          widgetContext, setWidgetContext,
+        }}>
         <View style={{width:"100%",height:"100%",backgroundColor: Theme[themeTypeContext].background_color}}>
           
           <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+              {widgetContext.state &&
+                <View style={{
+                  width:"100%",
+                  height:"100%",
+                  position:"absolute",
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  display:"flex",
+                  justifyContent:"center",
+                  alignItems:"center",
+                  zIndex:1,
+                  padding:15,
+                }}
+                ><widgetContext.component/></View>
+              }
               <View style={{
+                  position:"absolute",
+                  width:"100%",
+                  height:"100%",
                   display: 'flex', 
                   flex: 1, 
                   flexDirection: Dimensions.width <= 720 ? 'column' : 'row-reverse',                 
+                  zIndex:0,
                 }}>
                   
                 <Stack screenOptions={{ headerShown: false }}>

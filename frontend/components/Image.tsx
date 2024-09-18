@@ -3,7 +3,7 @@ import { Image as _Image } from 'expo-image';
 import { View } from "react-native"
 import ImageStorage from "@/constants/module/image_storage";
 import blobToBase64 from "@/constants/module/blob_to_base64";
-import { Icon } from 'react-native-paper';
+import { Icon, Button } from 'react-native-paper';
 
 const Image = ({setShowCloudflareTurnstile, source, style, onError, contentFit, transition}:any) => {
     const [imageData, setImageData]:any = useState(null)
@@ -42,7 +42,13 @@ const Image = ({setShowCloudflareTurnstile, source, style, onError, contentFit, 
     return (imageData 
         ? <>
             {isError
-                ? <Icon source={"alert"} size={25} color={"yellow"}/>
+                ? <Button mode="outlined" onPress={()=>{setIsError(false)}}
+                    style={{
+                        borderWidth:0,
+                    }}
+                >
+                    <Icon source={"refresh-circle"} size={25} color={"yellow"}/>
+                </Button>
                 : <_Image 
                     onError={onError} 
                     source={imageData} 

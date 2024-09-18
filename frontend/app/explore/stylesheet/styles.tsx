@@ -58,8 +58,14 @@ export const __styles:any = (theme_type:string,Dimensions:any) => {
             height:"auto",
             fontFamily: "roboto-medium",
         },
-
-        body_container: {
+        body_container:{
+            display:"flex",
+            flexDirection:"column",
+            gap:25,
+            width:"100%",
+            height:"100%",
+        },
+        content_container: {
             display:"flex",
             flexDirection:"row",
             flexWrap:"wrap",

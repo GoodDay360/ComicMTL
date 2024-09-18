@@ -15,9 +15,10 @@ class RequestContextManager:
     def __exit__(self,*exc_info):
         RequestCache.objects.filter(room=self.request_path,client=self.client_id).delete()
 
+
 class SequentialRequestMiddleware:
     RequestCache.objects.all().delete()
-    
+    __Lock = threading.Lock()
     def __init__(self, get_response):
         
         self.get_response = get_response
@@ -26,5 +27,6 @@ class SequentialRequestMiddleware:
         request_type = request.scope.get("type")
         request_path = request.path
         if request_type == "http":
-            with RequestContextManager(request_path): response = self.get_response(request)
+            # with RequestContextManager(request_path): response = self.get_response(request)
+            with self.__Lock: response = self.get_response(request)
         return response

@@ -89,7 +89,7 @@ scraper = None
 # thread.daemon = True
 # thread.start()
 
-def scrap(orderBy:str="weeklyCount",page:int=1):
+def scrap(orderBy:str="monthlyCount",page:int=1):
     global scraper
     
 
