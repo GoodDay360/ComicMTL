@@ -36,7 +36,7 @@ class SequentialRequestMiddleware:
         request_path = request.path
         if request_type == "http":
             
-            with TimeoutContext(30) as timeout:
+            with TimeoutContext(20) as timeout:
                 self.__Lock.acquire()
                 try:
                     resposne =  timeout.run(self.get_response,request)
