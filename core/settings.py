@@ -18,7 +18,7 @@ environ.Env.read_env(Path.joinpath(BASE_DIR, '.env'))
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 DEBUG_DB = True
 
 # settings.py
@@ -68,11 +68,13 @@ INSTALLED_APPS = [
     'frontend.apps.FrontendConfig',
     'worker.apps.WorkerConfig',
     'django.contrib.sitemaps',
+    
+    
 ]
 
 
 MIDDLEWARE = [
-    'core.middleware.SequentialRequestMiddleware',
+    
     
     "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -83,7 +85,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
+    'core.middleware.SequentialRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -112,41 +114,26 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 DATABASE_ROUTERS = ['core.routers.Router']
 
-if DEBUG:
-    if DEBUG_DB:
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'database.sqlite3',
-            },
-            'cache': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'cache.sqlite3',
-            },
-            'DB1': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'db1.sqlite3',
-            },
-            'DB2': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'db2.sqlite3',
-            },
+if DEBUG or DEBUG_DB:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'database.sqlite3',
+        },
+        'cache': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'cache.sqlite3',
+        },
+        'DB1': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db1.sqlite3',
+        },
+        'DB2': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db2.sqlite3',
+        },
 
-        }
-    else:
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'database.sqlite3',
-            },
-            'cache': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'cache.sqlite3',
-            },
-            'DB1': dj_database_url.config(default=env("DB1")),
-            'DB2': dj_database_url.config(default=env("DB2")),
-
-        }
+    }
 else:
     DATABASES = {
         'default': dj_database_url.config(default=env("DB")),

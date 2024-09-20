@@ -21,9 +21,17 @@ def scrap(id:int=None,cover_id:int=None):
         driver = scraper.driver()
         driver.get(url)
         
+        while True:
+            page_state = driver.execute_script('return document.readyState;')
+            if page_state == 'complete': break
+        
         image_src_url = f'https://res.colamanga.com/comic/{cover_id}/cover.jpg'
 
         # Find the image element by its src attribute
+        while True:
+            if len(driver.find_elements(By.CLASS_NAME, "fed-list-pics")):
+                break
+            
         origin_image_element = driver.find_elements(By.CLASS_NAME, "fed-list-pics")[0]
         
         # Execute JavaScript to check if the image is fully loaded

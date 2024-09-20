@@ -1,3 +1,4 @@
+
 from pprint import pprint
 from ..utils import SeleniumScraper
 from bs4 import BeautifulSoup
@@ -9,85 +10,7 @@ from core.settings import BASE_DIR
 
 
 scraper = None
-# RequestQueueRoom = "colamanga_get_list"
-# RequestQueueID = None
 
-# class RequestContextManager:
-#     def __init__(self):
-#         self.id = str(uuid.uuid4())
-
-        
-#     def __enter__(self):
-#         conn = sqlite3.connect(os.path.join(BASE_DIR,"cache.sqlite3"))
-#         cursor = conn.cursor()
-#         cursor.execute("INSERT INTO backend_requestcache (room, client, datetime) VALUES (?, ?, ?)", 
-#                    [RequestQueueRoom, self.id, date_utils.utc_time().get()])
-#         conn.commit()
-#         conn.close()
-#         return self.id
-    
-#     def __exit__(self,*exc_info):
-#         global RequestQueueID
-        
-#         conn = sqlite3.connect(os.path.join(BASE_DIR,"cache.sqlite3"))
-#         cursor = conn.cursor()
-        
-#         while True:
-#             try:
-#                 if RequestQueueID: 
-#                     cursor.execute(
-#                         "DELETE FROM backend_requestcache WHERE room = ? AND client = ?",
-#                         [RequestQueueRoom, self.id]
-#                     )
-#                     conn.commit()
-#                     conn.close()
-#                 else: conn.close()
-#                 if RequestQueueID == self.id: RequestQueueID = None
-#                 break
-#             except Exception as e: 
-#                 print(f"Error Exiting Room: {RequestQueueRoom}.\n {e}\nRetrying...")
-            
-        
-# def RequestQueueManager():
-#     global RequestQueueRoom,RequestQueueID
-#     conn = sqlite3.connect(os.path.join(BASE_DIR,"cache.sqlite3"))
-#     cursor = conn.cursor()
-    
-#     cursor.execute(
-#         "DELETE FROM backend_requestcache WHERE room = ?",
-#         [RequestQueueRoom]
-#     )
-#     conn.commit()
-    
-#     while True:
-#         try:
-#             if not RequestQueueID: 
-
-#                 cursor.execute(
-#                     "DELETE FROM backend_requestcache WHERE room = ? AND datetime <= ?",
-#                     [RequestQueueRoom, date_utils.utc_time().add(-5,'minute').get()]
-#                 )
-#                 conn.commit()
-                
-#                 cursor.execute(
-#                     """
-#                         SELECT client FROM backend_requestcache
-#                         WHERE room = ?
-#                         ORDER BY datetime ASC
-#                         LIMIT 1
-#                     """,
-#                     [RequestQueueRoom]
-#                 )
-#                 result = cursor.fetchone()
-#                 RequestQueueID= result[0] if result else None
-                    
-#         except Exception as e: 
-#             print(f"Error Room: {RequestQueueRoom}.\n {e}\nRetrying...")
-        
-        
-# thread = threading.Thread(target=RequestQueueManager)
-# thread.daemon = True
-# thread.start()
 
 def scrap(orderBy:str="monthlyCount",page:int=1):
     global scraper
@@ -99,6 +22,7 @@ def scrap(orderBy:str="monthlyCount",page:int=1):
         if not scraper: scraper = SeleniumScraper()
         driver = scraper.driver()
         driver.get(url)
+        
         source = BeautifulSoup(driver.page_source, 'html.parser') 
         
         ul = source.select("ul.fed-list-info")[0]

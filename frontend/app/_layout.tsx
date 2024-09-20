@@ -3,7 +3,7 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState, useContext, createContext, memo } from 'react';
-import { useWindowDimensions, View, Text } from 'react-native';
+import { useWindowDimensions, View, Text, Pressable } from 'react-native';
 import 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Menu from '@/components/menu/menu';
@@ -91,6 +91,7 @@ export default function RootLayout() {
                   zIndex:1,
                   padding:15,
                 }}
+                
                 ><widgetContext.component/></View>
               }
               <View style={{

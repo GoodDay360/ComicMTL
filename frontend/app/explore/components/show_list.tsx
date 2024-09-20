@@ -451,7 +451,7 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelect
                                                 
                                                 const value = event.nativeEvent.text
                                                 
-                                                const isInt = !isNaN(parseInt(value));
+                                                const isInt = /^-?\d+$/.test(value);
                                                 if (isInt || value === "") {
                                                     setFeedBack("")
                                                     setGoToPage(value)
@@ -473,15 +473,37 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelect
                                             
                                         >{feedBack}</Text>
                                     }
-                                    <Button mode='contained' 
+                                    <View 
+                                        style={{
+                                            display:"flex",
+                                            flexDirection:"row",
+                                            width:"100%",
+                                            justifyContent:"space-around",
+                                            alignItems:"center",
+                                        }}
+                                    >
+                                        <Button mode='contained' 
+                                            labelStyle={{
+                                                color:Theme[themeTypeContext].text_color,
+                                                fontFamily:"roboto-medium",
+                                                fontSize:(Dimensions.width+Dimensions.height)/2*0.02
+                                            }} 
+                                            style={{backgroundColor:"red",borderRadius:5}} 
+                                            onPress={(()=>{
+                                                
+                                                setWidgetContext({state:false,component:undefined})
+                                                 
+                                            })}
+                                        >Cancel</Button>
+                                        <Button mode='contained' 
                                         labelStyle={{
                                             color:Theme[themeTypeContext].text_color,
                                             fontFamily:"roboto-medium",
                                             fontSize:(Dimensions.width+Dimensions.height)/2*0.02
                                         }} 
-                                        style={{backgroundColor:"purple",borderRadius:5}} 
+                                        style={{backgroundColor:"green",borderRadius:5}} 
                                         onPress={(()=>{
-                                            const isInt = !isNaN(parseInt(goToPage));
+                                            const isInt = /^-?\d+$/.test(goToPage);
                                             if (isInt) {
                                                 setPage(parseInt(goToPage))
                                                 setWidgetContext({state:false,component:undefined})
@@ -489,6 +511,8 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelect
                                             }else setFeedBack("Input is not a valid number.")
                                         })}
                                     >Go</Button>
+                                    </View>
+                                    
                                 </View>)
                             }})
                         })}

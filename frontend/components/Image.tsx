@@ -20,7 +20,7 @@ const Image = ({setShowCloudflareTurnstile, source, style, onError, contentFit, 
                 const result:any = await ImageStorage.get(setShowCloudflareTurnstile,source.uri,signal);
                 if (result.type === "blob"){
                     setImageData({uri:await blobToBase64(result.data)})
-                }else if(result.type === "base64"){
+                }else if (result.type === "base64"){
                     setImageData({uri:result.data})
                 }else if (result.type === "file_path"){
                     setImageData({uri:result.data})
