@@ -61,6 +61,7 @@ def get_cover(request,source,id,cover_id):
     
     try:
         DATA = web_scrap.source_control[source].get_cover.scrap(id=id,cover_id=cover_id)
+        if not DATA: HttpResponseBadRequest('Image Not found!', status=404)
         response = HttpResponse(DATA, content_type="image/png")
         response['Content-Disposition'] = f'inline; filename="{id}-{cover_id}.png"'
         return response

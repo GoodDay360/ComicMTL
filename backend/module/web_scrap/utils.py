@@ -26,5 +26,3 @@ class SeleniumScraper:
     def driver(self):
         return self.__driver
              
-
-    
