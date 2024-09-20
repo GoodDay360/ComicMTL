@@ -26,7 +26,7 @@ class TimeoutContext:
         
 class SequentialRequestMiddleware:
     
-    __Lock = threading.RLock()
+    __Lock = threading.Lock()
     def __init__(self, get_response):
         
         self.get_response = get_response
