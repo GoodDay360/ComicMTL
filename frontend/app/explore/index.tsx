@@ -5,7 +5,6 @@ import { StyleSheet, View, useWindowDimensions, ScrollView, Pressable, RefreshCo
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Icon, MD3Colors, Button, Text } from 'react-native-paper';
 import Theme from '@/constants/theme';
-import { __styles } from './stylesheet/styles';
 
 import { CONTEXT } from '@/constants/module/context';
 import { get_list } from '@/app/explore/module/content'
@@ -30,7 +29,14 @@ const Explore = () => {
                         setShowCloudflareTurnstile(false)
                 }} />
             </View>
-            : <ShowList showCloudflareTurnstile={showCloudflareTurnstile} setShowCloudflareTurnstile={setShowCloudflareTurnstile} itemSelected={itemSelectedId} setItemSelected={setItemSelectedId} />
+            : <>{itemSelectedId 
+                ? <>
+                    
+                </>
+                : <ShowList showCloudflareTurnstile={showCloudflareTurnstile} setShowCloudflareTurnstile={setShowCloudflareTurnstile} itemSelected={itemSelectedId} setItemSelected={setItemSelectedId} />
+            }
+                
+            </>
         }
     </>);
 }

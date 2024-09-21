@@ -23,7 +23,7 @@ class TimeoutContext:
             return self.future.result(timeout=self.timeout)
         except TimeoutError:
             raise TimeoutError("Function call timed out")
-        
+# Temporary Solved using hecky method       
 class SequentialRequestMiddleware:
     
     __Lock = threading.Lock()
@@ -36,10 +36,10 @@ class SequentialRequestMiddleware:
         request_path = request.path
         if request_type == "http":
             
-            with TimeoutContext(20) as timeout:
+            with TimeoutContext(30) as executor:
                 self.__Lock.acquire()
                 try:
-                    resposne =  timeout.run(self.get_response,request)
+                    resposne =  executor.run(self.get_response,request)
                     self.__Lock.release()
                     return resposne
 

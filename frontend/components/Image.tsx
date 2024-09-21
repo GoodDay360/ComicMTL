@@ -27,7 +27,7 @@ const Image = ({setShowCloudflareTurnstile, source, style, onError, contentFit, 
                 }else if (result.type === "error"){
                     setIsError(true)
                 }
-                
+                console.log(result)
             }else{
                 setImageData(source)
             }

@@ -9,7 +9,7 @@ import Dropdown from '@/components/dropdown';
 
 
 import Theme from '@/constants/theme';
-import { __styles } from '../stylesheet/styles';
+import { __styles } from '../stylesheet/show_list_styles';
 import Storage from '@/constants/module/storage';
 import ImageStorage from '@/constants/module/image_storage';
 import { CONTEXT } from '@/constants/module/context';
@@ -366,171 +366,197 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelect
             <View style={styles.body_container}>
                 
                 <View style={styles.content_container}>
-                    
-                    {CONTENT.map((item:any,index:number)=>(
-                        <Pressable key={index}
-                            onPress={() => {setItemSelected(item.id)}}
+                    {CONTENT.length
+                        ? <>
+                            {CONTENT.map((item:any,index:number)=>(
+                                <Pressable key={index}
+                                    onPress={() => {
+                                        setItemSelected(item.id)
+                                        console.log(item.id)
+                                    }}
+                                >
+                                    <View style={styles.item_box}>
+                                        <Image setShowCloudflareTurnstile={setShowCloudflareTurnstile} onError={(error:any)=>{console.log("load image error",error)}} source={{uri:`${apiBaseContext}${item.cover}`}} style={styles.item_cover}
+                                            contentFit="cover" transition={1000}
+                                        />
+                                        <Text style={styles.item_title}>{item.title}</Text>
+                                    </View>
+                                </Pressable>
+                            ))}
+                        </>
+                        : <View 
+                            style={{
+                                width:"100%",
+                                height:"100%",
+                                display:"flex",
+                                justifyContent:"center",
+                                alignItems:"center"
+                            }}
                         >
-                            <View style={styles.item_box}>
-                                <Image setShowCloudflareTurnstile={setShowCloudflareTurnstile} onError={(error:any)=>{console.log("load image error",error)}} source={{uri:`${apiBaseContext}${item.cover}`}} style={styles.item_cover}
-                                    contentFit="cover" transition={1000}
-                                />
-                                <Text style={styles.item_title}>{item.title}</Text>
-                            </View>
-                        </Pressable>
-                    ))}
+                            <Text
+                                style={{
+                                    color:Theme[themeTypeContext].text_color,
+                                    fontFamily:"roboto-medium",
+                                    fontSize:(Dimensions.width+Dimensions.height)/2*0.03
+                                }}
+                            >No result!</Text>
+                        </View>
+                    }
+                    
 
                 </View>
-
-                <View 
-                    style={{
-                        display:"flex",
-                        flexDirection:"row",
-                        justifyContent:"center",
-                        gap:8,
-                        padding:12,
-                    }}
-                >
-                    <Button mode='outlined' 
-                        labelStyle={{
-                            color:Theme[themeTypeContext].text_color,
-                            fontFamily:"roboto-medium",
-                            fontSize:(Dimensions.width+Dimensions.height)/2*0.03
-                        }} 
-                        style={{borderWidth:0}} 
-                        onPress={(()=>{
-                            if (page === 1) return
-                            setPage((page:number) => page-1)
-                            
-                        }
-                            
-                        )}
-                    >{"<"}</Button>
-                    <Button mode='outlined'
-                        labelStyle={{
-                            color:Theme[themeTypeContext].text_color,
-                            fontFamily:"roboto-medium",
-                            fontSize:(Dimensions.width+Dimensions.height)/2*0.02
-                        }} 
+                {CONTENT.length &&
+                    <View 
                         style={{
-                            borderRadius:8,
-                            borderColor:Theme[themeTypeContext].border_color,
-                        }} 
-                        onPress={(()=>{
-                            setWidgetContext({state:true,component:()=>{
-                                const [goToPage, setGoToPage] = useState("");
-                                const [feedBack, setFeedBack] = useState("");
-                                return (<View 
-                                    style={{
-                                        backgroundColor:Theme[themeTypeContext].background_color,
-                                        maxWidth:500,
-                                        width:"100%",
-                                        
-                                        borderColor:Theme[themeTypeContext].border_color,
-                                        borderWidth:2,
-                                        borderRadius:8,
-                                        padding:12,
-                                        display:"flex",
-                                        justifyContent:"center",
-                                        
-                                        flexDirection:"column",
-                                        gap:12,
-                                    }}>
-                                    <View style={{height:"auto"}}>
-                                        <TextInput mode="outlined" label="Go to page"  textColor={Theme[themeTypeContext].text_color} maxLength={1000000000}
-                                            placeholder="Go to page"
-                                            style={{
-                                                
-                                                backgroundColor:Theme[themeTypeContext].background_color,
-                                                borderColor:Theme[themeTypeContext].border_color,
-                                                
-                                            }}
-                                            outlineColor={Theme[themeTypeContext].text_input_border_color}
-                                            value={goToPage}
-                                            onChange={(event)=>{
-                                                
-                                                const value = event.nativeEvent.text
-                                                
-                                                const isInt = /^-?\d+$/.test(value);
-                                                if (isInt || value === "") {
-                                                    setFeedBack("")
-                                                    setGoToPage(value)
-                                                }
-                                                else setFeedBack("Input is not a valid number.")
-                                                
-                                            }}
-                                        />
-                                        
-                                    </View>
-                                    {feedBack && 
-                                        <Text 
-                                            style={{
-                                                color:Theme[themeTypeContext].text_color,
-                                                fontFamily:"roboto-medium",
-                                                fontSize:(Dimensions.width+Dimensions.height)/2*0.02,
-                                                textAlign:"center",
-                                            }}
-                                            
-                                        >{feedBack}</Text>
-                                    }
-                                    <View 
+                            display:"flex",
+                            flexDirection:"row",
+                            justifyContent:"center",
+                            gap:8,
+                            padding:12,
+                        }}
+                    >
+                        <Button mode='outlined' 
+                            labelStyle={{
+                                color:Theme[themeTypeContext].text_color,
+                                fontFamily:"roboto-medium",
+                                fontSize:(Dimensions.width+Dimensions.height)/2*0.03
+                            }} 
+                            style={{borderWidth:0}} 
+                            onPress={(()=>{
+                                if (page === 1) return
+                                setPage((page:number) => page-1)
+                                
+                            }
+                                
+                            )}
+                        >{"<"}</Button>
+                        <Button mode='outlined'
+                            labelStyle={{
+                                color:Theme[themeTypeContext].text_color,
+                                fontFamily:"roboto-medium",
+                                fontSize:(Dimensions.width+Dimensions.height)/2*0.02
+                            }} 
+                            style={{
+                                borderRadius:8,
+                                borderColor:Theme[themeTypeContext].border_color,
+                            }} 
+                            onPress={(()=>{
+                                setWidgetContext({state:true,component:()=>{
+                                    const [goToPage, setGoToPage] = useState("");
+                                    const [feedBack, setFeedBack] = useState("");
+                                    return (<View 
                                         style={{
-                                            display:"flex",
-                                            flexDirection:"row",
+                                            backgroundColor:Theme[themeTypeContext].background_color,
+                                            maxWidth:500,
                                             width:"100%",
-                                            justifyContent:"space-around",
-                                            alignItems:"center",
-                                        }}
-                                    >
-                                        <Button mode='contained' 
+                                            
+                                            borderColor:Theme[themeTypeContext].border_color,
+                                            borderWidth:2,
+                                            borderRadius:8,
+                                            padding:12,
+                                            display:"flex",
+                                            justifyContent:"center",
+                                            
+                                            flexDirection:"column",
+                                            gap:12,
+                                        }}>
+                                        <View style={{height:"auto"}}>
+                                            <TextInput mode="outlined" label="Go to page"  textColor={Theme[themeTypeContext].text_color} maxLength={1000000000}
+                                                placeholder="Go to page"
+                                                style={{
+                                                    
+                                                    backgroundColor:Theme[themeTypeContext].background_color,
+                                                    borderColor:Theme[themeTypeContext].border_color,
+                                                    
+                                                }}
+                                                outlineColor={Theme[themeTypeContext].text_input_border_color}
+                                                value={goToPage}
+                                                onChange={(event)=>{
+                                                    
+                                                    const value = event.nativeEvent.text
+                                                    
+                                                    const isInt = /^-?\d+$/.test(value);
+                                                    if (isInt || value === "") {
+                                                        setFeedBack("")
+                                                        setGoToPage(value)
+                                                    }
+                                                    else setFeedBack("Input is not a valid number.")
+                                                    
+                                                }}
+                                            />
+                                            
+                                        </View>
+                                        {feedBack && 
+                                            <Text 
+                                                style={{
+                                                    color:Theme[themeTypeContext].text_color,
+                                                    fontFamily:"roboto-medium",
+                                                    fontSize:(Dimensions.width+Dimensions.height)/2*0.02,
+                                                    textAlign:"center",
+                                                }}
+                                                
+                                            >{feedBack}</Text>
+                                        }
+                                        <View 
+                                            style={{
+                                                display:"flex",
+                                                flexDirection:"row",
+                                                width:"100%",
+                                                justifyContent:"space-around",
+                                                alignItems:"center",
+                                            }}
+                                        >
+                                            <Button mode='contained' 
+                                                labelStyle={{
+                                                    color:Theme[themeTypeContext].text_color,
+                                                    fontFamily:"roboto-medium",
+                                                    fontSize:(Dimensions.width+Dimensions.height)/2*0.02
+                                                }} 
+                                                style={{backgroundColor:"red",borderRadius:5}} 
+                                                onPress={(()=>{
+                                                    
+                                                    setWidgetContext({state:false,component:undefined})
+                                                    
+                                                })}
+                                            >Cancel</Button>
+                                            <Button mode='contained' 
                                             labelStyle={{
                                                 color:Theme[themeTypeContext].text_color,
                                                 fontFamily:"roboto-medium",
                                                 fontSize:(Dimensions.width+Dimensions.height)/2*0.02
                                             }} 
-                                            style={{backgroundColor:"red",borderRadius:5}} 
+                                            style={{backgroundColor:"green",borderRadius:5}} 
                                             onPress={(()=>{
-                                                
-                                                setWidgetContext({state:false,component:undefined})
-                                                 
+                                                const isInt = /^-?\d+$/.test(goToPage);
+                                                if (isInt) {
+                                                    setPage(parseInt(goToPage))
+                                                    setWidgetContext({state:false,component:undefined})
+                                                    
+                                                }else setFeedBack("Input is not a valid number.")
                                             })}
-                                        >Cancel</Button>
-                                        <Button mode='contained' 
-                                        labelStyle={{
-                                            color:Theme[themeTypeContext].text_color,
-                                            fontFamily:"roboto-medium",
-                                            fontSize:(Dimensions.width+Dimensions.height)/2*0.02
-                                        }} 
-                                        style={{backgroundColor:"green",borderRadius:5}} 
-                                        onPress={(()=>{
-                                            const isInt = /^-?\d+$/.test(goToPage);
-                                            if (isInt) {
-                                                setPage(parseInt(goToPage))
-                                                setWidgetContext({state:false,component:undefined})
-                                                
-                                            }else setFeedBack("Input is not a valid number.")
-                                        })}
-                                    >Go</Button>
-                                    </View>
-                                    
-                                </View>)
-                            }})
-                        })}
+                                        >Go</Button>
+                                        </View>
+                                        
+                                    </View>)
+                                }})
+                            })}
 
-                    >{page}</Button>
-                    <Button mode='outlined' 
-                        labelStyle={{
-                            color:Theme[themeTypeContext].text_color,
-                            fontFamily:"roboto-medium",
-                            fontSize:(Dimensions.width+Dimensions.height)/2*0.03
-                        }} 
-                        style={{borderWidth:0}} 
-                        onPress={(()=>{
-                            setPage((page:number) => page+1)
-                            
-                        })}
-                    >{">"}</Button>
-                </View>
+                        >{page}</Button>
+                        <Button mode='outlined' 
+                            labelStyle={{
+                                color:Theme[themeTypeContext].text_color,
+                                fontFamily:"roboto-medium",
+                                fontSize:(Dimensions.width+Dimensions.height)/2*0.03
+                            }} 
+                            style={{borderWidth:0}} 
+                            onPress={(()=>{
+                                setPage((page:number) => page+1)
+                                
+                            })}
+                        >{">"}</Button>
+                    </View>
+                }
+                
             </View>
 
         </ScrollView>
