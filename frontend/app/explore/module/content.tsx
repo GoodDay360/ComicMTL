@@ -2,7 +2,7 @@ import axios from 'axios';
 import translator from '@/constants/module/translator';
 import Storage from '@/constants/module/storage';
 
-export const get_list = async (setShowCloudflareTurnstile:any,signal:AbortSignal,setIsLoading:any,translate:any,SET_CONTENT:any,search:any,page:number) => {
+export const get_list = async (setShowCloudflareTurnstile:any,setFeedBack:any,signal:AbortSignal,setIsLoading:any,translate:any,SET_CONTENT:any,search:any,page:number) => {
     const API_BASE = await Storage.get("IN_USE_API_BASE")
     axios({
         method: 'post',
@@ -16,7 +16,12 @@ export const get_list = async (setShowCloudflareTurnstile:any,signal:AbortSignal
     }).then((response) => {(async () =>{
         
         const DATA = response.data.data
-        console.log(response)
+        
+        if (DATA.length) setFeedBack("")
+        else {
+            setFeedBack("")
+            return
+        }
         if (translate.state){            
             const TRANSLATED_DATA = []
             for (const item of DATA){
@@ -31,7 +36,11 @@ export const get_list = async (setShowCloudflareTurnstile:any,signal:AbortSignal
         
     })()}).catch((error) => {
         console.log(error)
-        setIsLoading(false)
+        
         if (error.status === 511) setShowCloudflareTurnstile(true)
+        else{
+            setFeedBack("Error fetching data! Try request again.")
+            setIsLoading(false)
+        }
     })
 }

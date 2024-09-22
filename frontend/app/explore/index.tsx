@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useContext, memo } from 'react';
-import { Link } from 'expo-router';
+import { Link, useFocusEffect } from 'expo-router';
 import { Image } from 'expo-image';
 import { StyleSheet, View, useWindowDimensions, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,31 +16,31 @@ import CloudflareTurnstile from '@/components/cloudflare_turnstile';
 
 const Explore = () => {
 
-    const [itemSelectedId, setItemSelectedId]:any = useState("")
+    
     const [showCloudflareTurnstile, setShowCloudflareTurnstile]:any = useState(false)
-
+    const [isFocus,setIsFocus]:any = useState(false)
     const {themeTypeContext, setThemeTypeContext}:any = useContext(CONTEXT)
     
-    return (<>
-        {showCloudflareTurnstile 
+    useFocusEffect(useCallback(() => {
+        setIsFocus(true)
+        return () => {
+            setIsFocus(false)
+        }
+    },[]))
+
+    return (<>{isFocus
+        ? <>{showCloudflareTurnstile 
             ? <View style={{width:"100%",height:"100%",display:"flex",justifyContent:"center",alignItems:"center",backgroundColor:Theme[themeTypeContext].background_color}}>
                 <CloudflareTurnstile 
                     callback={() => {
                         setShowCloudflareTurnstile(false)
                 }} />
             </View>
-            : <>{itemSelectedId 
-                ? <>
-                    
-                </>
-                : <ShowList showCloudflareTurnstile={showCloudflareTurnstile} setShowCloudflareTurnstile={setShowCloudflareTurnstile} itemSelected={itemSelectedId} setItemSelected={setItemSelectedId} />
-            }
-                
-            </>
-        }
-    </>);
+            : <ShowList showCloudflareTurnstile={showCloudflareTurnstile} setShowCloudflareTurnstile={setShowCloudflareTurnstile} />
+        }</>
+        : <></>}</>
+    )
 }
 
 export default Explore;
 
-{/* <Link href="/play">Go to Play</Link> */}

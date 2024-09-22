@@ -4,6 +4,7 @@ import { View } from "react-native"
 import ImageStorage from "@/constants/module/image_storage";
 import blobToBase64 from "@/constants/module/blob_to_base64";
 import { Icon, Button } from 'react-native-paper';
+import { ActivityIndicator } from 'react-native-paper';
 
 const Image = ({setShowCloudflareTurnstile, source, style, onError, contentFit, transition}:any) => {
     const [imageData, setImageData]:any = useState(null)
@@ -24,7 +25,7 @@ const Image = ({setShowCloudflareTurnstile, source, style, onError, contentFit, 
                     setImageData({uri:result.data})
                 }else if (result.type === "file_path"){
                     setImageData({uri:result.data})
-                }else if (result.type === "error"){
+                }else{
                     setIsError(true)
                 }
                 console.log(result)
@@ -39,27 +40,34 @@ const Image = ({setShowCloudflareTurnstile, source, style, onError, contentFit, 
         };
     },[])
 
-    return (imageData 
-        ? <>
+    return ( <>
             {isError
-                ? <Button mode="outlined" onPress={()=>{setIsError(false)}}
-                    style={{
-                        borderWidth:0,
-                    }}
-                >
-                    <Icon source={"refresh-circle"} size={25} color={"yellow"}/>
-                </Button>
-                : <_Image 
-                    onError={onError} 
-                    source={imageData} 
-                    style={style}
-                    contentFit={contentFit}
-                    transition={transition}
-                />
+                ? <View style={{...style,display:'flex',justifyContent:"center",alignItems:"center"}}>
+                    <Button mode="outlined" onPress={()=>{setIsError(false)}}
+                        style={{
+                            borderWidth:0,
+                        }}
+                    >
+                        <Icon source={"refresh-circle"} size={25} color={"yellow"}/>
+                    </Button>
+                </View>
+                : <>{imageData
+                    
+                
+                    ? <_Image 
+                        onError={onError} 
+                        source={imageData} 
+                        style={style}
+                        contentFit={contentFit}
+                        transition={transition}
+                    />
+                    : <View style={{...style,display:'flex',justifyContent:"center",alignItems:"center"}}>
+                        <ActivityIndicator animating={true}/>
+                    </View>
+                }</>
             }
             
-        </>
-        : <View style={style}></View>
+        </>  
     )
 }
 

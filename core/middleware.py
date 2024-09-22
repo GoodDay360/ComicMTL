@@ -1,7 +1,8 @@
-import threading, os, django
+import threading
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 import threading
 from django.http import  HttpResponseBadRequest
+
 
 class TimeoutContext:
     def __init__(self, timeout):
@@ -34,6 +35,7 @@ class SequentialRequestMiddleware:
     def __call__(self, request):
         request_type = request.scope.get("type")
         request_path = request.path
+        print(request_path)
         if request_type == "http":
             
             with TimeoutContext(30) as executor:

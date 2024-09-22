@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useContext, useRef } from 'react';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import Image from '@/components/Image';
 import { StyleSheet, useWindowDimensions, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,7 +21,7 @@ import { View, AnimatePresence } from 'moti';
 
 
 
-const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelected,setItemSelected}:any) => {
+const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile}:any) => {
     
 
     const {showMenuContext, setShowMenuContext}:any = useContext(CONTEXT)
@@ -35,6 +35,7 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelect
     const [CONTENT, SET_CONTENT]:any = useState([])
     const [isLoading, setIsLoading]:any = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [feedBack, setFeedBack] = useState("")
     const scrollOffset = useRef(0);
 
     const [showOption, setShowOption]:any = useState({type:null})
@@ -57,7 +58,7 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelect
             }else __translate = JSON.parse(__translate)
 
             setTranslate(__translate)
-            get_list(setShowCloudflareTurnstile,signal,setIsLoading,__translate,SET_CONTENT,search,page)
+            get_list(setShowCloudflareTurnstile,setFeedBack,signal,setIsLoading,__translate,SET_CONTENT,search,page)
         })()
 
         return () => {
@@ -72,7 +73,7 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelect
         setShowMenuContext(true)
         setIsLoading(true);
         SET_CONTENT([])
-        get_list(setShowCloudflareTurnstile,signal,setIsLoading,translate,SET_CONTENT,search,page)
+        get_list(setShowCloudflareTurnstile,setFeedBack,signal,setIsLoading,translate,SET_CONTENT,search,page)
         
     }
 
@@ -366,25 +367,8 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelect
             <View style={styles.body_container}>
                 
                 <View style={styles.content_container}>
-                    {CONTENT.length
-                        ? <>
-                            {CONTENT.map((item:any,index:number)=>(
-                                <Pressable key={index}
-                                    onPress={() => {
-                                        setItemSelected(item.id)
-                                        console.log(item.id)
-                                    }}
-                                >
-                                    <View style={styles.item_box}>
-                                        <Image setShowCloudflareTurnstile={setShowCloudflareTurnstile} onError={(error:any)=>{console.log("load image error",error)}} source={{uri:`${apiBaseContext}${item.cover}`}} style={styles.item_cover}
-                                            contentFit="cover" transition={1000}
-                                        />
-                                        <Text style={styles.item_title}>{item.title}</Text>
-                                    </View>
-                                </Pressable>
-                            ))}
-                        </>
-                        : <View 
+                    {feedBack
+                        ? <View 
                             style={{
                                 width:"100%",
                                 height:"100%",
@@ -399,14 +383,32 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelect
                                     fontFamily:"roboto-medium",
                                     fontSize:(Dimensions.width+Dimensions.height)/2*0.03
                                 }}
-                            >No result!</Text>
+                            >{feedBack}</Text>
                         </View>
+                        : <>
+                            {CONTENT.map((item:any,index:number)=>(
+                                <Pressable key={index}
+                                    onPress={() => {
+                                        
+                                        router.navigate(`/explore/${item.id}`)
+                                    }}
+                                >
+                                    <View style={styles.item_box}>
+                                        <Image setShowCloudflareTurnstile={setShowCloudflareTurnstile} onError={(error:any)=>{console.log("load image error",error)}} source={{uri:`${apiBaseContext}${item.cover}`}} style={styles.item_cover}
+                                            contentFit="cover" transition={1000}
+                                        />
+                                        <Text style={styles.item_title}>{item.title}</Text>
+                                    </View>
+                                </Pressable>
+                            ))}
+                        </>
+                        
                     }
                     
 
                 </View>
-                {CONTENT.length &&
-                    <View 
+                {CONTENT.length 
+                    ? <View 
                         style={{
                             display:"flex",
                             flexDirection:"row",
@@ -443,7 +445,7 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelect
                             onPress={(()=>{
                                 setWidgetContext({state:true,component:()=>{
                                     const [goToPage, setGoToPage] = useState("");
-                                    const [feedBack, setFeedBack] = useState("");
+                                    const [_feedBack, _setFeedBack] = useState("");
                                     return (<View 
                                         style={{
                                             backgroundColor:Theme[themeTypeContext].background_color,
@@ -477,10 +479,10 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelect
                                                     
                                                     const isInt = /^-?\d+$/.test(value);
                                                     if (isInt || value === "") {
-                                                        setFeedBack("")
+                                                        _setFeedBack("")
                                                         setGoToPage(value)
                                                     }
-                                                    else setFeedBack("Input is not a valid number.")
+                                                    else _setFeedBack("Input is not a valid number.")
                                                     
                                                 }}
                                             />
@@ -555,6 +557,7 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile,itemSelect
                             })}
                         >{">"}</Button>
                     </View>
+                    : <></>
                 }
                 
             </View>

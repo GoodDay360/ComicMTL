@@ -9,7 +9,7 @@ import Dropdown from '@/components/dropdown';
 
 
 import Theme from '@/constants/theme';
-import { __styles } from '../stylesheet/show_styles';
+import { __styles } from './stylesheet/show_styles';
 import Storage from '@/constants/module/storage';
 import ImageStorage from '@/constants/module/image_storage';
 import { CONTEXT } from '@/constants/module/context';

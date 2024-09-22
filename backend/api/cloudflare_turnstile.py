@@ -1,6 +1,7 @@
 
 import requests, environ, json
 from django.http import JsonResponse, HttpResponseBadRequest
+from django.db import transaction
 
 from backend.models.model_cache import CloudflareTurnStileCache
 
@@ -29,6 +30,7 @@ def verify(request):
     result = req.json()
     status = result.get("success")
     if (status): 
-        CloudflareTurnStileCache(token=token).save()
+        with transaction.atomic():
+            CloudflareTurnStileCache.objects.create(token=token)
         return JsonResponse(result)
     else: return HttpResponseBadRequest('Cloudflare turnstile token verificaion failed!', status=511)

@@ -47,7 +47,10 @@ const MenuButton = ({pathname, label, icon}:any) => {
         >
             {current_pathname === pathname 
                 ? <Button
-                    onPress={() => {router.navigate(pathname)}}
+                    onPress={() => {
+                        
+                        router.push(pathname)
+                    }}
                     mode={"contained"}
                     style={style.selected_menu_button}
                 >
@@ -56,7 +59,10 @@ const MenuButton = ({pathname, label, icon}:any) => {
                 
                 </Button>
                 : <><Button
-                    onPress={() => {router.navigate(pathname)}}
+                    onPress={() => {
+                        
+                        router.push(pathname)
+                    }}
                     mode={"outlined"}
                     style={style.menu_button}
                     
