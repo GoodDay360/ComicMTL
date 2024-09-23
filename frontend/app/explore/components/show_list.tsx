@@ -412,11 +412,8 @@ const ShowList = ({}:any) => {
                         </View>
                         : <>
                             {CONTENT.map((item:any,index:number)=>(
-                                <Pressable key={index}
-                                    onPress={() => {
-                                        
-                                        router.navigate(`/explore/${item.id}`)
-                                    }}
+                                <Link key={index}
+                                    href={`/explore/${item.id}`}
                                 >
                                     <View style={styles.item_box}>
                                         <Image onError={(error:any)=>{console.log("load image error",error)}} source={{uri:`${apiBaseContext}${item.cover}`}} style={styles.item_cover}
@@ -424,7 +421,7 @@ const ShowList = ({}:any) => {
                                         />
                                         <Text style={styles.item_title}>{item.title}</Text>
                                     </View>
-                                </Pressable>
+                                </Link>
                             ))}
                         </>
                         
