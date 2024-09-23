@@ -412,16 +412,20 @@ const ShowList = ({}:any) => {
                         </View>
                         : <>
                             {CONTENT.map((item:any,index:number)=>(
-                                <Link key={index}
-                                    href={`/explore/${item.id}`}
-                                >
+                                
                                     <View style={styles.item_box}>
-                                        <Image onError={(error:any)=>{console.log("load image error",error)}} source={{uri:`${apiBaseContext}${item.cover}`}} style={styles.item_cover}
-                                            contentFit="cover" transition={1000}
-                                        />
+                                        <Link key={index} href={`/explore/${item.id}`}
+                                            style={{
+                                                width:"100%",
+                                            }}
+                                        >
+                                            <Image onError={(error:any)=>{console.log("load image error",error)}} source={{uri:`${apiBaseContext}${item.cover}`}} style={styles.item_cover}
+                                                contentFit="cover" transition={1000}
+                                            />
+                                        </Link>
                                         <Text style={styles.item_title}>{item.title}</Text>
                                     </View>
-                                </Link>
+                                
                             ))}
                         </>
                         
