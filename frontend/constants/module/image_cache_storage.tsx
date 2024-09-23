@@ -14,7 +14,7 @@ import Storage from '@/constants/module/storage';
 // I'm lazy to sit and implement entire thing :)
 // If you see any delulu, let me know.
 
-const DATABASE_NAME = 'ImageDB';
+const DATABASE_NAME = 'ImageCacheDB';
 const MAX_ROW = 50;
 const MAX_AGE = 3; // in days
 
@@ -316,11 +316,11 @@ class ImageStorage_Native {
 
 
 
-var ImageStorage:any
+var ImageCacheStorage:any
 if (Platform.OS === "web"){
-    ImageStorage = ImageStorage_Web
+    ImageCacheStorage = ImageStorage_Web
 }else{
-    ImageStorage = new ImageStorage_Native()
+    ImageCacheStorage = new ImageStorage_Native()
 }
 
-export default ImageStorage;
+export default ImageCacheStorage;

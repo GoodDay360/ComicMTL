@@ -1,7 +1,7 @@
 
 
 from ..utils import SeleniumScraper
-import json, os, sys, base64
+import json, os, sys, base64,time
 from core.settings import BASE_DIR
 
 from selenium.webdriver.common.by import By
@@ -14,6 +14,7 @@ import json
 import base64
 import sys
 
+MAX_TIMEOUT = 10
 
 def scrap(id:int=None,cover_id:int=None):
     if not id: raise ValueError("The 'id' parameter is required.")
@@ -27,17 +28,23 @@ def scrap(id:int=None,cover_id:int=None):
         driver = scraper.driver()
         driver.get(url)
         
-        
+        timeout = 0
         while True:
+            if timeout >= MAX_TIMEOUT: raise Exception('#1 Timed out!')
             page_state = driver.execute_script('return document.readyState;')
             if page_state == 'complete': break
+            timeout += 1
+            time.sleep(1)
         
         image_src_url = f'https://res.colamanga.com/comic/{cover_id}/cover.jpg'
 
         # Find the image element by its src attribute
+        timeout = 0
         while True:
-            if len(driver.find_elements(By.CLASS_NAME, "fed-list-pics")):
-                break
+            if timeout >= MAX_TIMEOUT: raise Exception('#2 Timed out!')
+            if len(driver.find_elements(By.CLASS_NAME, "fed-list-pics")): break
+            timeout += 1
+            time.sleep(1)
             
         origin_image_element = driver.find_elements(By.CLASS_NAME, "fed-list-pics")[0]
         
@@ -46,12 +53,16 @@ def scrap(id:int=None,cover_id:int=None):
         
         image_element = driver.find_element(By.ID, "injected_image")
         
+        timeout = 0
         while True:
+            if timeout >= MAX_TIMEOUT: raise Exception('#3 Timed out!')
             is_image_loaded = driver.execute_script(
                 "return arguments[0].complete", 
                 image_element
             )
             if is_image_loaded: break
+            timeout += 1
+            time.sleep(1)
 
         DATA = None
         

@@ -9,9 +9,10 @@ import Menu from '@/components/menu/menu';
 const Index = () => {
     const router = useRouter()
     const pathname = usePathname()
-
-
-    if (pathname === "/") return (<Redirect href="/explore" />)
+    
+    if (pathname === "/" || pathname === "") return (
+        <Redirect href="/explore/manga-kp086237" />
+    )
 
 }
 

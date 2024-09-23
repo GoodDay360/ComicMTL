@@ -11,15 +11,16 @@ import { get_list } from '@/app/explore/module/content'
 import ShowList from './components/show_list';
 
 import Storage from '@/constants/module/storage';
-import CloudflareTurnstile from '@/components/cloudflare_turnstile';
+
 
 
 const Explore = () => {
 
     
-    const [showCloudflareTurnstile, setShowCloudflareTurnstile]:any = useState(false)
+    
     const [isFocus,setIsFocus]:any = useState(false)
     const {themeTypeContext, setThemeTypeContext}:any = useContext(CONTEXT)
+    
     
     useFocusEffect(useCallback(() => {
         setIsFocus(true)
@@ -29,15 +30,8 @@ const Explore = () => {
     },[]))
 
     return (<>{isFocus
-        ? <>{showCloudflareTurnstile 
-            ? <View style={{width:"100%",height:"100%",display:"flex",justifyContent:"center",alignItems:"center",backgroundColor:Theme[themeTypeContext].background_color}}>
-                <CloudflareTurnstile 
-                    callback={() => {
-                        setShowCloudflareTurnstile(false)
-                }} />
-            </View>
-            : <ShowList showCloudflareTurnstile={showCloudflareTurnstile} setShowCloudflareTurnstile={setShowCloudflareTurnstile} />
-        }</>
+        ? <ShowList/>
+        
         : <></>}</>
     )
 }

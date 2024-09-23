@@ -1,6 +1,6 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, router, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState, useContext, createContext, memo } from 'react';
 import { useWindowDimensions, View, Text, Pressable } from 'react-native';
@@ -12,7 +12,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import Theme from '@/constants/theme';
 import { CONTEXT } from '@/constants/module/context';
 import { AnimatePresence } from 'moti';
-
+import CloudflareTurnstile from '@/components/cloudflare_turnstile';
 
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -20,13 +20,13 @@ import { AnimatePresence } from 'moti';
 
 SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  const pathname = usePathname()
   const Dimensions = useWindowDimensions();
   const [showMenuContext,setShowMenuContext]:any = useState(true)
   const [themeTypeContext,setThemeTypeContext]:any = useState("")
   const [apiBaseContext, setApiBaseContext]:any = useState("")
   const [widgetContext, setWidgetContext]:any = useState({state:false,component:null})
-
+  const [showCloudflareTurnstileContext, setShowCloudflareTurnstileContext]:any = useState(false)
 
   const MemoMenu = memo(Menu)
 
@@ -75,45 +75,56 @@ export default function RootLayout() {
           showMenuContext, setShowMenuContext, 
           apiBaseContext, setApiBaseContext,
           widgetContext, setWidgetContext,
+          showCloudflareTurnstileContext, setShowCloudflareTurnstileContext,
         }}>
-        <View style={{width:"100%",height:"100%",backgroundColor: Theme[themeTypeContext].background_color}}>
+          <View style={{width:"100%",height:"100%",backgroundColor: Theme[themeTypeContext].background_color}}>
+            {showCloudflareTurnstileContext
+                ? <View style={{position:"absolute",width:"100%",height:"100%",display:"flex",justifyContent:"center",alignItems:"center",backgroundColor:Theme[themeTypeContext].background_color}}>
+                    <CloudflareTurnstile 
+                        callback={() => {
+                            setShowCloudflareTurnstileContext(false)
+                            
+                    }} />
+                </View>
+                : <>
+                  {widgetContext.state &&
+                    <View style={{
+                      width:"100%",
+                      height:"100%",
+                      position:"absolute",
+                      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                      display:"flex",
+                      justifyContent:"center",
+                      alignItems:"center",
+                      zIndex:1,
+                      padding:15,
+                    }}
+                    
+                    ><widgetContext.component/></View>
+                  }
+                  <View style={{
+                        position:"absolute",
+                        width:"100%",
+                        height:"100%",
+                        display: 'flex', 
+                        flex: 1, 
+                        flexDirection: Dimensions.width <= 720 ? 'column' : 'row-reverse',                 
+                        
+                      }}>
+                        
+                        <Stack screenOptions={{ headerShown: false}}>
+                          <Stack.Screen name="index" />
+                          <Stack.Screen name="explore" />
+                          <Stack.Screen name="+not-found" />
+                        </Stack>
+                      
+                      {showMenuContext && <MemoMenu/>}
+                  </View>
+                </>
+            }
+            
           
-          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-              {widgetContext.state &&
-                <View style={{
-                  width:"100%",
-                  height:"100%",
-                  position:"absolute",
-                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                  display:"flex",
-                  justifyContent:"center",
-                  alignItems:"center",
-                  zIndex:1,
-                  padding:15,
-                }}
-                
-                ><widgetContext.component/></View>
-              }
-              <View style={{
-                  position:"absolute",
-                  width:"100%",
-                  height:"100%",
-                  display: 'flex', 
-                  flex: 1, 
-                  flexDirection: Dimensions.width <= 720 ? 'column' : 'row-reverse',                 
-                  zIndex:0,
-                }}>
-                  
-                <Stack screenOptions={{ headerShown: false }}>
-                  <Stack.Screen name="+not-found" />
-                  
-                </Stack>
-                
-                {showMenuContext && <MemoMenu/>}
-              </View>
-          </ThemeProvider>
-          
-        </View>
+          </View>
       </CONTEXT.Provider>
     </SafeAreaView>
   </>}</>);

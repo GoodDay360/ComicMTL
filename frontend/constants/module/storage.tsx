@@ -1,8 +1,7 @@
 import { Platform } from "react-native";
 import * as SQLite from 'expo-sqlite';
-import ImageStorage from "./image_storage";
 
-const DATABASE_NAME = 'Storage'
+const DATABASE_NAME = 'StorageDB'
 
 class Storage_Web {
     private static dbPromise: Promise<IDBDatabase>;
@@ -98,7 +97,7 @@ class Storage_Native{
             const db = await this.DATABASE;
             await db.runAsync('CREATE TABLE IF NOT EXISTS storage (key TEXT PRIMARY KEY NOT NULL, value TEXT);')
             await db.runAsync(
-                'INSERT OR REPLACE INTO storage (key, value) VALUES (?, ?);', key, value
+                'INSERT OR REPLACE INTO storage (key, value) VALUES (?, ?);', key, JSON.stringify(value)
             );
         }catch(error){console.log(error)}
     }
@@ -111,7 +110,7 @@ class Storage_Native{
                 'SELECT value FROM storage WHERE key = ?;', key
             )
             
-            if (DATA) return DATA.value
+            if (DATA) return JSON.parse(DATA.value)
             else return DATA
         }catch(error){console.log(error)}
     }

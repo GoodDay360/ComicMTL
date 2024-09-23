@@ -11,7 +11,7 @@ import Dropdown from '@/components/dropdown';
 import Theme from '@/constants/theme';
 import { __styles } from '../stylesheet/show_list_styles';
 import Storage from '@/constants/module/storage';
-import ImageStorage from '@/constants/module/image_storage';
+import ImageStorage from '@/constants/module/image_cache_storage';
 import { CONTEXT } from '@/constants/module/context';
 import { get_list } from '@/app/explore/module/content'
 import { transformAsync } from '@babel/core';
@@ -21,13 +21,14 @@ import { View, AnimatePresence } from 'moti';
 
 
 
-const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile}:any) => {
+const ShowList = ({}:any) => {
     
 
     const {showMenuContext, setShowMenuContext}:any = useContext(CONTEXT)
     const {themeTypeContext, setThemeTypeContext}:any = useContext(CONTEXT)
     const {apiBaseContext, setApiBaseContext}:any = useContext(CONTEXT)
     const {widgetContext, setWidgetContext}:any = useContext(CONTEXT)
+    const {showCloudflareTurnstileContext, setShowCloudflareTurnstileContext}:any = useContext(CONTEXT)
     
     const [styles, setStyles]:any = useState("")
     const Dimensions = useWindowDimensions();
@@ -54,11 +55,11 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile}:any) => {
             let __translate:any = await Storage.get("explore_translate")
             if (!__translate) {
                 __translate = {state:false,from:"auto",to:"en"}
-                await Storage.store("explore_translate",JSON.stringify(__translate))
-            }else __translate = JSON.parse(__translate)
+                await Storage.store("explore_translate",__translate)
+            }else __translate = __translate
 
             setTranslate(__translate)
-            get_list(setShowCloudflareTurnstile,setFeedBack,signal,setIsLoading,__translate,SET_CONTENT,search,page)
+            get_list(setShowCloudflareTurnstileContext,setFeedBack,signal,setIsLoading,__translate,SET_CONTENT,search,page)
         })()
 
         return () => {
@@ -73,7 +74,7 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile}:any) => {
         setShowMenuContext(true)
         setIsLoading(true);
         SET_CONTENT([])
-        get_list(setShowCloudflareTurnstile,setFeedBack,signal,setIsLoading,translate,SET_CONTENT,search,page)
+        get_list(setShowCloudflareTurnstileContext,setFeedBack,signal,setIsLoading,translate,SET_CONTENT,search,page)
         
     }
 
@@ -162,208 +163,208 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile}:any) => {
 
             </View>
             
-                {showOption.type === "translate" &&
-                    <View style={styles.option_container}
-                        from={{
-                            opacity: 0,
-                            scale: 0.9,
-                        }}
-                        animate={{
-                            opacity: 1,
-                            scale: 1,
-                        }}
-                        exit={{
-                            opacity: 0,
-                            scale: 0.5,
-                        }}
-                        transition={{
-                            type: 'timing',
-                            duration: 500,
-                        }}
-                        exitTransition={{
-                            type: 'timing',
-                            duration: 250,
-                        }}
-                    >
-                        <View style={{
-                            display:"flex",
-                            flexDirection:"row",
-                            width:"100%",
-                            justifyContent:"space-around",
-                            gap:25,
-                            
-                        }}>
-                            <View style={{flexGrow:1,}}>
-                                <Dropdown
-                                    theme_type={themeTypeContext}
-                                    Dimensions={Dimensions}
+            {showOption.type === "translate" &&
+                <View style={styles.option_container}
+                    from={{
+                        opacity: 0,
+                        scale: 0.9,
+                    }}
+                    animate={{
+                        opacity: 1,
+                        scale: 1,
+                    }}
+                    exit={{
+                        opacity: 0,
+                        scale: 0.5,
+                    }}
+                    transition={{
+                        type: 'timing',
+                        duration: 500,
+                    }}
+                    exitTransition={{
+                        type: 'timing',
+                        duration: 250,
+                    }}
+                >
+                    <View style={{
+                        display:"flex",
+                        flexDirection:"row",
+                        width:"100%",
+                        justifyContent:"space-around",
+                        gap:25,
+                        
+                    }}>
+                        <View style={{flexGrow:1,}}>
+                            <Dropdown
+                                theme_type={themeTypeContext}
+                                Dimensions={Dimensions}
 
-                                    label='From Language' 
-                                    data={[
-                                        { 
-                                            label: "Auto", 
-                                            value: 'auto' 
-                                        },
-                                        { 
-                                            label: "Chinese", 
-                                            value: 'zh' 
-                                        },
-                                    ]}
-                                    value={translate.from}
-                                    onChange={async (item:any) => {
-                                        setTranslate({...translate,from:item.value})
-                                        await Storage.store("explore_translate",JSON.stringify({...translate,from:item.value}))
-                                    }}
-                                />
-                            </View>
-                            <View style={{flexGrow:1,}}>
-                                <Dropdown
-                                    theme_type={themeTypeContext}
-                                    Dimensions={Dimensions}
-                                    label='To Language' 
-                                    data={[
-                                        { 
-                                            label: "English", 
-                                            value: 'en' 
-                                        },
-                                    ]}
-                                    value={translate.to}
-                                    onChange={async (item:any) => {
-                                        setTranslate({...translate,to:item.value})
-                                        await Storage.store("explore_translate",JSON.stringify({...translate,to:item.value}))
-                                    }}
-                                />
-                            </View>
+                                label='From Language' 
+                                data={[
+                                    { 
+                                        label: "Auto", 
+                                        value: 'auto' 
+                                    },
+                                    { 
+                                        label: "Chinese", 
+                                        value: 'zh' 
+                                    },
+                                ]}
+                                value={translate.from}
+                                onChange={async (item:any) => {
+                                    setTranslate({...translate,from:item.value})
+                                    await Storage.store("explore_translate",{...translate,from:item.value})
+                                }}
+                            />
                         </View>
-                        <View style={{
-                            width:"100%",
-                            display:"flex",
-                            alignItems:"center",
-                            justifyContent:"center",
-                            flexDirection:"row",
-                        }}>
-                            
-                            <Button mode={"contained"} style={{
-                                width:"auto",
-                                borderRadius:8,
-                                backgroundColor: translate.state ? "red": "green",
+                        <View style={{flexGrow:1,}}>
+                            <Dropdown
+                                theme_type={themeTypeContext}
+                                Dimensions={Dimensions}
+                                label='To Language' 
+                                data={[
+                                    { 
+                                        label: "English", 
+                                        value: 'en' 
+                                    },
+                                ]}
+                                value={translate.to}
+                                onChange={async (item:any) => {
+                                    setTranslate({...translate,to:item.value})
+                                    await Storage.store("explore_translate",{...translate,to:item.value})
+                                }}
+                            />
+                        </View>
+                    </View>
+                    <View style={{
+                        width:"100%",
+                        display:"flex",
+                        alignItems:"center",
+                        justifyContent:"center",
+                        flexDirection:"row",
+                    }}>
+                        
+                        <Button mode={"contained"} style={{
+                            width:"auto",
+                            borderRadius:8,
+                            backgroundColor: translate.state ? "red": "green",
+                        }}
+                            onPress={async () => {
+                                if (translate.state){
+                                    setTranslate({...translate,state:false})
+                                    await Storage.store("explore_translate",{...translate,state:false})
+                                }else{
+                                    setTranslate({...translate,state:true})
+                                    await Storage.store("explore_translate",{...translate,state:true})
+                                }
+                                
                             }}
-                                onPress={async () => {
-                                    if (translate.state){
-                                        setTranslate({...translate,state:false})
-                                        await Storage.store("explore_translate",JSON.stringify({...translate,state:false}))
-                                    }else{
-                                        setTranslate({...translate,state:true})
-                                        await Storage.store("explore_translate",JSON.stringify({...translate,state:true}))
-                                    }
+                        >
+                            {translate.state ? "Disable Translation" : "Enable Translation"}
+                        </Button>
+
+                        
+                    </View>
+                </View>
+            }
+
+            {showOption.type === "search" &&
+                <View style={styles.option_container}
+                    from={{
+                        opacity: 0,
+                        scale: 0.9,
+                    }}
+                    animate={{
+                        opacity: 1,
+                        scale: 1,
+                    }}
+                    exit={{
+                        opacity: 0,
+                        scale: 0.5,
+                    }}
+                    transition={{
+                        type: 'timing',
+                        duration: 500,
+                    }}
+                    exitTransition={{
+                        type: 'timing',
+                        duration: 250,
+                    }}
+                >
+                    <View style={{
+                        display:"flex",
+                        flexDirection: Dimensions.width <= 720 ? "column" : "row",
+                        width:"100%",
+                        alignItems:"center",
+                        justifyContent:"center",
+                        gap:25,
+                        
+                    }}>
+                        <View style={{flex:1,width:"100%"}}>
+                            <TextInput mode="outlined" label="Search"  textColor={Theme[themeTypeContext].text_color} 
+                                placeholder="Tip: search by using the original language for better results"
+                                style={{
+                                    
+                                    backgroundColor:Theme[themeTypeContext].background_color,
+                                    borderColor:Theme[themeTypeContext].border_color,
                                     
                                 }}
-                            >
-                                {translate.state ? "Disable Translation" : "Enable Translation"}
-                            </Button>
-
-                            
+                                outlineColor={Theme[themeTypeContext].text_input_border_color}
+                                value={search.text}
+                                onChange={(event)=>{
+                                    setSearch({...search,text:event.nativeEvent.text})
+                                }}
+                            />
                         </View>
-                    </View>
-                }
-
-                {showOption.type === "search" &&
-                    <View style={styles.option_container}
-                        from={{
-                            opacity: 0,
-                            scale: 0.9,
-                        }}
-                        animate={{
-                            opacity: 1,
-                            scale: 1,
-                        }}
-                        exit={{
-                            opacity: 0,
-                            scale: 0.5,
-                        }}
-                        transition={{
-                            type: 'timing',
-                            duration: 500,
-                        }}
-                        exitTransition={{
-                            type: 'timing',
-                            duration: 250,
-                        }}
-                    >
-                        <View style={{
-                            display:"flex",
-                            flexDirection: Dimensions.width <= 720 ? "column" : "row",
-                            width:"100%",
-                            alignItems:"center",
-                            justifyContent:"center",
-                            gap:25,
+                        <View 
+                            style={{
+                                display:"flex",
+                                flexDirection:Dimensions.width <= 720 ? "row-reverse" : "row",
+                                gap:25, 
+                                justifyContent:"center",
+                                alignItems:"center",
+                            }}>
+                            <Button mode="contained" disabled={isLoading}
+                                style={{
                             
-                        }}>
-                            <View style={{flex:1,width:"100%"}}>
-                                <TextInput mode="outlined" label="Search"  textColor={Theme[themeTypeContext].text_color} 
-                                    placeholder="Tip: search by using the original language for better results"
-                                    style={{
-                                        
-                                        backgroundColor:Theme[themeTypeContext].background_color,
-                                        borderColor:Theme[themeTypeContext].border_color,
-                                        
-                                    }}
-                                    outlineColor={Theme[themeTypeContext].text_input_border_color}
-                                    value={search.text}
-                                    onChange={(event)=>{
-                                        setSearch({...search,text:event.nativeEvent.text})
+                                    borderRadius:5,
+                                    backgroundColor: "purple",
+                                }}
+                                labelStyle={{fontFamily:"roboto-medium",fontSize:(Dimensions.width+Dimensions.height)/2*0.0220}}
+                                onPress={()=>{
+                                    onRefresh()
+                                }}
+                            >
+                                Search
+                            </Button>
+                            <View style={{flexGrow:1}}>
+                                <Dropdown
+                                    theme_type={themeTypeContext}
+                                    Dimensions={Dimensions}
+
+                                    label='Search Type' 
+                                    data={[
+                                        { 
+                                            label: "Obscure ", 
+                                            value: 1
+                                        },
+                                        { 
+                                            label: "Precise", 
+                                            value: 2
+                                        },
+                                    ]}
+                                    value={search.type}
+                                    onChange={(item:any) => {
+                                        setSearch({...search,type:item.value})
                                     }}
                                 />
                             </View>
-                            <View 
-                                style={{
-                                    display:"flex",
-                                    flexDirection:Dimensions.width <= 720 ? "row-reverse" : "row",
-                                    gap:25, 
-                                    justifyContent:"center",
-                                    alignItems:"center",
-                                }}>
-                                <Button mode="contained" disabled={isLoading}
-                                    style={{
-                                
-                                        borderRadius:5,
-                                        backgroundColor: "purple",
-                                    }}
-                                    labelStyle={{fontFamily:"roboto-medium",fontSize:(Dimensions.width+Dimensions.height)/2*0.0220}}
-                                    onPress={()=>{
-                                        onRefresh()
-                                    }}
-                                >
-                                    Search
-                                </Button>
-                                <View style={{flexGrow:1}}>
-                                    <Dropdown
-                                        theme_type={themeTypeContext}
-                                        Dimensions={Dimensions}
-
-                                        label='Search Type' 
-                                        data={[
-                                            { 
-                                                label: "Obscure ", 
-                                                value: 1
-                                            },
-                                            { 
-                                                label: "Precise", 
-                                                value: 2
-                                            },
-                                        ]}
-                                        value={search.type}
-                                        onChange={(item:any) => {
-                                            setSearch({...search,type:item.value})
-                                        }}
-                                    />
-                                </View>
-                            </View>
-
-                            
                         </View>
+
+                        
                     </View>
-                }
+                </View>
+            }
             <View style={styles.body_container}>
                 
                 <View style={styles.content_container}>
@@ -394,7 +395,7 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile}:any) => {
                                     }}
                                 >
                                     <View style={styles.item_box}>
-                                        <Image setShowCloudflareTurnstile={setShowCloudflareTurnstile} onError={(error:any)=>{console.log("load image error",error)}} source={{uri:`${apiBaseContext}${item.cover}`}} style={styles.item_cover}
+                                        <Image onError={(error:any)=>{console.log("load image error",error)}} source={{uri:`${apiBaseContext}${item.cover}`}} style={styles.item_cover}
                                             contentFit="cover" transition={1000}
                                         />
                                         <Text style={styles.item_title}>{item.title}</Text>
@@ -563,10 +564,9 @@ const ShowList = ({showCloudflareTurnstile,setShowCloudflareTurnstile}:any) => {
             </View>
 
         </ScrollView>
-        {}
     </>
     : <View style={{width:"100%",height:"100%",display:"flex",justifyContent:"center",alignItems:"center",backgroundColor:Theme[themeTypeContext].background_color}}>
-        <Image setShowCloudflareTurnstile={setShowCloudflareTurnstile} source={require("@/assets/gif/cat-loading.gif")} style={{width:((Dimensions.width+Dimensions.height)/2)*0.15,height:((Dimensions.width+Dimensions.height)/2)*0.15}}/>
+        <Image setShowCloudflareTurnstile={setShowCloudflareTurnstileContext} source={require("@/assets/gif/cat-loading.gif")} style={{width:((Dimensions.width+Dimensions.height)/2)*0.15,height:((Dimensions.width+Dimensions.height)/2)*0.15}}/>
     </View>
     }</>);
 }

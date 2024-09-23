@@ -22,11 +22,11 @@ env = environ.Env()
 def get_list(request):
     if request.method != "POST": return HttpResponseBadRequest('Allowed POST request only!', status=400)
     token = request.META.get('HTTP_X_CLOUDFLARE_TURNSTILE_TOKEN')
+    if not cloudflare_turnstile.check(token): return HttpResponseBadRequest('Cloudflare turnstile token not existed or expired!', status=511)
+    
     payload = json.loads(request.body)
     search = payload.get("search")
     page = payload.get("page")
-    
-    if not cloudflare_turnstile.check(token): return HttpResponseBadRequest('Cloudflare turnstile token not existed or expired!', status=511)
     
     if search.get("text"): DATA = web_scrap.source_control["colamanga"].search.scrap(search=search,page=page)
     else: DATA = web_scrap.source_control["colamanga"].get_list.scrap(page=page)
@@ -44,11 +44,19 @@ def search(request):
         return HttpResponseBadRequest(str(e), status=500)
     
 
+
+@csrf_exempt
 @ratelimit(key='ip', rate='60/m')
 def get(request):
-    # if request.method != "POST": return HttpResponseBadRequest('Allowed POST request only!', status=400)
+    if request.method != "POST": return HttpResponseBadRequest('Allowed POST request only!', status=400)
+    token = request.META.get('HTTP_X_CLOUDFLARE_TURNSTILE_TOKEN')
+    if not cloudflare_turnstile.check(token): return HttpResponseBadRequest('Cloudflare turnstile token not existed or expired!', status=511)
+    
+    payload = json.loads(request.body)
+    id = payload.get("id")
+    
     try:
-        DATA = web_scrap.source_control["colamanga"].get.scrap(id="manga-gu881388")
+        DATA = web_scrap.source_control["colamanga"].get.scrap(id=id)
         return JsonResponse({"data":DATA}) 
     except Exception as e:
 
