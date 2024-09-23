@@ -37,6 +37,7 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-native": "0.74.5",
+    "react-native-big-list": "^1.6.1",
     "react-native-buffer": "^6.0.3",
     "react-native-country-flag": "^2.0.2",
     "react-native-element-dropdown": "^2.12.1",

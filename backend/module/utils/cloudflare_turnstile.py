@@ -6,5 +6,5 @@ def check(token):
     with transaction.atomic():
         CloudflareTurnStileCache.objects.filter(datetime__lte=date_utils.utc_time().add(-30 ,'minute').get()).delete()
         result = CloudflareTurnStileCache.objects.filter(token=token).first()
-        if result: return True
-        else: return False
+    if result: return True
+    else: return False

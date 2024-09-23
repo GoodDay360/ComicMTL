@@ -28,15 +28,20 @@ export const __styles:any = (theme_type:string,Dimensions:any) => {
             display:"flex",
             flexDirection:"row",
             width:"auto",
+            justifyContent:"center",
+            alignItems:"center",
         },
         
         header_search_button:{
+            borderRadius:5,
             borderWidth:0,
         },
         header_translate_button:{
+            borderRadius:5,
             borderWidth:0,
         },
         header_refresh_button:{
+            borderRadius:5,
             borderWidth:0,
         },
 

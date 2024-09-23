@@ -128,7 +128,16 @@ const ShowList = ({}:any) => {
                     
                     
 
-                    <Button mode={"outlined"} style={{...styles.header_translate_button,backgroundColor: showOption.type === "translate" ? Theme[themeTypeContext].button_selected_color : "transparent"}}
+                    <Button mode={"outlined"} 
+                        style={{
+                            ...styles.header_translate_button,
+                            backgroundColor: showOption.type === "translate" ? Theme[themeTypeContext].button_selected_color : "transparent"
+                        }}
+                        
+                        labelStyle={{
+                            margin:0,
+                            padding:5,
+                        }}
                         onPress={() => {
                             if (showOption.type === "translate"){
                                 setShowOption({type:null})
@@ -141,7 +150,15 @@ const ShowList = ({}:any) => {
                     </Button>
                     
 
-                    <Button mode={"outlined"} style={{...styles.header_search_button,backgroundColor: showOption.type === "search" ? Theme[themeTypeContext].button_selected_color : "transparent"}}
+                    <Button mode={"outlined"} 
+                        style={{
+                            ...styles.header_search_button,
+                            backgroundColor: showOption.type === "search" ? Theme[themeTypeContext].button_selected_color : "transparent"
+                        }}
+                        labelStyle={{
+                            margin:0,
+                            padding:5,
+                        }}
                         onPress={() => {
                             if (showOption.type === "search"){
                                 setShowOption({type:null})
@@ -153,7 +170,14 @@ const ShowList = ({}:any) => {
                         <Icon source={"magnify"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={Theme[themeTypeContext].icon_color}/>
                     </Button>
 
-                    <Button mode={"outlined"} style={styles.header_refresh_button} disabled={isLoading}
+                    <Button mode={"outlined"}  disabled={isLoading}
+                        style={
+                            styles.header_refresh_button
+                        }
+                        labelStyle={{
+                            margin:0,
+                            padding:5,
+                        }}
                         onPress={onRefresh}
                     >
                         <Icon color={Theme[themeTypeContext].icon_color} source={"refresh"} size={((Dimensions.width+Dimensions.height)/2)*0.04}/>

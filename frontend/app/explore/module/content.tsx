@@ -45,7 +45,7 @@ export const get_list = async (setShowCloudflareTurnstile:any,setFeedBack:any,si
     })
 }
 
-export const get = async(setShowCloudflareTurnstile:any,setIsLoading:any,signal:AbortSignal,translate:any,id:any,SET_CONTENT:any) => {
+export const get = async(setShowCloudflareTurnstile:any,setIsLoading:any,signal:AbortSignal,translate:any,setFeedBack:any,id:any,SET_CONTENT:any) => {
     const API_BASE = await Storage.get("IN_USE_API_BASE")
     axios({
         method: 'post',
@@ -58,6 +58,12 @@ export const get = async(setShowCloudflareTurnstile:any,setIsLoading:any,signal:
         signal:signal,
     }).then((response) => {(async () =>{
         const DATA = response.data.data
+        if (Object.keys(DATA).length) setFeedBack("")
+        else{
+            setFeedBack("No content found!")
+            return
+        }
+
         DATA["category"] = DATA.category.join(" | ")
         
         if (translate.state){
@@ -78,7 +84,7 @@ export const get = async(setShowCloudflareTurnstile:any,setIsLoading:any,signal:
         
         if (error.status === 511) setShowCloudflareTurnstile(true)
         else{
-            
+            setFeedBack("Error unable to fetch data! Try request again.")
         }
         setIsLoading(false)
     })

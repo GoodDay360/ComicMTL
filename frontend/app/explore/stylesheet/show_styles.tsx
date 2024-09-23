@@ -28,6 +28,8 @@ export const __styles:any = (theme_type:string,Dimensions:any) => {
             display:"flex",
             flexDirection:"row",
             width:"auto",
+            justifyContent:"center",
+            alignItems:"center",
         },
         option_container:{
             width:"100%",
@@ -90,6 +92,31 @@ export const __styles:any = (theme_type:string,Dimensions:any) => {
             display: "flex",
             flexDirection: "column",
             width:'100%',
-
+        },
+        body_box_3:{
+            display: "flex",
+            flexDirection: "column",
+            width:'100%',
+            gap:12,
+        },
+        chapter_box:{
+            width:"100%",
+            height:"auto",
+            borderColor: Theme[theme_type].border_color,
+            borderTopWidth:4,
+            borderBottomWidth:4,
+            borderRadius:8,
+            display:"flex",
+            flexDirection:"row",
+            flexWrap:"wrap",
+            justifyContent:"space-around",
+            gap:8,
+            padding:12,
+        },
+        chapter_button:{
+            borderWidth:2,
+            borderRadius:5,
+            borderColor: Theme[theme_type].border_color,
+            width:((Dimensions.width+Dimensions.height)/2)*0.25,
         }
     })}

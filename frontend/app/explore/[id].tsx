@@ -35,9 +35,11 @@ const Show = ({}:any) => {
     const [translate, setTranslate]:any = useState({});
     const [CONTENT, SET_CONTENT]:any = useState({})
     const [isLoading, setIsLoading]:any = useState(true);
+    const [feedBack, setFeedBack]:any = useState({state:true,text:""});
     const [showOption, setShowOption]:any = useState({type:null})
     const [showMoreSynopsis, setShowMoreSynopsis]:any = useState(false)
-    const [refreshing, setRefreshing] = useState(false);
+    const [refreshing, setRefreshing]:any = useState(false);
+    const [sort, setSort]:any = useState("descending")
     
     const controller = new AbortController();
     const signal = controller.signal;
@@ -54,7 +56,7 @@ const Show = ({}:any) => {
             }else __translate = __translate
 
             setTranslate(__translate)
-            get(setShowCloudflareTurnstileContext, setIsLoading, signal, __translate, ID, SET_CONTENT)
+            get(setShowCloudflareTurnstileContext, setIsLoading, signal, __translate, setFeedBack, ID, SET_CONTENT)
         })()
 
         return () => {
@@ -66,7 +68,7 @@ const Show = ({}:any) => {
         if (!(styles && themeTypeContext && apiBaseContext)) return
         setIsLoading(true);
         SET_CONTENT([])
-        get(setShowCloudflareTurnstileContext, setIsLoading, signal, translate, ID, SET_CONTENT)
+        get(setShowCloudflareTurnstileContext, setIsLoading, signal, translate, setFeedBack, ID, SET_CONTENT)
     }
 
     return (<>{(styles && !isLoading) 
@@ -82,9 +84,13 @@ const Show = ({}:any) => {
                 <View style={styles.header_button_box}>
                     <Button mode={"outlined"} 
                         style={{
+                            borderRadius:5,
                             borderWidth:0,
-                            backgroundColor: "translate",
-                            display:"flex",
+                            backgroundColor: "transparent"
+                        }}
+                        labelStyle={{
+                            margin:0,
+                            padding:5,
                         }}
                         onPress={()=>{
                             router.push("/explore/")
@@ -95,7 +101,16 @@ const Show = ({}:any) => {
 
                 </View>
                 <View style={styles.header_button_box}>
-                    <Button mode={"outlined"} style={{borderWidth:0,backgroundColor: showOption.type === "translate" ? Theme[themeTypeContext].button_selected_color : "transparent"}}
+                    <Button mode={"outlined"} 
+                        style={{
+                            borderRadius:5,
+                            borderWidth:0,
+                            backgroundColor: showOption.type === "translate" ? Theme[themeTypeContext].button_selected_color : "transparent"
+                        }}
+                        labelStyle={{
+                            margin:0,
+                            padding:5,
+                        }}
                         onPress={() => {
                             if (showOption.type === "translate"){
                                 setShowOption({type:null})
@@ -107,14 +122,32 @@ const Show = ({}:any) => {
                         <Icon source={translate.state ? "translate" : "translate-off"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={Theme[themeTypeContext].icon_color}/>
                     </Button>
 
-                    <Button mode={"outlined"} style={{borderWidth:0,backgroundColor: "transparent"}} disabled={isLoading}
+                    <Button mode={"outlined"} disabled={isLoading}
+                        style={{
+                            borderRadius:5,
+                            borderWidth:0,
+                            backgroundColor: "transparent"
+                        }}
+                        labelStyle={{
+                            margin:0,
+                            padding:5,
+                        }}
                         onPress={()=>{
                             onRefresh()
                         }}
                     >
                         <Icon source={"refresh"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={Theme[themeTypeContext].icon_color}/>
                     </Button>
-                    <Button mode={"outlined"} style={{borderWidth:0,backgroundColor: "transparent"}}
+                    <Button mode={"outlined"}
+                        style={{
+                            borderRadius:5,
+                            borderWidth:0,
+                            backgroundColor: "transparent"
+                        }}
+                        labelStyle={{
+                            margin:0,
+                            padding:5,
+                        }}
                         onPress={()=>{
                             
                         }}
@@ -228,98 +261,177 @@ const Show = ({}:any) => {
                     </View>
                 </View>
             }
-            <View style={styles.body_container}>
-                <View style={styles.body_box_1}>
-                    <Image style={styles.item_cover} source={{uri:`${apiBaseContext}${CONTENT.cover}`}}/>
-                    <View style={{flex:1,paddingBottom:15,height:"auto"}}>
-                        <Text 
-                            style={{
-                                ...styles.item_info,
-                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.05,
-                                fontFamily:"roboto-bold",
-                                paddingBottom:10,
-                            }}
-                        >{CONTENT.title}
-                        </Text>
-                        <Text 
-                            style={{
-                                ...styles.item_info,
-                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.03
-                            }}
-                        >Author: {CONTENT.author || "Unknown"}
-                        </Text>
-                        <Text 
-                            style={{
-                                ...styles.item_info,
-                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.03
-                            }}
-                        >Status: {CONTENT.status}
-                        </Text>
-                        <Text 
-                            style={{
-                                ...styles.item_info,
-                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.03
-                            }}
-                        >Category: {CONTENT.category}
-                        </Text>
-                        <Text 
-                            style={{
-                                ...styles.item_info,
-                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.03
-                            }}
-                        >Updated: {CONTENT.updated}
-                        </Text>
-                    </View>
-                </View>
-                <View style={styles.body_box_2}>
-                    <View
+            <>{feedBack && !Object.keys(CONTENT).length 
+                ? <View
+                    style={{
+                        width:"100%",
+                        height:"100%",
+                        display:"flex",
+                        justifyContent:"center",
+                        alignItems:"center"
+                    }}
+                >
+                    <Text
                         style={{
-                            display:"flex",
-                            flexDirection:"row",
-                            
-                            justifyContent:"space-between",
+                            color:Theme[themeTypeContext].text_color,
+                            fontFamily:"roboto-medium",
+                            fontSize:(Dimensions.width+Dimensions.height)/2*0.03
                         }}
-                    >
-                        <View>
+                    >{feedBack}</Text>
+                </View>
+                : <View style={styles.body_container}>
+                    <View style={styles.body_box_1}>
+                        <Image style={styles.item_cover} source={{uri:`${apiBaseContext}${CONTENT.cover}`}}/>
+                        <View style={{flex:1,paddingBottom:15,height:"auto"}}>
                             <Text 
                                 style={{
                                     ...styles.item_info,
-                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.04,
+                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.05,
                                     fontFamily:"roboto-bold",
+                                    paddingBottom:10,
                                 }}
-                            >Synopsis:</Text>
+                            >{CONTENT.title}
+                            </Text>
+                            <Text 
+                                style={{
+                                    ...styles.item_info,
+                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.03
+                                }}
+                            >Author: {CONTENT.author || "Unknown"}
+                            </Text>
+                            <Text 
+                                style={{
+                                    ...styles.item_info,
+                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.03
+                                }}
+                            >Status: {CONTENT.status}
+                            </Text>
+                            <Text 
+                                style={{
+                                    ...styles.item_info,
+                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.03
+                                }}
+                            >Category: {CONTENT.category}
+                            </Text>
+                            <Text 
+                                style={{
+                                    ...styles.item_info,
+                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.03
+                                }}
+                            >Updated: {CONTENT.updated}
+                            </Text>
+                        </View>
+                    </View>
+                    <View style={styles.body_box_2}>
+                        <View
+                            style={{
+                                display:"flex",
+                                flexDirection:"row",
+                                
+                                justifyContent:"space-between",
+                            }}
+                        >
+                            <View>
+                                <Text 
+                                    style={{
+                                        ...styles.item_info,
+                                        fontSize:((Dimensions.width+Dimensions.height)/2)*0.035,
+                                        fontFamily:"roboto-bold",
+                                    }}
+                                >Synopsis:</Text>
+                            </View>
+                            
+                            <Button mode='outlined'
+                                onPress={() => {
+                                    if (showMoreSynopsis) setShowMoreSynopsis(false)
+                                    else setShowMoreSynopsis(true)
+                                }}
+                                style={{borderWidth:0}}
+                                labelStyle={{
+                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
+                                    fontFamily:"roboto-medium",
+                                    color:"cyan",
+
+                                }}
+                            >{showMoreSynopsis ? "Show Less" : "Show More"}</Button>
+
                         </View>
                         
-                        <Button mode='outlined'
-                            onPress={() => {
-                                if (showMoreSynopsis) setShowMoreSynopsis(false)
-                                else setShowMoreSynopsis(true)
-                            }}
-                            style={{borderWidth:0}}
-                            labelStyle={{
+                        <Text 
+                            style={{
+                                ...styles.item_info,
                                 fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
                                 fontFamily:"roboto-medium",
-                                color:"cyan",
-
+                                paddingBottom:10,
+                                borderColor: Theme[themeTypeContext].border_color,
+                                borderBottomWidth:showMoreSynopsis ? 0 : 5,
                             }}
-                        >{showMoreSynopsis ? "Show Less" : "Show More"}</Button>
-
+                            numberOfLines={showMoreSynopsis ? 0 : 2} 
+                            ellipsizeMode='tail'
+                        >{CONTENT.synopsis}</Text>
                     </View>
-                    
-                    <Text 
-                        style={{
-                            ...styles.item_info,
-                            fontSize:((Dimensions.width+Dimensions.height)/2)*0.03,
-                            fontFamily:"roboto-medium",
-                            paddingBottom:10,
-                            borderColor: Theme[themeTypeContext].border_color,
-                            borderBottomWidth:showMoreSynopsis ? 0 : 5,
-                        }}
-                        numberOfLines={showMoreSynopsis ? 0 : 2} 
-                        ellipsizeMode='tail'
-                    >{CONTENT.synopsis}</Text>
+                    <View style={{...styles.body_box_3,paddingTop:10}}>
+                        <View 
+                            style={{
+                                display:"flex",
+                                flexDirection:"row",
+                                alignContent:"center"
+                            }}
+                        >
+                            <View style={{flex:1}}>
+                                <Text 
+                                    style={{
+                                        ...styles.item_info,
+                                        fontSize:((Dimensions.width+Dimensions.height)/2)*0.035,
+                                        fontFamily:"roboto-bold",
+                                        textAlign:"center",
+                                        borderColor: Theme[themeTypeContext].border_color,
+                                        
+                                    }}
+                                >Chapters</Text>
+                            </View>
+                            <Button mode='outlined'
+                                style={{
+                                    borderWidth:0,
+                                    borderRadius:5,
+                                }}
+                                labelStyle={{
+                                    padding:5,
+                                    margin:0,
+                                }}
+                                onPress={()=>{
+                                    if (sort === "descending") setSort("ascending")
+                                    else setSort("descending")
+                                    SET_CONTENT({...CONTENT,chapters:CONTENT.chapters.reverse()})
+                                }}
+                            >
+                                {sort === "descending"
+                                    ? <Icon source={"sort-descending"} size={((Dimensions.width+Dimensions.height)/2)*0.0425} color={Theme[themeTypeContext].icon_color}/>
+                                    : <Icon source={"sort-ascending"} size={((Dimensions.width+Dimensions.height)/2)*0.0425} color={Theme[themeTypeContext].icon_color}/>
+                                }
+                                
+                            </Button>
+                        </View>
+                        
+                        <View style={styles.chapter_box}>
+                            {CONTENT.chapters.map((chapter:any,index:number) => (
+                                <Button mode='outlined' key={index}
+                                    style={styles.chapter_button}
+                                    labelStyle={{
+                                        ...styles.item_info,
+                                        fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
+                                        fontFamily:"roboto-light",
+                                        padding:5,
+                                    }}
+                                    onPress={() => {console.log(chapter.id)}}
+                                >
+                                    {chapter.title}
+                                </Button>
+                            ))}
+                        </View>
+                    </View>
                 </View>
-            </View>
+            }</>
         </ScrollView>
         : <View style={{width:"100%",height:"100%",display:"flex",justifyContent:"center",alignItems:"center",backgroundColor:Theme[themeTypeContext].background_color}}>
             <Image setShowCloudflareTurnstile={setShowCloudflareTurnstileContext} source={require("@/assets/gif/cat-loading.gif")} style={{width:((Dimensions.width+Dimensions.height)/2)*0.15,height:((Dimensions.width+Dimensions.height)/2)*0.15}}/>
