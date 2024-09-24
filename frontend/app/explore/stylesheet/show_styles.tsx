@@ -107,16 +107,16 @@ export const __styles:any = (theme_type:string,Dimensions:any) => {
             borderBottomWidth:4,
             borderRadius:8,
             display:"flex",
-            flexDirection:"row",
-            flexWrap:"wrap",
+            flexDirection: "column",
+            // flexWrap:"wrap",
             justifyContent:"space-around",
-            gap:8,
+            gap:16,
             padding:12,
         },
         chapter_button:{
             borderWidth:2,
             borderRadius:5,
             borderColor: Theme[theme_type].border_color,
-            width:((Dimensions.width+Dimensions.height)/2)*0.25,
+            flex:1
         }
     })}

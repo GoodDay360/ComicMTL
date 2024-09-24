@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Icon, MD3Colors, Button, Text, TextInput } from 'react-native-paper';
 import CountryFlag from "react-native-country-flag";
 import Dropdown from '@/components/dropdown';
-
+import Toast from 'react-native-toast-message';
 
 import Theme from '@/constants/theme';
 import { __styles } from './stylesheet/show_styles';
@@ -48,6 +48,7 @@ const Show = ({}:any) => {
 
     useEffect(() => { 
         (async ()=>{
+            
             setShowMenuContext(false)
             setStyles(__styles(themeTypeContext,Dimensions))
 
@@ -385,6 +386,7 @@ const Show = ({}:any) => {
                                 paddingBottom:10,
                                 borderColor: Theme[themeTypeContext].border_color,
                                 borderBottomWidth:showMoreSynopsis ? 0 : 5,
+                                borderRadius:8,
                             }}
                             numberOfLines={showMoreSynopsis ? 0 : 2} 
                             ellipsizeMode='tail'
@@ -439,18 +441,63 @@ const Show = ({}:any) => {
                         
                         <View style={styles.chapter_box}>
                             {CONTENT.chapters.slice((page-1)*MAX_OFFSET,((page-1)*MAX_OFFSET)+MAX_OFFSET).map((chapter:any,index:number) => (
-                                <Button mode='outlined' key={index}
-                                    style={styles.chapter_button}
-                                    labelStyle={{
-                                        ...styles.item_info,
-                                        fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
-                                        fontFamily:"roboto-light",
-                                        padding:5,
+                                <View key={index}
+                                    style={{
+                                        display:"flex",
+                                        flexDirection:"row",
+                                        gap:12,
+                                        justifyContent:"space-between",
+                                        alignItems:"center",
                                     }}
-                                    onPress={() => {console.log(chapter.id)}}
                                 >
-                                    {chapter.title}
-                                </Button>
+                                    <Button mode='outlined' 
+                                        style={styles.chapter_button}
+                                        labelStyle={{
+                                            ...styles.item_info,
+                                            fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
+                                            fontFamily:"roboto-light",
+                                            padding:5,
+                                        }}
+                                        onPress={() => {console.log(chapter.id)}}
+                                    >
+                                        {chapter.title}
+                                    </Button>
+                                    <Button mode='outlined'
+                                        style={{
+                                            borderRadius:5,
+                                            borderWidth:0,
+                                        }}
+                                        labelStyle={{
+                                            margin:0,
+                                            padding:5,
+                                            marginHorizontal: 0,
+                                            marginVertical: 0,
+                                            paddingVertical: 5,
+                                            paddingHorizontal: 5,
+                                        }}
+                                        onPress={()=>{
+                                            Toast.show({
+                                                type: 'info',
+                                                text1: '🕓 Your request has been placed in the queue.',
+                                                text2: 'Check back later to download your chapter.\nThe chapter will be removed from the cloud after 30 minutes or when the server out of storage.',
+                                                
+                                                position: "bottom",
+                                                visibilityTime: 12000,
+                                                text1Style:{
+                                                    fontFamily:"roboto-bold",
+                                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
+                                                },
+                                                text2Style:{
+                                                    fontFamily:"roboto-medium",
+                                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
+                                                    
+                                                },
+                                            });
+                                        }}
+                                    >
+                                        <Icon source={"cloud-download"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={Theme[themeTypeContext].icon_color}/>
+                                    </Button>
+                                </View>
                             ))}
                         </View>
                     </View>
@@ -585,7 +632,7 @@ const Show = ({}:any) => {
                                                 onPress={(()=>{
                                                     const isInt = /^-?\d+$/.test(goToPage);
                                                     if (isInt) {
-                                                        if (parseInt(goToPage) > Math.ceil(CONTENT.chapters.length/MAX_OFFSET)){
+                                                        if (parseInt(goToPage) > Math.ceil(CONTENT.chapters.length/MAX_OFFSET) || !parseInt(goToPage)){
                                                             _setFeedBack("Page is out of index.")
                                                         }else{
                                                             setPage(parseInt(goToPage))

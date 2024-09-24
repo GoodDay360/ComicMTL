@@ -1,4 +1,4 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+
 import { useFonts } from 'expo-font';
 import { Stack, router, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -15,7 +15,38 @@ import { AnimatePresence } from 'moti';
 import CloudflareTurnstile from '@/components/cloudflare_turnstile';
 
 
+import Toast, { SuccessToast } from 'react-native-toast-message';
+import type { BaseToastProps } from 'react-native-toast-message';
+import { BaseToast, ErrorToast, InfoToast } from 'react-native-toast-message';
+
+
 // Prevent the splash screen from auto-hiding before asset loading is complete.
+
+const toastConfig = {
+  success: (props: BaseToastProps) => (
+    <SuccessToast  {...props} text2NumberOfLines={3} 
+
+    />
+  ),
+
+  error: (props: BaseToastProps) => (
+    <ErrorToast {...props} text2NumberOfLines={3} />
+  ),
+
+  info: (props: BaseToastProps) => (
+    <InfoToast {...props} text2NumberOfLines={3} text1NumberOfLines={3}
+      style={{
+        maxWidth:"90%",
+        width:"auto",
+        height:"auto",
+        
+        padding:0,
+        paddingTop:12, paddingBottom:12,
+        borderLeftColor:"cyan"
+      }}
+    />
+  ),
+};
 
 
 SplashScreen.preventAutoHideAsync();
@@ -125,6 +156,7 @@ export default function RootLayout() {
             
           
           </View>
+          <Toast  config={toastConfig} />
       </CONTEXT.Provider>
     </SafeAreaView>
   </>}</>);

@@ -568,9 +568,14 @@ const ShowList = ({}:any) => {
                                             style={{backgroundColor:"green",borderRadius:5}} 
                                             onPress={(()=>{
                                                 const isInt = /^-?\d+$/.test(goToPage);
+                                                
                                                 if (isInt) {
-                                                    setPage(parseInt(goToPage))
-                                                    setWidgetContext({state:false,component:undefined})
+                                                    if (!parseInt(goToPage)){
+                                                        _setFeedBack("Page is out of index.")
+                                                    }else{
+                                                        setPage(parseInt(goToPage))
+                                                        setWidgetContext({state:false,component:undefined})
+                                                    }
                                                     
                                                 }else _setFeedBack("Input is not a valid number.")
                                             })}
