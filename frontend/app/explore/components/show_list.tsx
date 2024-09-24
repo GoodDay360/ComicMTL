@@ -137,6 +137,10 @@ const ShowList = ({}:any) => {
                         labelStyle={{
                             margin:0,
                             padding:5,
+                            marginHorizontal: 0,
+                            marginVertical: 0,
+                            paddingVertical: 5,
+                            paddingHorizontal: 5,
                         }}
                         onPress={() => {
                             if (showOption.type === "translate"){
@@ -158,6 +162,10 @@ const ShowList = ({}:any) => {
                         labelStyle={{
                             margin:0,
                             padding:5,
+                            marginHorizontal: 0,
+                            marginVertical: 0,
+                            paddingVertical: 5,
+                            paddingHorizontal: 5,
                         }}
                         onPress={() => {
                             if (showOption.type === "search"){
@@ -177,6 +185,10 @@ const ShowList = ({}:any) => {
                         labelStyle={{
                             margin:0,
                             padding:5,
+                            marginHorizontal: 0,
+                            marginVertical: 0,
+                            paddingVertical: 5,
+                            paddingHorizontal: 5,
                         }}
                         onPress={onRefresh}
                     >
@@ -396,10 +408,12 @@ const ShowList = ({}:any) => {
                         ? <View 
                             style={{
                                 width:"100%",
-                                height:"100%",
+                                height:"auto",
                                 display:"flex",
                                 justifyContent:"center",
-                                alignItems:"center"
+                                alignItems:"center",
+                                padding:12,
+                                paddingTop:20,
                             }}
                         >
                             <Text
@@ -412,19 +426,16 @@ const ShowList = ({}:any) => {
                         </View>
                         : <>
                             {CONTENT.map((item:any,index:number)=>(
-                                
-                                    <View style={styles.item_box}>
-                                        <Link key={index} href={`/explore/${item.id}`}
-                                            style={{
-                                                width:"100%",
-                                            }}
-                                        >
+                                <Link  href={`/explore/${item.id}`} key={index}>
+                                    <View style={styles.item_box} >
+                                        
                                             <Image onError={(error:any)=>{console.log("load image error",error)}} source={{uri:`${apiBaseContext}${item.cover}`}} style={styles.item_cover}
                                                 contentFit="cover" transition={1000}
                                             />
-                                        </Link>
+                                        
                                         <Text style={styles.item_title}>{item.title}</Text>
                                     </View>
+                                </Link>
                                 
                             ))}
                         </>
@@ -514,8 +525,8 @@ const ShowList = ({}:any) => {
                                             />
                                             
                                         </View>
-                                        {feedBack && 
-                                            <Text 
+                                        {_feedBack 
+                                            ? <Text 
                                                 style={{
                                                     color:Theme[themeTypeContext].text_color,
                                                     fontFamily:"roboto-medium",
@@ -523,7 +534,8 @@ const ShowList = ({}:any) => {
                                                     textAlign:"center",
                                                 }}
                                                 
-                                            >{feedBack}</Text>
+                                            >{_feedBack}</Text>
+                                            : <></>
                                         }
                                         <View 
                                             style={{
@@ -560,7 +572,7 @@ const ShowList = ({}:any) => {
                                                     setPage(parseInt(goToPage))
                                                     setWidgetContext({state:false,component:undefined})
                                                     
-                                                }else setFeedBack("Input is not a valid number.")
+                                                }else _setFeedBack("Input is not a valid number.")
                                             })}
                                         >Go</Button>
                                         </View>

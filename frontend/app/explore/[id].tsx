@@ -30,16 +30,18 @@ const Show = ({}:any) => {
 
     const ID = useLocalSearchParams().id;
     const Dimensions = useWindowDimensions();
+    const MAX_OFFSET = 50
 
     const [styles, setStyles]:any = useState("")
     const [translate, setTranslate]:any = useState({});
     const [CONTENT, SET_CONTENT]:any = useState({})
     const [isLoading, setIsLoading]:any = useState(true);
-    const [feedBack, setFeedBack]:any = useState({state:true,text:""});
+    const [feedBack, setFeedBack]:any = useState("");
     const [showOption, setShowOption]:any = useState({type:null})
     const [showMoreSynopsis, setShowMoreSynopsis]:any = useState(false)
     const [refreshing, setRefreshing]:any = useState(false);
     const [sort, setSort]:any = useState("descending")
+    const [page, setPage]:any = useState(1)
     
     const controller = new AbortController();
     const signal = controller.signal;
@@ -91,6 +93,10 @@ const Show = ({}:any) => {
                         labelStyle={{
                             margin:0,
                             padding:5,
+                            marginHorizontal: 0,
+                            marginVertical: 0,
+                            paddingVertical: 5,
+                            paddingHorizontal: 5,
                         }}
                         onPress={()=>{
                             router.push("/explore/")
@@ -110,6 +116,10 @@ const Show = ({}:any) => {
                         labelStyle={{
                             margin:0,
                             padding:5,
+                            marginHorizontal: 0,
+                            marginVertical: 0,
+                            paddingVertical: 5,
+                            paddingHorizontal: 5,
                         }}
                         onPress={() => {
                             if (showOption.type === "translate"){
@@ -131,6 +141,10 @@ const Show = ({}:any) => {
                         labelStyle={{
                             margin:0,
                             padding:5,
+                            marginHorizontal: 0,
+                            marginVertical: 0,
+                            paddingVertical: 5,
+                            paddingHorizontal: 5,
                         }}
                         onPress={()=>{
                             onRefresh()
@@ -147,6 +161,10 @@ const Show = ({}:any) => {
                         labelStyle={{
                             margin:0,
                             padding:5,
+                            marginHorizontal: 0,
+                            marginVertical: 0,
+                            paddingVertical: 5,
+                            paddingHorizontal: 5,
                         }}
                         onPress={()=>{
                             
@@ -265,10 +283,12 @@ const Show = ({}:any) => {
                 ? <View
                     style={{
                         width:"100%",
-                        height:"100%",
+                        height:"auto",
                         display:"flex",
                         justifyContent:"center",
-                        alignItems:"center"
+                        alignItems:"center",
+                        padding:12,
+                        paddingTop:20,
                     }}
                 >
                     <Text
@@ -396,8 +416,12 @@ const Show = ({}:any) => {
                                     borderRadius:5,
                                 }}
                                 labelStyle={{
-                                    padding:5,
                                     margin:0,
+                                    padding:5,
+                                    marginHorizontal: 0,
+                                    marginVertical: 0,
+                                    paddingVertical: 5,
+                                    paddingHorizontal: 5,
                                 }}
                                 onPress={()=>{
                                     if (sort === "descending") setSort("ascending")
@@ -414,7 +438,7 @@ const Show = ({}:any) => {
                         </View>
                         
                         <View style={styles.chapter_box}>
-                            {CONTENT.chapters.map((chapter:any,index:number) => (
+                            {CONTENT.chapters.slice((page-1)*MAX_OFFSET,((page-1)*MAX_OFFSET)+MAX_OFFSET).map((chapter:any,index:number) => (
                                 <Button mode='outlined' key={index}
                                     style={styles.chapter_button}
                                     labelStyle={{
@@ -430,6 +454,170 @@ const Show = ({}:any) => {
                             ))}
                         </View>
                     </View>
+                    {Object.keys(CONTENT).length
+                        ? <View 
+                            style={{
+                                display:"flex",
+                                flexDirection:"row",
+                                justifyContent:"center",
+                                gap:8,
+                                padding:12,
+                            }}
+                        >
+                            <Button mode='outlined' 
+                                labelStyle={{
+                                    color:Theme[themeTypeContext].text_color,
+                                    fontFamily:"roboto-medium",
+                                    fontSize:(Dimensions.width+Dimensions.height)/2*0.03
+                                }} 
+                                style={{borderWidth:0}} 
+                                onPress={(()=>{
+                                    if (page === 1) return
+                                    setPage((page:number) => page-1)
+                                    
+                                }
+                                    
+                                )}
+                            >{"<"}</Button>
+                            <Button mode='outlined'
+                                labelStyle={{
+                                    color:Theme[themeTypeContext].text_color,
+                                    fontFamily:"roboto-medium",
+                                    fontSize:(Dimensions.width+Dimensions.height)/2*0.02
+                                }} 
+                                style={{
+                                    borderRadius:8,
+                                    borderColor:Theme[themeTypeContext].border_color,
+                                }} 
+                                onPress={(()=>{
+                                    setWidgetContext({state:true,component:()=>{
+                                        const [goToPage, setGoToPage] = useState("");
+                                        const [_feedBack, _setFeedBack] = useState("");
+                                        return (<View 
+                                            style={{
+                                                backgroundColor:Theme[themeTypeContext].background_color,
+                                                maxWidth:500,
+                                                width:"100%",
+                                                
+                                                borderColor:Theme[themeTypeContext].border_color,
+                                                borderWidth:2,
+                                                borderRadius:8,
+                                                padding:12,
+                                                display:"flex",
+                                                justifyContent:"center",
+                                                
+                                                flexDirection:"column",
+                                                gap:12,
+                                            }}>
+                                            <View style={{height:"auto"}}>
+                                                <TextInput mode="outlined" label="Go to page"  textColor={Theme[themeTypeContext].text_color} maxLength={1000000000}
+                                                    placeholder="Go to page"
+                                                    right={<TextInput.Affix text={`/${Math.ceil(CONTENT.chapters.length/MAX_OFFSET)}`} />}
+                                                    style={{
+                                                        
+                                                        backgroundColor:Theme[themeTypeContext].background_color,
+                                                        borderColor:Theme[themeTypeContext].border_color,
+                                                        
+                                                    }}
+                                                    outlineColor={Theme[themeTypeContext].text_input_border_color}
+                                                    value={goToPage}
+                                                    onChange={(event)=>{
+                                                        
+                                                        const value = event.nativeEvent.text
+                                                        
+                                                        const isInt = /^-?\d+$/.test(value);
+                                                        if (isInt || value === "") {
+                                                            if (parseInt(value) > Math.ceil(CONTENT.chapters.length/MAX_OFFSET)){
+                                                                _setFeedBack("Page is out of index.")
+                                                            }else{
+                                                                _setFeedBack("")
+                                                                setGoToPage(value)
+                                                            }
+                                                            
+                                                        }
+                                                        else _setFeedBack("Input is not a valid number.")
+                                                        
+                                                    }}
+                                                />
+                                                
+                                            </View>
+                                            {_feedBack 
+                                                ? <Text 
+                                                    style={{
+                                                        color:Theme[themeTypeContext].text_color,
+                                                        fontFamily:"roboto-medium",
+                                                        fontSize:(Dimensions.width+Dimensions.height)/2*0.02,
+                                                        textAlign:"center",
+                                                    }}
+                                                    
+                                                >{_feedBack}</Text>
+                                                : <></>
+                                            }
+                                            <View 
+                                                style={{
+                                                    display:"flex",
+                                                    flexDirection:"row",
+                                                    width:"100%",
+                                                    justifyContent:"space-around",
+                                                    alignItems:"center",
+                                                }}
+                                            >
+                                                <Button mode='contained' 
+                                                    labelStyle={{
+                                                        color:Theme[themeTypeContext].text_color,
+                                                        fontFamily:"roboto-medium",
+                                                        fontSize:(Dimensions.width+Dimensions.height)/2*0.02
+                                                    }} 
+                                                    style={{backgroundColor:"red",borderRadius:5}} 
+                                                    onPress={(()=>{
+                                                        
+                                                        setWidgetContext({state:false,component:undefined})
+                                                        
+                                                    })}
+                                                >Cancel</Button>
+                                                <Button mode='contained' 
+                                                labelStyle={{
+                                                    color:Theme[themeTypeContext].text_color,
+                                                    fontFamily:"roboto-medium",
+                                                    fontSize:(Dimensions.width+Dimensions.height)/2*0.02
+                                                }} 
+                                                style={{backgroundColor:"green",borderRadius:5}} 
+                                                onPress={(()=>{
+                                                    const isInt = /^-?\d+$/.test(goToPage);
+                                                    if (isInt) {
+                                                        if (parseInt(goToPage) > Math.ceil(CONTENT.chapters.length/MAX_OFFSET)){
+                                                            _setFeedBack("Page is out of index.")
+                                                        }else{
+                                                            setPage(parseInt(goToPage))
+                                                            setWidgetContext({state:false,component:undefined})
+                                                        }
+                                                        
+                                                    }else _setFeedBack("Input is not a valid number.")
+                                                })}
+                                            >Go</Button>
+                                            </View>
+                                            
+                                        </View>)
+                                    }})
+                                })}
+
+                            >{page}</Button>
+                            <Button mode='outlined' 
+                                labelStyle={{
+                                    color:Theme[themeTypeContext].text_color,
+                                    fontFamily:"roboto-medium",
+                                    fontSize:(Dimensions.width+Dimensions.height)/2*0.03
+                                }} 
+                                style={{borderWidth:0}} 
+                                onPress={(()=>{
+                                    if (parseInt(page) >= Math.ceil(CONTENT.chapters.length/MAX_OFFSET)) return
+                                    setPage((page:number) => page+1)
+                                    
+                                })}
+                            >{">"}</Button>
+                        </View>
+                        : <></>
+                    }
                 </View>
             }</>
         </ScrollView>

@@ -83,9 +83,7 @@ export const get = async(setShowCloudflareTurnstile:any,setIsLoading:any,signal:
         console.log(error)
         
         if (error.status === 511) setShowCloudflareTurnstile(true)
-        else{
-            setFeedBack("Error unable to fetch data! Try request again.")
-        }
+        setFeedBack("Error unable to fetch data! Try request again.")
         setIsLoading(false)
     })
 }
