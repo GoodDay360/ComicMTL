@@ -34,7 +34,7 @@ const toastConfig = {
   ),
 
   info: (props: BaseToastProps) => (
-    <InfoToast {...props} text2NumberOfLines={3} text1NumberOfLines={3}
+    <InfoToast {...props} text2NumberOfLines={8} text1NumberOfLines={8}
       style={{
         maxWidth:"90%",
         width:"auto",
@@ -56,6 +56,7 @@ export default function RootLayout() {
   const [showMenuContext,setShowMenuContext]:any = useState(true)
   const [themeTypeContext,setThemeTypeContext]:any = useState("")
   const [apiBaseContext, setApiBaseContext]:any = useState("")
+  const [socketBaseContext, setSocketBaseContext]:any = useState("")
   const [widgetContext, setWidgetContext]:any = useState({state:false,component:null})
   const [showCloudflareTurnstileContext, setShowCloudflareTurnstileContext]:any = useState(false)
 
@@ -84,9 +85,11 @@ export default function RootLayout() {
 
         const API_BASE:any = await Storage.get("CUSTOM_API_BASE") || process.env.EXPO_PUBLIC_DEFAULT_API_BASE
         await Storage.store("IN_USE_API_BASE", API_BASE)
-        
         setApiBaseContext(API_BASE)
         
+        const SOCKET_BASE:any = await Storage.get("CUSTOM_SOCKET_BASE") || process.env.EXPO_PUBLIC_DEFAULT_SOCKET_BASE
+        await Storage.store("IN_USE_SOCKET_BASE", SOCKET_BASE)
+        setSocketBaseContext(SOCKET_BASE)
 
 
         SplashScreen.hideAsync();
@@ -99,12 +102,13 @@ export default function RootLayout() {
     return null;
   }
 
-  return (<>{loaded && themeTypeContext && apiBaseContext && <>
+  return (<>{loaded && themeTypeContext && apiBaseContext && socketBaseContext && <>
     <SafeAreaView style={{flex:1,backgroundColor:Theme[themeTypeContext].background_color}}>
       <CONTEXT.Provider value={{
           themeTypeContext, setThemeTypeContext, 
           showMenuContext, setShowMenuContext, 
           apiBaseContext, setApiBaseContext,
+          socketBaseContext, setSocketBaseContext,
           widgetContext, setWidgetContext,
           showCloudflareTurnstileContext, setShowCloudflareTurnstileContext,
         }}>

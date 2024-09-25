@@ -1,20 +1,22 @@
 import React, { useEffect, useState, useCallback, useContext, useRef } from 'react';
-import { Link, router, useLocalSearchParams, useNavigation } from 'expo-router';
+import { Link, router, useLocalSearchParams, useNavigation, useFocusEffect } from 'expo-router';
 import Image from '@/components/Image';
 import { StyleSheet, useWindowDimensions, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Icon, MD3Colors, Button, Text, TextInput } from 'react-native-paper';
-import CountryFlag from "react-native-country-flag";
-import Dropdown from '@/components/dropdown';
+import uuid from 'react-native-uuid';
+
 import Toast from 'react-native-toast-message';
+import { View, AnimatePresence } from 'moti';
+
 
 import Theme from '@/constants/theme';
 import { __styles } from './stylesheet/show_styles';
 import Storage from '@/constants/module/storage';
 import ImageCacheStorage from '@/constants/module/image_cache_storage';
 import { CONTEXT } from '@/constants/module/context';
-import { transformAsync } from '@babel/core';
-import { View, AnimatePresence } from 'moti';
+import Dropdown from '@/components/dropdown';
+
 
 import { get } from './module/content'
 
@@ -25,6 +27,7 @@ const Show = ({}:any) => {
     const {showMenuContext, setShowMenuContext}:any = useContext(CONTEXT)
     const {themeTypeContext, setThemeTypeContext}:any = useContext(CONTEXT)
     const {apiBaseContext, setApiBaseContext}:any = useContext(CONTEXT)
+    const {socketBaseContext, setSocketBaseContext}:any = useContext(CONTEXT)
     const {widgetContext, setWidgetContext}:any = useContext(CONTEXT)
     const {showCloudflareTurnstileContext, setShowCloudflareTurnstileContext}:any = useContext(CONTEXT)
 
@@ -34,6 +37,10 @@ const Show = ({}:any) => {
 
     const [styles, setStyles]:any = useState("")
     const [translate, setTranslate]:any = useState({});
+
+    const [socket, setSocket]:any = useState(null)
+    const [socketRoomID,setSocketRoomID]:any = useState("")
+
     const [CONTENT, SET_CONTENT]:any = useState({})
     const [isLoading, setIsLoading]:any = useState(true);
     const [feedBack, setFeedBack]:any = useState("");
@@ -45,6 +52,35 @@ const Show = ({}:any) => {
     
     const controller = new AbortController();
     const signal = controller.signal;
+
+    const Load_Socket = async () => {
+        const stored_room_id = await Storage.get("SOCKET_ROOM_ID") 
+        var room_id
+        if (stored_room_id) room_id = stored_room_id
+        else{
+            room_id = uuid.v4()
+            Storage.store("SOCKET_ROOM_ID", room_id) 
+        }
+        setSocketRoomID(room_id)
+
+        const _socket = new WebSocket(`${socketBaseContext}/ws/queue/download_chapter/${room_id}`);
+        setSocket(_socket)
+        _socket.onopen = (event:any) => {
+            console.log(event)
+        }
+    }
+
+    useFocusEffect(useCallback(() => {
+        if (!socket) Load_Socket()
+        return () => {
+            console.log(socket)
+            if (socket) {
+                socket.close()
+                setSocket(null)
+            }
+            
+        }
+    },[socket]))
 
     useEffect(() => { 
         (async ()=>{
@@ -72,6 +108,144 @@ const Show = ({}:any) => {
         setIsLoading(true);
         SET_CONTENT([])
         get(setShowCloudflareTurnstileContext, setIsLoading, signal, translate, setFeedBack, ID, SET_CONTENT)
+    }
+
+    const DownloadWidget = () => {
+        const [_colorizer, _setColorizer] = useState(false)
+        const [_translate, _setTranslate] = useState({state:false,from:"zh",to:"en"})
+        return (<View 
+            style={{
+                backgroundColor:Theme[themeTypeContext].background_color,
+                maxWidth:500,
+                width:"100%",
+                
+                borderColor:Theme[themeTypeContext].border_color,
+                borderWidth:2,
+                borderRadius:8,
+                padding:12,
+                display:"flex",
+                justifyContent:"center",
+                
+                flexDirection:"column",
+                gap:12,
+            }}>
+            <View 
+                style={{
+                    height:"auto",
+                    display:"flex",
+                    flexDirection:"column",
+                    gap:12,
+                }}
+            >
+                <Dropdown
+                    theme_type={themeTypeContext}
+                    Dimensions={Dimensions}
+
+                    label='Colorizer' 
+                    data={[
+                        { 
+                            label: "Enable", 
+                            value: true 
+                        },
+                        { 
+                            label: "Disable", 
+                            value: false
+                        },
+                    ]}
+                    value={_colorizer}
+                    onChange={(item:any) => {
+                        _setColorizer(item.value)
+                    }}
+                />
+                <Dropdown
+                    theme_type={themeTypeContext}
+                    Dimensions={Dimensions}
+
+                    label='From Language' 
+                    data={[
+                        { 
+                            label: "Chinese", 
+                            value: 'zh' 
+                        },
+                    ]}
+                    value={_translate.from}
+                    onChange={async (item:any) => {
+                        _setTranslate({..._translate,from:item.value})
+                        
+                    }}
+                />
+                <Dropdown
+                    theme_type={themeTypeContext}
+                    Dimensions={Dimensions}
+
+                    label='To Language' 
+                    data={[
+                        
+                        { 
+                            label: "English", 
+                            value: 'en' 
+                        },
+                    ]}
+                    value={_translate.to}
+                    onChange={async (item:any) => {
+                        
+                        _setTranslate({..._translate,to:item.value})
+                        
+                    }}
+                />
+            </View>
+            
+            <View 
+                style={{
+                    display:"flex",
+                    flexDirection:"row",
+                    width:"100%",
+                    justifyContent:"space-around",
+                    alignItems:"center",
+                }}
+            >
+                <Button mode='contained' 
+                    labelStyle={{
+                        color:Theme[themeTypeContext].text_color,
+                        fontFamily:"roboto-medium",
+                        fontSize:(Dimensions.width+Dimensions.height)/2*0.02
+                    }} 
+                    style={{backgroundColor:"red",borderRadius:5}} 
+                    onPress={(()=>{
+                        
+                        setWidgetContext({state:false,component:undefined})
+                        
+                    })}
+                >Cancel</Button>
+                <Button mode='contained' 
+                labelStyle={{
+                    color:Theme[themeTypeContext].text_color,
+                    fontFamily:"roboto-medium",
+                    fontSize:(Dimensions.width+Dimensions.height)/2*0.02
+                }} 
+                style={{backgroundColor:"green",borderRadius:5}} 
+                onPress={(()=>{
+                    Toast.show({
+                        type: 'info',
+                        text1: '🕓 Your request has been placed in the queue.',
+                        text2: 'Check back later to download your chapter.\nThe chapter will be removed from the cloud after 30 minutes or when the server out of storage.',
+                        
+                        position: "bottom",
+                        visibilityTime: 12000,
+                        text1Style:{
+                            fontFamily:"roboto-bold",
+                            fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
+                        },
+                        text2Style:{
+                            fontFamily:"roboto-medium",
+                            fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
+                            
+                        },
+                    });
+                })}
+                >Request</Button>
+            </View>
+        </View>) 
     }
 
     return (<>{(styles && !isLoading) 
@@ -445,7 +619,7 @@ const Show = ({}:any) => {
                                     style={{
                                         display:"flex",
                                         flexDirection:"row",
-                                        gap:12,
+                                        gap:8,
                                         justifyContent:"space-between",
                                         alignItems:"center",
                                     }}
@@ -458,7 +632,10 @@ const Show = ({}:any) => {
                                             fontFamily:"roboto-light",
                                             padding:5,
                                         }}
-                                        onPress={() => {console.log(chapter.id)}}
+                                        onPress={() => {
+                                            console.log(chapter.id)
+                                            setWidgetContext({state:true,component:DownloadWidget})
+                                        }}
                                     >
                                         {chapter.title}
                                     </Button>
@@ -476,23 +653,10 @@ const Show = ({}:any) => {
                                             paddingHorizontal: 5,
                                         }}
                                         onPress={()=>{
-                                            Toast.show({
-                                                type: 'info',
-                                                text1: '🕓 Your request has been placed in the queue.',
-                                                text2: 'Check back later to download your chapter.\nThe chapter will be removed from the cloud after 30 minutes or when the server out of storage.',
-                                                
-                                                position: "bottom",
-                                                visibilityTime: 12000,
-                                                text1Style:{
-                                                    fontFamily:"roboto-bold",
-                                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
-                                                },
-                                                text2Style:{
-                                                    fontFamily:"roboto-medium",
-                                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
-                                                    
-                                                },
-                                            });
+                                            
+                                            
+                                            // Download Chapter Widget
+                                            setWidgetContext({state:true,component:DownloadWidget})
                                         }}
                                     >
                                         <Icon source={"cloud-download"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={Theme[themeTypeContext].icon_color}/>
