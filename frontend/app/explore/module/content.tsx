@@ -10,7 +10,11 @@ export const get_list = async (setShowCloudflareTurnstile:any,setFeedBack:any,si
         headers: {
             'X-CLOUDFLARE-TURNSTILE-TOKEN': await Storage.get("cloudflare-turnstile-token")
         },
-        data: {search:search,page:page},
+        data: {
+            search:search,
+            page:page,
+            source:"colamanga",
+        },
         timeout: 60000,
         signal:signal,
     }).then((response) => {(async () =>{

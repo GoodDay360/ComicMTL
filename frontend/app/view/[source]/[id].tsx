@@ -11,21 +11,24 @@ import { View, AnimatePresence } from 'moti';
 
 
 import Theme from '@/constants/theme';
-import { __styles } from './stylesheet/show_styles';
+import { __styles } from '../stylesheet/show_styles';
 import Storage from '@/constants/module/storage';
 import ImageCacheStorage from '@/constants/module/image_cache_storage';
 import { CONTEXT } from '@/constants/module/context';
 import Dropdown from '@/components/dropdown';
-import { DownloadWidget } from './componenets/widgets';
+import { DownloadWidget } from '../componenets/widgets';
 
 
-import { get } from './module/content'
+import { get } from '../module/content'
 
 
 
 
 
 const Show = ({}:any) => {
+    const SOURCE = useLocalSearchParams().source;
+    const ID = useLocalSearchParams().id;
+
     const {showMenuContext, setShowMenuContext}:any = useContext(CONTEXT)
     const {themeTypeContext, setThemeTypeContext}:any = useContext(CONTEXT)
     const {apiBaseContext, setApiBaseContext}:any = useContext(CONTEXT)
@@ -33,7 +36,8 @@ const Show = ({}:any) => {
     const {widgetContext, setWidgetContext}:any = useContext(CONTEXT)
     const {showCloudflareTurnstileContext, setShowCloudflareTurnstileContext}:any = useContext(CONTEXT)
 
-    const ID = useLocalSearchParams().id;
+    
+
     const Dimensions = useWindowDimensions();
     const MAX_OFFSET = 50
 
@@ -86,7 +90,7 @@ const Show = ({}:any) => {
 
     useEffect(() => { 
         (async ()=>{
-            
+            console.log(SOURCE)
             setShowMenuContext(false)
             setStyles(__styles(themeTypeContext,Dimensions))
 
@@ -97,7 +101,7 @@ const Show = ({}:any) => {
             }else __translate = __translate
 
             setTranslate(__translate)
-            get(setShowCloudflareTurnstileContext, setIsLoading, signal, __translate, setFeedBack, ID, SET_CONTENT)
+            get(setShowCloudflareTurnstileContext, setIsLoading, signal, __translate, setFeedBack, SOURCE, ID, SET_CONTENT)
         })()
 
         return () => {
@@ -109,7 +113,7 @@ const Show = ({}:any) => {
         if (!(styles && themeTypeContext && apiBaseContext)) return
         setIsLoading(true);
         SET_CONTENT([])
-        get(setShowCloudflareTurnstileContext, setIsLoading, signal, translate, setFeedBack, ID, SET_CONTENT)
+        get(setShowCloudflareTurnstileContext, setIsLoading, signal, translate, setFeedBack, SOURCE, ID, SET_CONTENT)
     }
 
     

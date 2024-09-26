@@ -27,8 +27,9 @@ def get_list(request):
     payload = json.loads(request.body)
     search = payload.get("search")
     page = payload.get("page")
+    source = payload.get("source")
     
-    if search.get("text"): DATA = web_scrap.source_control["colamanga"].search.scrap(search=search,page=page)
+    if search.get("text"): DATA = web_scrap.source_control[source].search.scrap(search=search,page=page)
     else: DATA = web_scrap.source_control["colamanga"].get_list.scrap(page=page)
 
     return JsonResponse({"data":DATA}) 
@@ -54,9 +55,10 @@ def get(request):
     
     payload = json.loads(request.body)
     id = payload.get("id")
+    source = payload.get("source")
     
     try:
-        DATA = web_scrap.source_control["colamanga"].get.scrap(id=id)
+        DATA = web_scrap.source_control[source].get.scrap(id=id)
         return JsonResponse({"data":DATA}) 
     except Exception as e:
 

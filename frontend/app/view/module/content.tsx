@@ -3,7 +3,7 @@ import translator from '@/constants/module/translator';
 import Storage from '@/constants/module/storage';
 
 
-export const get = async (setShowCloudflareTurnstile:any,setIsLoading:any,signal:AbortSignal,translate:any,setFeedBack:any,id:any,SET_CONTENT:any) => {
+export const get = async (setShowCloudflareTurnstile:any,setIsLoading:any,signal:AbortSignal,translate:any,setFeedBack:any,source:any,id:any,SET_CONTENT:any) => {
     const API_BASE = await Storage.get("IN_USE_API_BASE")
     axios({
         method: 'post',
@@ -11,7 +11,10 @@ export const get = async (setShowCloudflareTurnstile:any,setIsLoading:any,signal
         headers: {
             'X-CLOUDFLARE-TURNSTILE-TOKEN': await Storage.get("cloudflare-turnstile-token")
         },
-        data: {id:id},
+        data: {
+            id:id,
+            source:source,
+        },
         timeout: 60000,
         signal:signal,
     }).then((response) => {(async () =>{
