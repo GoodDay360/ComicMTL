@@ -9,16 +9,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Menu from '@/components/menu/menu';
 import Storage from '@/constants/module/storage';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import Theme from '@/constants/theme';
-import { CONTEXT } from '@/constants/module/context';
-import { AnimatePresence } from 'moti';
-import CloudflareTurnstile from '@/components/cloudflare_turnstile';
-
-
 import Toast, { SuccessToast } from 'react-native-toast-message';
 import type { BaseToastProps } from 'react-native-toast-message';
 import { BaseToast, ErrorToast, InfoToast } from 'react-native-toast-message';
+import { AnimatePresence } from 'moti';
 
+import CloudflareTurnstile from '@/components/cloudflare_turnstile';
+import Theme from '@/constants/theme';
+import { CONTEXT } from '@/constants/module/context';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 
@@ -149,7 +147,7 @@ export default function RootLayout() {
                         
                         <Stack screenOptions={{ headerShown: false}}>
                           <Stack.Screen name="index" />
-                          <Stack.Screen name="explore" />
+                          
                           <Stack.Screen name="+not-found" />
                         </Stack>
                       
