@@ -49,15 +49,18 @@ def scrap(id:int=1):
         
         DATA["synopsis"] = driver.find_element(By.CLASS_NAME, "fed-tabs-boxs").find_element(By.CSS_SELECTOR, "p.fed-text-muted").get_attribute('innerHTML')
         
-        li_elements = driver.find_element(By.CLASS_NAME, "all_data_list").find_element(By.TAG_NAME, "ul").find_elements(By.TAG_NAME, "li")
+        ul_element = BeautifulSoup(driver.find_element(By.CLASS_NAME, "all_data_list").find_element(By.TAG_NAME, "ul").get_attribute('innerHTML'), 'html.parser')
+        li_elements = ul_element.find_all('li')
         
         chapter_array = []
         for li in li_elements:
-            obj = {}
-            obj["title"] = li.find_element(By.TAG_NAME, "a").get_attribute("title")
-            obj["id"] = li.find_element(By.TAG_NAME, "a").get_attribute("href").lstrip("/")
+            a_element = li.find('a')
+            obj = {
+                "title": a_element.get('title'),
+                "id": a_element.get('href').lstrip("/")
+            }
             chapter_array.append(obj)
-        
+
         DATA["chapters"] = chapter_array
         
         

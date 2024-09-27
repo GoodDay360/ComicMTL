@@ -12,6 +12,7 @@ export const __styles:any = (theme_type:string,Dimensions:any) => {
             marginHorizontal: 0,
             marginVertical: 0,
             
+
             padding:5,
             paddingVertical: 5,
             paddingHorizontal: 5,
@@ -105,11 +106,13 @@ export const __styles:any = (theme_type:string,Dimensions:any) => {
             display: "flex",
             flexDirection: "column",
             width:'100%',
+            gap:12,
         },
         body_box_3:{
             display: "flex",
             flexDirection: "column",
             width:'100%',
+            height:"auto",
         },
         body_box_4:{
             display: "flex",

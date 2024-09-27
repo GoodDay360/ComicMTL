@@ -194,15 +194,15 @@ export const BookmarkWidget = () => {
         (async ()=>{
             const stored_bookmark_data = await Storage.get("bookmark") || []
             if (stored_bookmark_data.length) {
-                const bookmark_data = []
+                const bookmark_data:Array<Object> = []
                 for (const item of stored_bookmark_data) {
                     bookmark_data.push({
                         label:item,
                         value:item,
                     })
                 }
-                console.log(bookmark_data )
-                SET_BOOKMARK_DATA(bookmark_data)
+                
+                SET_BOOKMARK_DATA(bookmark_data.sort())
             }else SET_BOOKMARK_DATA([])
         })()
     },[])
@@ -257,7 +257,7 @@ export const BookmarkWidget = () => {
                     
                     <>{createBookmark.state 
                         ? <TextInput mode="outlined" label="Create Bookmark"  textColor={Theme[themeTypeContext].text_color} maxLength={72}
-                            placeholder="Bookmark Title"
+                            placeholder="Bookmark Tag"
                             
                             right={<TextInput.Affix text={`| Max: 72`} />}
                             style={{
@@ -281,7 +281,7 @@ export const BookmarkWidget = () => {
                                 data={BOOKMARK_DATA}
                                 value={bookmark}
                                 onChange={(item:any) => {
-                                    
+                                    setBookmark(item.value)
                                 }}
                             />
                         </>
@@ -328,13 +328,53 @@ export const BookmarkWidget = () => {
                                 }} 
                                 style={{backgroundColor:"green",borderRadius:5}} 
                                 onPress={(async()=>{
+                                    
                                     const title = createBookmark.title
                                     if (!title) return
-                                    await Storage.store("bookmark", [...BOOKMARK_DATA,title].sort())
-                                    SET_BOOKMARK_DATA([...BOOKMARK_DATA,
-                                        {label:title,value:title}
-                                    ].sort())
-                                    setCreateBookmark({state:false,title:""})
+
+                                    const stored_bookmark_data = await Storage.get("bookmark") || []
+                                    if (stored_bookmark_data.includes(title)){
+                                        Toast.show({
+                                            type: 'error',
+                                            text1: '🔖 Duplicate Bookmark',
+                                            text2: `Tag "${title}" already existed in your bookmark.`,
+                                            
+                                            position: "bottom",
+                                            visibilityTime: 5000,
+                                            text1Style:{
+                                                fontFamily:"roboto-bold",
+                                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
+                                            },
+                                            text2Style:{
+                                                fontFamily:"roboto-medium",
+                                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
+                                                
+                                            },
+                                        });
+                                    }else{
+                                        await Storage.store("bookmark", [...stored_bookmark_data,title].sort())
+                                        SET_BOOKMARK_DATA([...BOOKMARK_DATA,
+                                            {label:title,value:title}
+                                        ].sort())
+                                        setCreateBookmark({state:false,title:""})
+                                        Toast.show({
+                                            type: 'info',
+                                            text1: '🔖 Create Bookmark',
+                                            text2: `Tag "${title}" added to your bookmark.`,
+                                            
+                                            position: "bottom",
+                                            visibilityTime: 3000,
+                                            text1Style:{
+                                                fontFamily:"roboto-bold",
+                                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
+                                            },
+                                            text2Style:{
+                                                fontFamily:"roboto-medium",
+                                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
+                                                
+                                            },
+                                        });
+                                    }
                                 })}
                             >Add</Button>
                         </>
@@ -347,7 +387,7 @@ export const BookmarkWidget = () => {
                             }} 
                             style={{backgroundColor:"blue",borderRadius:5}} 
                             onPress={(()=>{
-                                setCreateBookmark({...createBookmark,state:true})
+                                setCreateBookmark({state:true,title:""})
                             })}
                             >+ Create Bookmark</Button>
                             <Button mode='outlined' 

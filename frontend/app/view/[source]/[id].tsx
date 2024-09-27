@@ -4,16 +4,18 @@ import Image from '@/components/Image';
 import { StyleSheet, useWindowDimensions, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Icon, MD3Colors, Button, Text, TextInput } from 'react-native-paper';
-import uuid from 'react-native-uuid';
 
+import uuid from 'react-native-uuid';
 import Toast from 'react-native-toast-message';
 import { View, AnimatePresence } from 'moti';
+import * as Clipboard from 'expo-clipboard';
 
 
 import Theme from '@/constants/theme';
 import { __styles } from '../stylesheet/show_styles';
 import Storage from '@/constants/module/storage';
 import ImageCacheStorage from '@/constants/module/image_cache_storage';
+import ChapterStorage from '@/constants/module/chapter_storage';
 import { CONTEXT } from '@/constants/module/context';
 import Dropdown from '@/components/dropdown';
 import { DownloadWidget, BookmarkWidget } from '../componenets/widgets';
@@ -58,6 +60,14 @@ const Show = ({}:any) => {
     
     const controller = new AbortController();
     const signal = controller.signal;
+
+    useEffect(() => {(async ()=>{
+        console.log(await ChapterStorage.getAll("colamanga-manga-kp086237", [0,10]))
+        return
+        // console.log(`${SOURCE}-${ID}`)
+        // await ChapterStorage.add(`${SOURCE}-${ID}`, 0,'/manga-od825111/1/30.html', 'KEooo', "I AM BLOB");
+
+    })()},[])
 
     const Load_Socket = async () => {
         const stored_room_id = await Storage.get("SOCKET_ROOM_ID") 
@@ -184,9 +194,26 @@ const Show = ({}:any) => {
                             backgroundColor: "transparent"
                         }}
                         labelStyle={styles.default_button_label}
-                        onPress={()=>{
-                            
-                        }}
+                        onPress={(async ()=>{
+                            await Clipboard.setStringAsync(`${apiBaseContext}/view/${SOURCE}/${ID}/`)
+                            Toast.show({
+                                type: 'info',
+                                text1: '📋 Copied to your clipboard.',
+                                text2: `${apiBaseContext}/view/${SOURCE}/${ID}/`,
+                                
+                                position: "bottom",
+                                visibilityTime: 3000,
+                                text1Style:{
+                                    fontFamily:"roboto-bold",
+                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
+                                },
+                                text2Style:{
+                                    fontFamily:"roboto-medium",
+                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
+                                    
+                                },
+                            });
+                        })}
                     >
                         <Icon source={"share-variant"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={Theme[themeTypeContext].icon_color}/>
                     </Button>
@@ -364,6 +391,7 @@ const Show = ({}:any) => {
                         <Button mode='outlined' labelStyle={styles.default_button_label}
                             style={{
                                 alignSelf:"flex-start",
+                                
                                 borderWidth:2,
                                 borderRadius:5,
                                 borderColor:Theme[themeTypeContext].border_color,
@@ -377,17 +405,18 @@ const Show = ({}:any) => {
                         <Button mode='contained'
                             style={{
                                 alignSelf:"center",
-                                width:"60%",
-                                height:"auto",
+                                width:"70%",
                                 
-                                // Notice how I use border_color instead. It just look good to me :)
+                                
+                                // Notice I use border_color instead. It just look good to me :)
                                 backgroundColor:Theme[themeTypeContext].border_color,
                                
                             }}
                             labelStyle={{
                                 fontSize:((Dimensions.width+Dimensions.height)/2)*0.035,
                                 fontFamily:"roboto-bold",
-                                color:Theme[themeTypeContext].text_color
+                                color:Theme[themeTypeContext].text_color,
+                                padding:10,
                             }}
                             onPress={()=>{}}
                         >

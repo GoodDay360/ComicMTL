@@ -28,7 +28,17 @@ const toastConfig = {
   ),
 
   error: (props: BaseToastProps) => (
-    <ErrorToast {...props} text2NumberOfLines={3} />
+    <ErrorToast {...props} text2NumberOfLines={8} text1NumberOfLines={8}
+      style={{
+        maxWidth:"90%",
+        width:"auto",
+        height:"auto",
+        
+        padding:0,
+        paddingTop:12, paddingBottom:12,
+        borderLeftColor:"red"
+      }} 
+    />
   ),
 
   info: (props: BaseToastProps) => (
