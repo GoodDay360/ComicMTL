@@ -62,7 +62,8 @@ const Show = ({}:any) => {
     const signal = controller.signal;
 
     useEffect(() => {(async ()=>{
-        console.log(await ChapterStorage.getAll("colamanga-manga-kp086237", [0,10]))
+        // console.log(await ChapterStorage.getAll("colamanga-manga-kp086237", [0,10]))
+        console.log(await ChapterStorage.get("colamanga-manga-kp086237", '/manga-od825111/1/30.html'))
         return
         // console.log(`${SOURCE}-${ID}`)
         // await ChapterStorage.add(`${SOURCE}-${ID}`, 0,'/manga-od825111/1/30.html', 'KEooo', "I AM BLOB");
