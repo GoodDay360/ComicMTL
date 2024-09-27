@@ -8,6 +8,7 @@ import Toast from 'react-native-toast-message';
 import Theme from '@/constants/theme';
 import Dropdown from '@/components/dropdown';
 import { CONTEXT } from '@/constants/module/context';
+import Storage from '@/constants/module/storage';
 
 
 export const DownloadWidget = () => {
@@ -176,4 +177,201 @@ export const DownloadWidget = () => {
             </View>
         </View>
     </AnimatePresence>) 
+}
+
+export const BookmarkWidget = () => {
+    const Dimensions = useWindowDimensions();
+
+    const {themeTypeContext, setThemeTypeContext}:any = useContext(CONTEXT)
+    const {widgetContext, setWidgetContext}:any = useContext(CONTEXT)
+
+    const [BOOKMARK_DATA, SET_BOOKMARK_DATA]: any = useState(null)
+
+    const [bookmark, setBookmark]:any = useState("")
+    const [createBookmark, setCreateBookmark]:any = useState({state:false,title:""})
+
+    useEffect(()=>{
+        (async ()=>{
+            const stored_bookmark_data = await Storage.get("bookmark") || []
+            if (stored_bookmark_data.length) {
+                const bookmark_data = []
+                for (const item of stored_bookmark_data) {
+                    bookmark_data.push({
+                        label:item,
+                        value:item,
+                    })
+                }
+                console.log(bookmark_data )
+                SET_BOOKMARK_DATA(bookmark_data)
+            }else SET_BOOKMARK_DATA([])
+        })()
+    },[])
+
+    return (<>{BOOKMARK_DATA !== null && 
+        <AnimatePresence>
+            <View 
+                style={{
+                    backgroundColor:Theme[themeTypeContext].background_color,
+                    maxWidth:500,
+                    width:"100%",
+                    
+                    borderColor:Theme[themeTypeContext].border_color,
+                    borderWidth:2,
+                    borderRadius:8,
+                    padding:12,
+                    display:"flex",
+                    justifyContent:"center",
+                    
+                    flexDirection:"column",
+                    gap:12,
+                }}
+                from={{
+                    opacity: 0,
+                    scale: 0.9,
+                }}
+                animate={{
+                    opacity: 1,
+                    scale: 1,
+                }}
+                exit={{
+                    opacity: 0,
+                    scale: 0.5,
+                }}
+                transition={{
+                    type: 'timing',
+                    duration: 500,
+                }}
+                exitTransition={{
+                    type: 'timing',
+                    duration: 250,
+                }}
+            >
+                <View 
+                    style={{
+                        height:"auto",
+                        display:"flex",
+                        flexDirection:"column",
+                        gap:12,
+                    }}
+                >
+                    
+                    <>{createBookmark.state 
+                        ? <TextInput mode="outlined" label="Create Bookmark"  textColor={Theme[themeTypeContext].text_color} maxLength={72}
+                            placeholder="Bookmark Title"
+                            
+                            right={<TextInput.Affix text={`| Max: 72`} />}
+                            style={{
+                                
+                                backgroundColor:Theme[themeTypeContext].background_color,
+                                borderColor:Theme[themeTypeContext].border_color,
+                                
+                            }}
+                            outlineColor={Theme[themeTypeContext].text_input_border_color}
+                            value={createBookmark.title}
+                            onChange={(event)=>{
+                                setCreateBookmark({...createBookmark,title:event.nativeEvent.text})
+                            }}
+                        />
+                        : <>
+                            <Dropdown
+                                theme_type={themeTypeContext}
+                                Dimensions={Dimensions}
+
+                                label='Add to bookmark' 
+                                data={BOOKMARK_DATA}
+                                value={bookmark}
+                                onChange={(item:any) => {
+                                    
+                                }}
+                            />
+                        </>
+                    }</>
+                    
+                </View>
+                
+                <View 
+                    style={{
+                        display:"flex",
+                        flexDirection:"row",
+                        width:"100%",
+                        justifyContent:"space-around",
+                        alignItems:"center",
+                    }}
+                >   
+                    <>{createBookmark.state
+                        ? <>
+                            <Button mode='outlined' 
+                                labelStyle={{
+                                    color:Theme[themeTypeContext].text_color,
+                                    fontFamily:"roboto-medium",
+                                    fontSize:(Dimensions.width+Dimensions.height)/2*0.02,
+                                    
+
+                                }} 
+                                style={{
+                                    
+                                    borderRadius:5,
+                                    borderWidth:2,
+                                    borderColor:Theme[themeTypeContext].border_color
+                                }} 
+                                onPress={(()=>{
+                                    
+                                    setCreateBookmark({...createBookmark,state:false})
+                                    
+                                })}
+                            >Cancel</Button>
+                            <Button mode='contained' 
+                                labelStyle={{
+                                    color:Theme[themeTypeContext].text_color,
+                                    fontFamily:"roboto-medium",
+                                    fontSize:(Dimensions.width+Dimensions.height)/2*0.02
+                                }} 
+                                style={{backgroundColor:"green",borderRadius:5}} 
+                                onPress={(async()=>{
+                                    const title = createBookmark.title
+                                    if (!title) return
+                                    await Storage.store("bookmark", [...BOOKMARK_DATA,title].sort())
+                                    SET_BOOKMARK_DATA([...BOOKMARK_DATA,
+                                        {label:title,value:title}
+                                    ].sort())
+                                    setCreateBookmark({state:false,title:""})
+                                })}
+                            >Add</Button>
+                        </>
+                        : <>
+                            <Button mode='contained' 
+                            labelStyle={{
+                                color:Theme[themeTypeContext].text_color,
+                                fontFamily:"roboto-medium",
+                                fontSize:(Dimensions.width+Dimensions.height)/2*0.02
+                            }} 
+                            style={{backgroundColor:"blue",borderRadius:5}} 
+                            onPress={(()=>{
+                                setCreateBookmark({...createBookmark,state:true})
+                            })}
+                            >+ Create Bookmark</Button>
+                            <Button mode='outlined' 
+                                labelStyle={{
+                                    color:Theme[themeTypeContext].text_color,
+                                    fontFamily:"roboto-medium",
+                                    fontSize:(Dimensions.width+Dimensions.height)/2*0.02,
+                                    
+
+                                }} 
+                                style={{
+                                    
+                                    borderRadius:5,
+                                    borderWidth:2,
+                                    borderColor:Theme[themeTypeContext].border_color
+                                }} 
+                                onPress={(()=>{
+                                    setWidgetContext({state:false,component:null})
+                                })}
+                            >Done</Button>
+                        </>
+                    }</>
+                </View>
+            </View>
+        </AnimatePresence>
+    }</>) 
 }

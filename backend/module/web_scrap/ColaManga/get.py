@@ -2,7 +2,11 @@ from bs4 import BeautifulSoup
 from pprint import pprint
 from ..utils import SeleniumScraper
 from core.settings import BASE_DIR
-import os, threading, uuid, time, sqlite3
+import os, threading, uuid, time, sqlite3,sys
+
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 from backend.module.utils import date_utils
 
@@ -21,56 +25,48 @@ def scrap(id:int=1):
         DATA = {}
         
         # Get info
-        source = BeautifulSoup(driver.page_source, 'html.parser') 
         
-        div = source.select("div.fed-part-layout")[0]
-        
-        dt = div.find("dt",{"class","fed-deta-images"})
-        
-        cover_id = dt.find("a",{"class":"fed-list-pics"}).get("data-original").split("/")[-2]
+        cover_url = driver.find_element(By.CLASS_NAME, "fed-list-pics").get_attribute("data-original")
+        cover_url_split = cover_url.split("/")
+        cover_id = cover_url_split[len(cover_url_split)-2]
         DATA["cover"] = f"/api/web_scrap/colamanga/get_cover/{id}/{cover_id}/"
         
-        dl = div.find("dl", {"class": "fed-deta-info"})
         
-        dd = dl.find("dd", {"class": "fed-deta-content"})
-        DATA["title"] = dd.find("h1", {"class": "fed-part-eone"}).text
+        content_info_element = driver.find_element(By.CLASS_NAME, "fed-deta-content")
+        DATA["title"] = content_info_element.find_element(By.TAG_NAME, "h1").text
+        li_info_elements = content_info_element.find_element(By.TAG_NAME, "ul").find_elements(By.CLASS_NAME, "fed-col-md6")
         
-        ul = dd.find("ul", {"class": "fed-part-rows"})
+        DATA["status"] = li_info_elements[0].find_element(By.TAG_NAME,"a").text
+        DATA["author"] =  li_info_elements[1].find_element(By.TAG_NAME,"a").text
+        DATA["updated"] = li_info_elements[2].find_element(By.TAG_NAME,"a").text
         
-        DATA["status"] = ul.find_all("li")[0].find("a").text
-        DATA["author"] = ul.find_all("li")[1].find("a").text
-        DATA["updated"] = ul.find_all("li")[2].find("a").text
-        
-        category_li = ul.find_all("li")[4].find_all("a")
+        category_li = li_info_elements[4].find_elements(By.TAG_NAME,"a")
         array = []
         for c in category_li:
             array.append(c.text)
         DATA["category"] = array
         
-        DATA["introduction"] = ul.find_all("li")[5].text
         
-        # Get Synopsis
-        div = source.select("div.all_data_list")[0]
-        p = source.find("div",{"class": "fed-tabs-boxs"}).find("p",{"class": "fed-text-muted"})
-        DATA["synopsis"] = p.text
+        DATA["synopsis"] = driver.find_element(By.CLASS_NAME, "fed-tabs-boxs").find_element(By.CSS_SELECTOR, "p.fed-text-muted").get_attribute('innerHTML')
         
+        li_elements = driver.find_element(By.CLASS_NAME, "all_data_list").find_element(By.TAG_NAME, "ul").find_elements(By.TAG_NAME, "li")
         
-        # Get Chapters
-        div = source.select("div.all_data_list")[0]
-        ul = div.find("ul",{"class": "fed-part-rows"})
-        li_list = ul.find_all("li")
         chapter_array = []
-        for li in li_list:
+        for li in li_elements:
             obj = {}
-            obj["title"] = li.find("a").get("title")
-            obj["id"] = li.find("a").get("href").lstrip("/")
+            obj["title"] = li.find_element(By.TAG_NAME, "a").get_attribute("title")
+            obj["id"] = li.find_element(By.TAG_NAME, "a").get_attribute("href").lstrip("/")
             chapter_array.append(obj)
         
         DATA["chapters"] = chapter_array
         
+        
         return DATA
-    except Exception as e:
-        raise Exception(e)
+    except Exception as e: 
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        line_number = exc_tb.tb_lineno
+        print(f"Error on line {line_number}: {e}")
+        raise Exception(e) 
 
 if __name__ == "__main__":
     DATA = scrap(page=1,search="妖")

@@ -1,21 +1,14 @@
 
 
 from ..utils import SeleniumScraper
-import json, os, sys, base64,time
 from core.settings import BASE_DIR
-
 from selenium.webdriver.common.by import By
 
-scraper = None
-
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-import json
-import base64
-import sys
+import json, base64, os, sys, time
 
 MAX_TIMEOUT = 10
 
+scraper = None
 def scrap(id:int=None,cover_id:int=None):
     if not id: raise ValueError("The 'id' parameter is required.")
     if not cover_id: raise ValueError("The 'url' parameter is required.")

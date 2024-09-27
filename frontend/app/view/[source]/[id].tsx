@@ -16,7 +16,7 @@ import Storage from '@/constants/module/storage';
 import ImageCacheStorage from '@/constants/module/image_cache_storage';
 import { CONTEXT } from '@/constants/module/context';
 import Dropdown from '@/components/dropdown';
-import { DownloadWidget } from '../componenets/widgets';
+import { DownloadWidget, BookmarkWidget } from '../componenets/widgets';
 
 
 import { get } from '../module/content'
@@ -135,16 +135,10 @@ const Show = ({}:any) => {
                             borderWidth:0,
                             backgroundColor: "transparent"
                         }}
-                        labelStyle={{
-                            margin:0,
-                            padding:5,
-                            marginHorizontal: 0,
-                            marginVertical: 0,
-                            paddingVertical: 5,
-                            paddingHorizontal: 5,
-                        }}
+                        labelStyle={styles.default_button_label}
                         onPress={()=>{
-                            router.push("/explore")
+                            if (router.canGoBack()) router.back()
+                            else router.navigate("/explore")
                         }}
                     >
                         <Icon source={"chevron-left"} size={((Dimensions.width+Dimensions.height)/2)*0.045} color={Theme[themeTypeContext].icon_color}/>
@@ -158,14 +152,7 @@ const Show = ({}:any) => {
                             borderWidth:0,
                             backgroundColor: showOption.type === "translate" ? Theme[themeTypeContext].button_selected_color : "transparent"
                         }}
-                        labelStyle={{
-                            margin:0,
-                            padding:5,
-                            marginHorizontal: 0,
-                            marginVertical: 0,
-                            paddingVertical: 5,
-                            paddingHorizontal: 5,
-                        }}
+                        labelStyle={styles.default_button_label}
                         onPress={() => {
                             if (showOption.type === "translate"){
                                 setShowOption({type:null})
@@ -183,14 +170,7 @@ const Show = ({}:any) => {
                             borderWidth:0,
                             backgroundColor: "transparent"
                         }}
-                        labelStyle={{
-                            margin:0,
-                            padding:5,
-                            marginHorizontal: 0,
-                            marginVertical: 0,
-                            paddingVertical: 5,
-                            paddingHorizontal: 5,
-                        }}
+                        labelStyle={styles.default_button_label}
                         onPress={()=>{
                             onRefresh()
                         }}
@@ -203,14 +183,7 @@ const Show = ({}:any) => {
                             borderWidth:0,
                             backgroundColor: "transparent"
                         }}
-                        labelStyle={{
-                            margin:0,
-                            padding:5,
-                            marginHorizontal: 0,
-                            marginVertical: 0,
-                            paddingVertical: 5,
-                            paddingHorizontal: 5,
-                        }}
+                        labelStyle={styles.default_button_label}
                         onPress={()=>{
                             
                         }}
@@ -388,6 +361,40 @@ const Show = ({}:any) => {
                         </View>
                     </View>
                     <View style={styles.body_box_2}>
+                        <Button mode='outlined' labelStyle={styles.default_button_label}
+                            style={{
+                                alignSelf:"flex-start",
+                                borderWidth:2,
+                                borderRadius:5,
+                                borderColor:Theme[themeTypeContext].border_color,
+                            }}
+                            onPress={()=>{
+                                setWidgetContext({state:true,component:BookmarkWidget})
+                            }}
+                        >
+                            <Icon source={"bookmark-outline"} size={((Dimensions.width+Dimensions.height)/2)*0.05} color={Theme[themeTypeContext].icon_color}/>
+                        </Button>
+                        <Button mode='contained'
+                            style={{
+                                alignSelf:"center",
+                                width:"60%",
+                                height:"auto",
+                                
+                                // Notice how I use border_color instead. It just look good to me :)
+                                backgroundColor:Theme[themeTypeContext].border_color,
+                               
+                            }}
+                            labelStyle={{
+                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.035,
+                                fontFamily:"roboto-bold",
+                                color:Theme[themeTypeContext].text_color
+                            }}
+                            onPress={()=>{}}
+                        >
+                            Read
+                        </Button>
+                    </View>
+                    <View style={styles.body_box_3}>
                         <View
                             style={{
                                 display:"flex",
@@ -436,7 +443,7 @@ const Show = ({}:any) => {
                             ellipsizeMode='tail'
                         >{CONTENT.synopsis}</Text>
                     </View>
-                    <View style={{...styles.body_box_3,paddingTop:10}}>
+                    <View style={styles.body_box_4}>
                         <View 
                             style={{
                                 display:"flex",
@@ -461,14 +468,7 @@ const Show = ({}:any) => {
                                     borderWidth:0,
                                     borderRadius:5,
                                 }}
-                                labelStyle={{
-                                    margin:0,
-                                    padding:5,
-                                    marginHorizontal: 0,
-                                    marginVertical: 0,
-                                    paddingVertical: 5,
-                                    paddingHorizontal: 5,
-                                }}
+                                labelStyle={styles.default_button_label}
                                 onPress={()=>{
                                     if (sort === "descending") setSort("ascending")
                                     else setSort("descending")
@@ -514,14 +514,7 @@ const Show = ({}:any) => {
                                             borderRadius:5,
                                             borderWidth:0,
                                         }}
-                                        labelStyle={{
-                                            margin:0,
-                                            padding:5,
-                                            marginHorizontal: 0,
-                                            marginVertical: 0,
-                                            paddingVertical: 5,
-                                            paddingHorizontal: 5,
-                                        }}
+                                        labelStyle={styles.default_button_label}
                                         onPress={()=>{
                                             
                                             

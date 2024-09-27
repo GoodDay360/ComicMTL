@@ -3,6 +3,19 @@ import Theme from "@/constants/theme";
 
 export const __styles:any = (theme_type:string,Dimensions:any) => {
     return StyleSheet.create({
+        default_button: {
+            borderWidth:0,
+            borderRadius:5,
+        },
+        default_button_label: {
+            margin:0,
+            marginHorizontal: 0,
+            marginVertical: 0,
+            
+            padding:5,
+            paddingVertical: 5,
+            paddingHorizontal: 5,
+        },
         screen_container: {
             width: "100%",
             height: "100%",
@@ -97,6 +110,12 @@ export const __styles:any = (theme_type:string,Dimensions:any) => {
             display: "flex",
             flexDirection: "column",
             width:'100%',
+        },
+        body_box_4:{
+            display: "flex",
+            flexDirection: "column",
+            width:'100%',
+            paddingTop:10,
             gap:12,
         },
         chapter_box:{
