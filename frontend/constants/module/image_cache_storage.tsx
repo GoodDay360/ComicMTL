@@ -219,6 +219,9 @@ class ImageStorage_Native {
                 // Remove all unmatched image in sqlite and local
                 const file_path_list = (await db.getAllAsync('SELECT file_path FROM images')).map((item:any) => item.file_path);
                 const dir_path = FileSystem.cacheDirectory + 'ComicMTL/'+ 'cover/';
+                const dirInfo = await FileSystem.getInfoAsync(dir_path);
+                if (!dirInfo.exists) await FileSystem.makeDirectoryAsync(dir_path, { intermediates: true });
+                
                 const local_file_path_list = (await FileSystem.readDirectoryAsync(dir_path)).map(file => dir_path + file);;
                 const result_list = local_file_path_list.filter(item => !file_path_list.includes(item));
                 for (const file_path of result_list) {

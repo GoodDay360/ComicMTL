@@ -30,19 +30,23 @@ export const __styles:any = (theme_type:string,Dimensions:any) => {
             width:"auto",
             justifyContent:"center",
             alignItems:"center",
+            gap:8,
         },
         
         header_search_button:{
             borderRadius:5,
             borderWidth:0,
+            padding:5,
         },
         header_translate_button:{
             borderRadius:5,
             borderWidth:0,
+            padding:5,
         },
         header_refresh_button:{
             borderRadius:5,
             borderWidth:0,
+            padding:5,
         },
 
         option_container:{

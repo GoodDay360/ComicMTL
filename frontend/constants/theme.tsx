@@ -1,3 +1,4 @@
+import { Platform } from "react-native"
 
 const Theme:any = {
     DARK_GREEN: {
@@ -9,6 +10,8 @@ const Theme:any = {
         text_input_border_color: "white",
         dropbox_container_border: "white",
         button_selected_color: "#23272E",
+
+        ripple_color_outlined: `rgba(22, 35, 50, ${Platform.OS === "web" ? 0.5 : 1})`
     }
 }
 

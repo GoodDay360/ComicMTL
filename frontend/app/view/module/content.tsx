@@ -38,7 +38,7 @@ export const get = async (setShowCloudflareTurnstile:any,setIsLoading:any,signal
         else {
             SET_CONTENT(DATA)
         }
-        console.log(DATA)
+        
         setIsLoading(false)
     })()}).catch((error) => {
         console.log(error)

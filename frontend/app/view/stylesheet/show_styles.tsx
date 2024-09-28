@@ -8,7 +8,7 @@ export const __styles:any = (theme_type:string,Dimensions:any) => {
             borderRadius:5,
         },
         default_button_label: {
-            margin:0,
+            margin:"auto",
             marginHorizontal: 0,
             marginVertical: 0,
             
@@ -44,6 +44,7 @@ export const __styles:any = (theme_type:string,Dimensions:any) => {
             width:"auto",
             justifyContent:"center",
             alignItems:"center",
+            gap:8,
         },
         option_container:{
             width:"100%",

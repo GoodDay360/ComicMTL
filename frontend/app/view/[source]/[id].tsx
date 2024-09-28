@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useCallback, useContext, useRef } from 'react';
 import { Link, router, useLocalSearchParams, useNavigation, useFocusEffect } from 'expo-router';
 import Image from '@/components/Image';
-import { StyleSheet, useWindowDimensions, ScrollView, Pressable, RefreshControl } from 'react-native';
+import { StyleSheet, useWindowDimensions, ScrollView, Pressable, RefreshControl, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Icon, MD3Colors, Button, Text, TextInput } from 'react-native-paper';
+import { Icon, MD3Colors, Button, Text, TextInput, TouchableRipple } from 'react-native-paper';
 
 import uuid from 'react-native-uuid';
 import Toast from 'react-native-toast-message';
@@ -62,11 +62,11 @@ const Show = ({}:any) => {
     const signal = controller.signal;
 
     useEffect(() => {(async ()=>{
-        // console.log(await ChapterStorage.getAll("colamanga-manga-kp086237", [0,10]))
-        console.log(await ChapterStorage.get("colamanga-manga-kp086237", '/manga-od825111/1/30.html'))
-        return
+        // console.log("AAAAA",await ChapterStorage.getAll(`${SOURCE}-${ID}`))
+        console.log("AAAAA2",await ChapterStorage.get(`${SOURCE}-${ID}`, '/manga-od825111/1/30.html'))
+        // return
         // console.log(`${SOURCE}-${ID}`)
-        // await ChapterStorage.add(`${SOURCE}-${ID}`, 0,'/manga-od825111/1/30.html', 'KEooo', "I AM BLOB");
+        // await ChapterStorage.add(`${SOURCE}-${ID}`, 251,'/manga-od825111/1/31.html', 'KEooo', "I AM BLOB");
 
     })()},[])
 
@@ -83,14 +83,14 @@ const Show = ({}:any) => {
         const _socket = new WebSocket(`${socketBaseContext}/ws/queue/download_chapter/${room_id}`);
         setSocket(_socket)
         _socket.onopen = (event:any) => {
-            console.log(event)
+            
         }
     }
 
     useFocusEffect(useCallback(() => {
         if (!socket) Load_Socket()
         return () => {
-            console.log(socket)
+            
             if (socket) {
                 socket.close()
                 setSocket(null)
@@ -101,7 +101,7 @@ const Show = ({}:any) => {
 
     useEffect(() => { 
         (async ()=>{
-            console.log(SOURCE)
+            
             setShowMenuContext(false)
             setStyles(__styles(themeTypeContext,Dimensions))
 
@@ -140,30 +140,34 @@ const Show = ({}:any) => {
         >
             <View style={styles.header_container}>
                 <View style={styles.header_button_box}>
-                    <Button mode={"outlined"} 
+                    <TouchableRipple
+                        rippleColor={Theme[themeTypeContext].ripple_color_outlined}
                         style={{
                             borderRadius:5,
                             borderWidth:0,
-                            backgroundColor: "transparent"
+                            backgroundColor: "transparent",
+                            padding:5,
                         }}
-                        labelStyle={styles.default_button_label}
+                        
                         onPress={()=>{
                             if (router.canGoBack()) router.back()
                             else router.navigate("/explore")
                         }}
                     >
                         <Icon source={"chevron-left"} size={((Dimensions.width+Dimensions.height)/2)*0.045} color={Theme[themeTypeContext].icon_color}/>
-                    </Button>
+                    </TouchableRipple>
 
                 </View>
                 <View style={styles.header_button_box}>
-                    <Button mode={"outlined"} 
+                    <TouchableRipple
+                        rippleColor={Theme[themeTypeContext].ripple_color_outlined}
                         style={{
                             borderRadius:5,
                             borderWidth:0,
-                            backgroundColor: showOption.type === "translate" ? Theme[themeTypeContext].button_selected_color : "transparent"
+                            backgroundColor: showOption.type === "translate" ? Theme[themeTypeContext].button_selected_color : "transparent",
+                            padding:5,
                         }}
-                        labelStyle={styles.default_button_label}
+                        
                         onPress={() => {
                             if (showOption.type === "translate"){
                                 setShowOption({type:null})
@@ -173,28 +177,33 @@ const Show = ({}:any) => {
                         }}
                     >
                         <Icon source={translate.state ? "translate" : "translate-off"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={Theme[themeTypeContext].icon_color}/>
-                    </Button>
+                    </TouchableRipple>
 
-                    <Button mode={"outlined"} disabled={isLoading}
+                    <TouchableRipple
+                        rippleColor={Theme[themeTypeContext].ripple_color_outlined}
+                        disabled={isLoading}
                         style={{
                             borderRadius:5,
                             borderWidth:0,
-                            backgroundColor: "transparent"
+                            backgroundColor: "transparent",
+                            padding:5,
                         }}
-                        labelStyle={styles.default_button_label}
+                        
                         onPress={()=>{
                             onRefresh()
                         }}
                     >
                         <Icon source={"refresh"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={Theme[themeTypeContext].icon_color}/>
-                    </Button>
-                    <Button mode={"outlined"}
+                    </TouchableRipple>
+                    <TouchableRipple
+                        rippleColor={Theme[themeTypeContext].ripple_color_outlined}
                         style={{
                             borderRadius:5,
                             borderWidth:0,
-                            backgroundColor: "transparent"
+                            backgroundColor: "transparent",
+                            padding:5,
                         }}
-                        labelStyle={styles.default_button_label}
+                        
                         onPress={(async ()=>{
                             await Clipboard.setStringAsync(`${apiBaseContext}/view/${SOURCE}/${ID}/`)
                             Toast.show({
@@ -217,7 +226,7 @@ const Show = ({}:any) => {
                         })}
                     >
                         <Icon source={"share-variant"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={Theme[themeTypeContext].icon_color}/>
-                    </Button>
+                    </TouchableRipple>
 
                 </View>
             </View>
@@ -389,10 +398,10 @@ const Show = ({}:any) => {
                         </View>
                     </View>
                     <View style={styles.body_box_2}>
-                        <Button mode='outlined' labelStyle={styles.default_button_label}
+                        <TouchableRipple
+                            rippleColor={Theme[themeTypeContext].ripple_color_outlined}
                             style={{
                                 alignSelf:"flex-start",
-                                
                                 borderWidth:2,
                                 borderRadius:5,
                                 borderColor:Theme[themeTypeContext].border_color,
@@ -400,24 +409,28 @@ const Show = ({}:any) => {
                             onPress={()=>{
                                 setWidgetContext({state:true,component:BookmarkWidget})
                             }}
-                        >
-                            <Icon source={"bookmark-outline"} size={((Dimensions.width+Dimensions.height)/2)*0.05} color={Theme[themeTypeContext].icon_color}/>
-                        </Button>
+                        >   
+
+                             <Icon source={"bookmark-outline"} size={((Dimensions.width+Dimensions.height)/2)*0.05} color={Theme[themeTypeContext].icon_color}/>
+
+                        </TouchableRipple>
                         <Button mode='contained'
                             style={{
                                 alignSelf:"center",
-                                width:"70%",
-                                
+                                width:"65%",
+                                height: "auto",
                                 
                                 // Notice I use border_color instead. It just look good to me :)
                                 backgroundColor:Theme[themeTypeContext].border_color,
-                               
+                                borderWidth:3,
                             }}
                             labelStyle={{
-                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.035,
+                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.038,
                                 fontFamily:"roboto-bold",
                                 color:Theme[themeTypeContext].text_color,
-                                padding:10,
+                                paddingVertical:8,
+                                marginBottom:Platform.OS === "web" ? 8 : 0,
+                                
                             }}
                             onPress={()=>{}}
                         >
@@ -493,12 +506,13 @@ const Show = ({}:any) => {
                                     }}
                                 >Chapters</Text>
                             </View>
-                            <Button mode='outlined'
+                            <TouchableRipple
+                                rippleColor={Theme[themeTypeContext].ripple_color_outlined}
                                 style={{
                                     borderWidth:0,
                                     borderRadius:5,
+                                    padding:5,
                                 }}
-                                labelStyle={styles.default_button_label}
                                 onPress={()=>{
                                     if (sort === "descending") setSort("ascending")
                                     else setSort("descending")
@@ -510,7 +524,7 @@ const Show = ({}:any) => {
                                     : <Icon source={"sort-ascending"} size={((Dimensions.width+Dimensions.height)/2)*0.0425} color={Theme[themeTypeContext].icon_color}/>
                                 }
                                 
-                            </Button>
+                            </TouchableRipple>
                         </View>
                         
                         <View style={styles.chapter_box}>
@@ -533,18 +547,20 @@ const Show = ({}:any) => {
                                             padding:5,
                                         }}
                                         onPress={() => {
-                                            console.log(chapter.id)
+                                            
                                             setWidgetContext({state:true,component:DownloadWidget})
                                         }}
                                     >
                                         {chapter.title}
                                     </Button>
-                                    <Button mode='outlined'
+                                    <TouchableRipple
+                                        rippleColor={Theme[themeTypeContext].ripple_color_outlined}
                                         style={{
                                             borderRadius:5,
                                             borderWidth:0,
+                                            padding:5,
                                         }}
-                                        labelStyle={styles.default_button_label}
+                                        
                                         onPress={()=>{
                                             
                                             
@@ -553,7 +569,7 @@ const Show = ({}:any) => {
                                         }}
                                     >
                                         <Icon source={"cloud-download"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={Theme[themeTypeContext].icon_color}/>
-                                    </Button>
+                                    </TouchableRipple>
                                 </View>
                             ))}
                         </View>

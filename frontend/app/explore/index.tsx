@@ -3,7 +3,7 @@ import { Link, router } from 'expo-router';
 import Image from '@/components/Image';
 import { StyleSheet, useWindowDimensions, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Icon, MD3Colors, Button, Text, TextInput } from 'react-native-paper';
+import { Icon, MD3Colors, Button, Text, TextInput, TouchableRipple } from 'react-native-paper';
 import CountryFlag from "react-native-country-flag";
 import Dropdown from '@/components/dropdown';
 
@@ -125,20 +125,13 @@ const Index = ({}:any) => {
                     
                     
 
-                    <Button mode={"outlined"} 
+                    <TouchableRipple
+                        rippleColor={Theme[themeTypeContext].ripple_color_outlined}
                         style={{
                             ...styles.header_translate_button,
                             backgroundColor: showOption.type === "translate" ? Theme[themeTypeContext].button_selected_color : "transparent"
                         }}
                         
-                        labelStyle={{
-                            margin:0,
-                            padding:5,
-                            marginHorizontal: 0,
-                            marginVertical: 0,
-                            paddingVertical: 5,
-                            paddingHorizontal: 5,
-                        }}
                         onPress={() => {
                             if (showOption.type === "translate"){
                                 setShowOption({type:null})
@@ -148,22 +141,16 @@ const Index = ({}:any) => {
                         }}
                     >
                         <Icon source={translate.state ? "translate" : "translate-off"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={Theme[themeTypeContext].icon_color}/>
-                    </Button>
+                    </TouchableRipple>
                     
 
-                    <Button mode={"outlined"} 
+                    <TouchableRipple
+                        rippleColor={Theme[themeTypeContext].ripple_color_outlined}
                         style={{
                             ...styles.header_search_button,
                             backgroundColor: showOption.type === "search" ? Theme[themeTypeContext].button_selected_color : "transparent"
                         }}
-                        labelStyle={{
-                            margin:0,
-                            padding:5,
-                            marginHorizontal: 0,
-                            marginVertical: 0,
-                            paddingVertical: 5,
-                            paddingHorizontal: 5,
-                        }}
+                        
                         onPress={() => {
                             if (showOption.type === "search"){
                                 setShowOption({type:null})
@@ -173,24 +160,19 @@ const Index = ({}:any) => {
                         }}
                     >
                         <Icon source={"magnify"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={Theme[themeTypeContext].icon_color}/>
-                    </Button>
+                    </TouchableRipple>
 
-                    <Button mode={"outlined"}  disabled={isLoading}
+                    <TouchableRipple
+                        rippleColor={Theme[themeTypeContext].ripple_color_outlined}
+                        disabled={isLoading}
                         style={
                             styles.header_refresh_button
                         }
-                        labelStyle={{
-                            margin:0,
-                            padding:5,
-                            marginHorizontal: 0,
-                            marginVertical: 0,
-                            paddingVertical: 5,
-                            paddingHorizontal: 5,
-                        }}
+                        
                         onPress={onRefresh}
                     >
                         <Icon color={Theme[themeTypeContext].icon_color} source={"refresh"} size={((Dimensions.width+Dimensions.height)/2)*0.04}/>
-                    </Button>
+                    </TouchableRipple>
                 </View>
                 
 
