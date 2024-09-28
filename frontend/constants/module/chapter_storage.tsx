@@ -228,6 +228,13 @@ if (Platform.OS === 'web') {
 
 export default ChapterStorage;
 
+
+
+
+
+
+
+
 /*
 - Add data with different items and indexes
 await ChapterStorage.add('itemA', 1<index>, 'id-123', 'TitleA', { key: 'valueA' });
