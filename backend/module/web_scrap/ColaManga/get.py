@@ -24,6 +24,8 @@ def scrap(id:int=1):
         
         DATA = {}
         
+        DATA["id"] = id
+        
         # Get info
         
         cover_url = driver.find_element(By.CLASS_NAME, "fed-list-pics").get_attribute("data-original")
@@ -56,6 +58,7 @@ def scrap(id:int=1):
         for li in li_elements:
             a_element = li.find('a')
             obj = {
+                "idx": int(a_element.get('href').split("/")[-1].split(".")[0]),
                 "title": a_element.get('title'),
                 "id": a_element.get('href').lstrip("/")
             }

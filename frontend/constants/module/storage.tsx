@@ -13,7 +13,7 @@ class Storage_Web {
     
             request.onupgradeneeded = (event) => {
             const db = (event.target as IDBOpenDBRequest).result;
-            db.createObjectStore('keyval');
+            db.createObjectStore('dataStore');
             };
     
             request.onsuccess = () => {
@@ -31,8 +31,8 @@ class Storage_Web {
     static async store(key: string, value: any): Promise<void> {
         const db = await this.getDB();
         return new Promise((resolve, reject) => {
-        const transaction = db.transaction('keyval', 'readwrite');
-        const store = transaction.objectStore('keyval');
+        const transaction = db.transaction('dataStore', 'readwrite');
+        const store = transaction.objectStore('dataStore');
         const request = store.put(value, key);
     
         request.onsuccess = () => {
@@ -48,8 +48,8 @@ class Storage_Web {
     static async get(key: string): Promise<any> {
         const db = await this.getDB();
         return new Promise((resolve, reject) => {
-        const transaction = db.transaction('keyval', 'readonly');
-        const store = transaction.objectStore('keyval');
+        const transaction = db.transaction('dataStore', 'readonly');
+        const store = transaction.objectStore('dataStore');
         const request = store.get(key);
     
         request.onsuccess = () => {
@@ -65,8 +65,8 @@ class Storage_Web {
     static async remove(key: string): Promise<void> {
         const db = await this.getDB();
         return new Promise((resolve, reject) => {
-        const transaction = db.transaction('keyval', 'readwrite');
-        const store = transaction.objectStore('keyval');
+        const transaction = db.transaction('dataStore', 'readwrite');
+        const store = transaction.objectStore('dataStore');
         const request = store.delete(key);
     
         request.onsuccess = () => {

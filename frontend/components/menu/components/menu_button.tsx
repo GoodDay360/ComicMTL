@@ -3,7 +3,7 @@ import { Link, router, usePathname } from 'expo-router';
 import { StyleSheet} from 'react-native';
 import { __styles } from '../stylesheet/styles';
 import storage from '@/constants/module/storage';
-import { Icon, MD3Colors, Button, Text } from 'react-native-paper';
+import { Icon, MD3Colors, Button, Text, TouchableRipple } from 'react-native-paper';
 import Theme from '@/constants/theme';
 import {useWindowDimensions} from 'react-native';
 import { CONTEXT } from '@/constants/module/context';
@@ -46,30 +46,32 @@ const MenuButton = ({pathname, label, icon}:any) => {
             }}
         >
             {current_pathname === pathname 
-                ? <Button
+                ? <TouchableRipple
+                    rippleColor={Theme[themeTypeContext].ripple_color_outlined}
                     onPress={() => {
                         
                         router.push(pathname)
                     }}
-                    mode={"contained"}
+                    // mode={"contained"}
                     style={style.selected_menu_button}
                 >
 
                     <Icon source={icon} size={Dimensions.width*0.045} color={Theme[themeTypeContext].icon_color}/>
                 
-                </Button>
-                : <><Button
+                </TouchableRipple>
+                : <><TouchableRipple
+                    rippleColor={Theme[themeTypeContext].ripple_color_outlined}
                     onPress={() => {
                         
                         router.push(pathname)
                     }}
-                    mode={"outlined"}
+                    
                     style={style.menu_button}
                     
                 >
                     <Icon source={icon} size={Dimensions.width*0.045} color={Theme[themeTypeContext].icon_color}/>
                     
-                </Button><Text style={style.menu_button_text}>{label}</Text></>
+                </TouchableRipple><Text style={style.menu_button_text}>{label}</Text></>
             }
             
         </View>

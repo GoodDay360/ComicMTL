@@ -7,6 +7,8 @@ import { Icon, Button } from 'react-native-paper';
 import { ActivityIndicator } from 'react-native-paper';
 import { CONTEXT } from "@/constants/module/context";
 
+
+
 const Image = ({source, style, onError, contentFit, transition}:any) => {
     const [imageData, setImageData]:any = useState(null)
     const [isError, setIsError]:any = useState(false)
@@ -15,7 +17,17 @@ const Image = ({source, style, onError, contentFit, transition}:any) => {
     const signal = controller.signal;
     const request_image = () =>{
         (async ()=>{
-            if (source.hasOwnProperty("uri")){
+            if(source.hasOwnProperty("type")){
+                if (source.type === "blob"){
+                    setImageData({uri:await blobToBase64(source.data)})
+                }else if (source.type === "base64"){
+                    setImageData({uri:source.data})
+                }else if (source.type === "file_path"){
+                    setImageData({uri:source.data})
+                }else{
+                    setIsError(true)
+                }
+            } else if (source.hasOwnProperty("uri")){
                 const result:any = await ImageCacheStorage.get(setShowCloudflareTurnstileContext,source.uri,signal);
                 if (result.type === "blob"){
                     setImageData({uri:await blobToBase64(result.data)})
@@ -26,7 +38,7 @@ const Image = ({source, style, onError, contentFit, transition}:any) => {
                 }else{
                     setIsError(true)
                 }
-                console.log(result)
+                
             }else{
                 setImageData(source)
             }

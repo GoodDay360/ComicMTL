@@ -4,11 +4,16 @@ import { useWindowDimensions } from 'react-native';
 import { Icon, MD3Colors, Button, Text, TextInput } from 'react-native-paper';
 import { View, AnimatePresence } from 'moti';
 import Toast from 'react-native-toast-message';
+import * as FileSystem from 'expo-file-system';
+
 
 import Theme from '@/constants/theme';
 import Dropdown from '@/components/dropdown';
 import { CONTEXT } from '@/constants/module/context';
+import { store_comic_cover } from '../module/content';
 import Storage from '@/constants/module/storage';
+import ComicStorage from '@/constants/module/comic_storage';
+import ImageCacheStorage from '@/constants/module/image_cache_storage';
 
 
 export const DownloadWidget = () => {
@@ -179,19 +184,28 @@ export const DownloadWidget = () => {
     </AnimatePresence>) 
 }
 
-export const BookmarkWidget = () => {
+export const BookmarkWidget = (CONTENT:any) => {
     const Dimensions = useWindowDimensions();
 
     const {themeTypeContext, setThemeTypeContext}:any = useContext(CONTEXT)
     const {widgetContext, setWidgetContext}:any = useContext(CONTEXT)
+    const {showCloudflareTurnstileContext, setShowCloudflareTurnstileContext}:any = useContext(CONTEXT)
+    const {apiBaseContext, setApiBaseContext}:any = useContext(CONTEXT)
 
     const [BOOKMARK_DATA, SET_BOOKMARK_DATA]: any = useState(null)
 
     const [bookmark, setBookmark]:any = useState("")
     const [createBookmark, setCreateBookmark]:any = useState({state:false,title:""})
+    const controller = new AbortController();
+    const signal = controller.signal;
+
 
     useEffect(()=>{
         (async ()=>{
+            const stored_comic = await ComicStorage.getByID(CONTENT.id)
+            console.log(stored_comic)
+            if (stored_comic) setBookmark(stored_comic.tag)
+
             const stored_bookmark_data = await Storage.get("bookmark") || []
             if (stored_bookmark_data.length) {
                 const bookmark_data:Array<Object> = []
@@ -205,6 +219,7 @@ export const BookmarkWidget = () => {
                 SET_BOOKMARK_DATA(bookmark_data.sort())
             }else SET_BOOKMARK_DATA([])
         })()
+        return () => controller.abort();
     },[])
 
     return (<>{BOOKMARK_DATA !== null && 
@@ -280,9 +295,24 @@ export const BookmarkWidget = () => {
                                 label='Add to bookmark' 
                                 data={BOOKMARK_DATA}
                                 value={bookmark}
-                                onChange={(item:any) => {
+                                onChange={(async (item:any) => {
+                                    const stored_comic = await ComicStorage.getByID(CONTENT.id)
+                                    if (stored_comic) await ComicStorage.replaceTag(CONTENT.id, item.value)
+                                    else {
+                                        const cover_result:any = await store_comic_cover(setShowCloudflareTurnstileContext,signal,CONTENT)
+                                        
+                                        await ComicStorage.store(CONTENT.id, item.value, {
+                                            cover:cover_result,
+                                            title:CONTENT.title,
+                                            author:CONTENT.author,
+                                            category:CONTENT.category,
+                                            status:CONTENT.status,
+                                            synopsis:CONTENT.synopsis,
+                                            updated:CONTENT.updated,
+                                        })
+                                    }
                                     setBookmark(item.value)
-                                }}
+                                })}
                             />
                         </>
                     }</>

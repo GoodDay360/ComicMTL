@@ -19,10 +19,17 @@ export const __styles:any = (theme_type:string,Dimensions:any) => {
             alignItems:"center",
         },
         selected_menu_button: {
-            backgroundColor: Theme[theme_type].button_color
+            backgroundColor: Theme[theme_type].button_color,
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            borderRadius: 12,
+            
         },
         menu_button: {
             borderWidth: 0,
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            borderRadius: 12,
         },
         
         menu_button_text: {

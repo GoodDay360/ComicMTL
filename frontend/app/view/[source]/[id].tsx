@@ -9,6 +9,7 @@ import uuid from 'react-native-uuid';
 import Toast from 'react-native-toast-message';
 import { View, AnimatePresence } from 'moti';
 import * as Clipboard from 'expo-clipboard';
+import NetInfo from "@react-native-community/netinfo";
 
 
 import Theme from '@/constants/theme';
@@ -16,12 +17,13 @@ import { __styles } from '../stylesheet/show_styles';
 import Storage from '@/constants/module/storage';
 import ImageCacheStorage from '@/constants/module/image_cache_storage';
 import ChapterStorage from '@/constants/module/chapter_storage';
+import ComicStorage from '@/constants/module/comic_storage';
 import { CONTEXT } from '@/constants/module/context';
 import Dropdown from '@/components/dropdown';
 import { DownloadWidget, BookmarkWidget } from '../componenets/widgets';
 
 
-import { get } from '../module/content'
+import { get, store_comic_cover } from '../module/content'
 
 
 
@@ -61,9 +63,13 @@ const Show = ({}:any) => {
     const controller = new AbortController();
     const signal = controller.signal;
 
+    // Test Section
     useEffect(() => {(async ()=>{
+        // return
+        // console.log("asdsadsad",await ComicStorage.getByID("id-test"))
+        // await ComicStorage.store("id-test", "tag-test", {type:"AA"});
         // console.log("AAAAA",await ChapterStorage.getAll(`${SOURCE}-${ID}`))
-        console.log("AAAAA2",await ChapterStorage.get(`${SOURCE}-${ID}`, '/manga-od825111/1/30.html'))
+        // console.log("AAAAA2",await ChapterStorage.get(`${SOURCE}-${ID}`, '/manga-od825111/1/30.html'))
         // return
         // console.log(`${SOURCE}-${ID}`)
         // await ChapterStorage.add(`${SOURCE}-${ID}`, 251,'/manga-od825111/1/31.html', 'KEooo', "I AM BLOB");
@@ -99,20 +105,85 @@ const Show = ({}:any) => {
         }
     },[socket]))
 
+    const Load_Offline = async () => {
+        Toast.show({
+            type: 'info',
+            text1: '🌐 No internet connection available.',
+            text2: `Switching to offline mode.`,
+            
+            position: "bottom",
+            visibilityTime: 6000,
+            text1Style:{
+                fontFamily:"roboto-bold",
+                fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
+            },
+            text2Style:{
+                fontFamily:"roboto-medium",
+                fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
+                
+            },
+        });
+
+        try{
+            const stored_comic = await ComicStorage.getByID(ID)
+            console.log(stored_comic)
+            if (!stored_comic) {
+                const DATA:any = {}
+                DATA["id"] = stored_comic.id
+                DATA["chapters"] = []
+                for (const [key, value] of Object.entries(stored_comic.info)) {
+                    DATA[key] = value
+                }
+                console.log(DATA)
+                SET_CONTENT(DATA)
+                setIsLoading(false)
+            }else{
+                Toast.show({
+                    type: 'error',
+                    text1: '🌐 No internet connection available and no local comic found.',
+                    text2: `Unable to switch to offline mode.`,
+                    
+                    position: "bottom",
+                    visibilityTime: 6000,
+                    text1Style:{
+                        fontFamily:"roboto-bold",
+                        fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
+                    },
+                    text2Style:{
+                        fontFamily:"roboto-medium",
+                        fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
+                        
+                    },
+                });
+                setIsLoading(false)
+                setFeedBack("No internet connection available.")
+            }
+        }catch(e:any){
+            setFeedBack(e.message)
+            console.error(e)
+        }
+    }
+
     useEffect(() => { 
         (async ()=>{
-            
             setShowMenuContext(false)
             setStyles(__styles(themeTypeContext,Dimensions))
 
             let __translate:any = await Storage.get("explore_show_translate")
+            
             if (!__translate) {
                 __translate = {state:false,from:"auto",to:"en"}
                 await Storage.store("explore_show_translate",__translate)
             }else __translate = __translate
 
             setTranslate(__translate)
-            get(setShowCloudflareTurnstileContext, setIsLoading, signal, __translate, setFeedBack, SOURCE, ID, SET_CONTENT)
+            const net_info = await NetInfo.fetch()
+            if (!net_info.isConnected){
+                get(setShowCloudflareTurnstileContext, setIsLoading, signal, __translate, setFeedBack, SOURCE, ID, SET_CONTENT)
+            }else{
+                Load_Offline()
+            }
+            
         })()
 
         return () => {
@@ -120,11 +191,16 @@ const Show = ({}:any) => {
         };
     },[])
 
-    const onRefresh = () => {
+    const onRefresh = async () => {
         if (!(styles && themeTypeContext && apiBaseContext)) return
-        setIsLoading(true);
-        SET_CONTENT([])
-        get(setShowCloudflareTurnstileContext, setIsLoading, signal, translate, setFeedBack, SOURCE, ID, SET_CONTENT)
+        const net_info = await NetInfo.fetch()
+        if (net_info.isConnected){
+            setIsLoading(true);
+            SET_CONTENT([])
+            get(setShowCloudflareTurnstileContext, setIsLoading, signal, translate, setFeedBack, SOURCE, ID, SET_CONTENT)
+        }else{
+            Load_Offline()
+        }
     }
 
     
@@ -356,7 +432,7 @@ const Show = ({}:any) => {
                 </View>
                 : <View style={styles.body_container}>
                     <View style={styles.body_box_1}>
-                        <Image style={styles.item_cover} source={{uri:`${apiBaseContext}${CONTENT.cover}`}}/>
+                        <Image style={styles.item_cover} source={CONTENT.cover}/>
                         <View style={{flex:1,paddingBottom:15,height:"auto"}}>
                             <Text 
                                 style={{
@@ -407,7 +483,7 @@ const Show = ({}:any) => {
                                 borderColor:Theme[themeTypeContext].border_color,
                             }}
                             onPress={()=>{
-                                setWidgetContext({state:true,component:BookmarkWidget})
+                                setWidgetContext({state:true,component:()=>{return BookmarkWidget(CONTENT)}})
                             }}
                         >   
 
@@ -741,7 +817,7 @@ const Show = ({}:any) => {
                 </View>
             }</>
         </ScrollView>
-        : <View style={{width:"100%",height:"100%",display:"flex",justifyContent:"center",alignItems:"center",backgroundColor:Theme[themeTypeContext].background_color}}>
+        : <View style={{zIndex:5,width:"100%",height:"100%",display:"flex",justifyContent:"center",alignItems:"center",backgroundColor:Theme[themeTypeContext].background_color}}>
             <Image setShowCloudflareTurnstile={setShowCloudflareTurnstileContext} source={require("@/assets/gif/cat-loading.gif")} style={{width:((Dimensions.width+Dimensions.height)/2)*0.15,height:((Dimensions.width+Dimensions.height)/2)*0.15}}/>
         </View>
     }</>)

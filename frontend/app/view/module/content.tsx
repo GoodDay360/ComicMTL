@@ -1,6 +1,10 @@
 import axios from 'axios';
+import * as FileSystem from 'expo-file-system';
+
 import translator from '@/constants/module/translator';
 import Storage from '@/constants/module/storage';
+import ComicStorage from '@/constants/module/comic_storage';
+import ImageCacheStorage from '@/constants/module/image_cache_storage';
 
 
 export const get = async (setShowCloudflareTurnstile:any,setIsLoading:any,signal:AbortSignal,translate:any,setFeedBack:any,source:any,id:any,SET_CONTENT:any) => {
@@ -25,6 +29,7 @@ export const get = async (setShowCloudflareTurnstile:any,setIsLoading:any,signal
             return
         }
 
+        DATA["cover"] = {uri:`${API_BASE}${DATA.cover}`}
         DATA["category"] = DATA.category.join(" | ")
         
         if (translate.state){
@@ -38,7 +43,20 @@ export const get = async (setShowCloudflareTurnstile:any,setIsLoading:any,signal
         else {
             SET_CONTENT(DATA)
         }
-        
+        // console.log(DATA)
+        const stored_comic = await ComicStorage.getByID(DATA.id)
+        if (stored_comic) {
+            const cover_result:any = await store_comic_cover(setShowCloudflareTurnstile,signal,DATA)
+            await ComicStorage.updateInfo(DATA.id, {
+                cover:cover_result,
+                title:DATA.title,
+                author:DATA.author,
+                category:DATA.category,
+                status:DATA.status,
+                synopsis:DATA.synopsis,
+                updated:DATA.updated,
+            })
+        }
         setIsLoading(false)
     })()}).catch((error) => {
         console.log(error)
@@ -47,4 +65,29 @@ export const get = async (setShowCloudflareTurnstile:any,setIsLoading:any,signal
         setFeedBack("Error unable to fetch data! Try request again.")
         setIsLoading(false)
     })
+}
+
+export const store_comic_cover = async (setShowCloudflareTurnstile:any,signal:any,CONTENT:any) => {
+    const result = await ImageCacheStorage.get(setShowCloudflareTurnstile,CONTENT.cover.uri,signal);
+    if (result.type === "file_path"){
+        const from_path = result.data
+        
+        const storage_dir = FileSystem.documentDirectory + "ComicMTL/" + `${CONTENT.id}/`;
+        try{
+            const dirInfo = await FileSystem.getInfoAsync(storage_dir);
+            if (!dirInfo.exists) await FileSystem.makeDirectoryAsync(storage_dir, { intermediates: true });
+            await FileSystem.copyAsync({
+                from: from_path,
+                to: storage_dir + "cover.png",
+            });
+            
+            return {type:"file_path",data:storage_dir + "cover.png"}
+        }catch (error: any) {
+            console.error(error)
+            return { type: "error", data: null };
+        }
+
+
+        
+    }else return result
 }
