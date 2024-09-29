@@ -33,30 +33,40 @@ class Chapter_Storage_Web  {
     });
   }
 
-  public static async getAll(item: string): Promise<any[]> {
+  public static async getAll(item: string, options?: { exclude_fields?: string[] }): Promise<any[]> {
     const db = await this.openDB();
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction('dataStore', 'readonly');
-      const store = transaction.objectStore('dataStore');
-      const index = store.index('item');
-      const request = index.openCursor(IDBKeyRange.only(item));
-      const results: any[] = [];
+        const transaction = db.transaction('dataStore', 'readonly');
+        const store = transaction.objectStore('dataStore');
+        const index = store.index('item');
+        const request = index.openCursor(IDBKeyRange.only(item));
+        const results: any[] = [];
 
-      request.onsuccess = (event) => {
-        const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
-        if (cursor) {
-          results.push(cursor.value);
-          cursor.continue();
-        } else {
-          resolve(results.sort((a, b) => a.idx - b.idx));
-        }
-      };
+        request.onsuccess = (event) => {
+            const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+            if (cursor) {
+                const value = cursor.value;
+                if (options?.exclude_fields) {
+                    options.exclude_fields.forEach(field => {
+                        if (value.hasOwnProperty(field)) {
+                            delete value[field];
+                        }
+                    });
+                }
+                results.push(value);
+                cursor.continue();
+            } else {
+                resolve(results.sort((a, b) => a.idx - b.idx).reverse());
+            }
+        };
 
-      request.onerror = () => {
-        reject(request.error);
-      };
+        request.onerror = () => {
+            reject(request.error);
+        };
     });
   }
+
+
 
   public static async get(item: string, id: string): Promise<any | null> {
     const db = await this.openDB();
@@ -156,15 +166,35 @@ class Chapter_Storage_Native {
     }
   }
 
-  async getAll(tableName: string): Promise<any[]> {
+  async getAll(tableName: string, options?: { exclude_fields?: string[] }): Promise<any[]> {
     await this.initializeDatabase();
     try {
-      const allRows:Array<any> = await this.db!.getAllAsync(`SELECT * FROM "${tableName}" ORDER BY idx`);
-      return allRows.sort((a, b) => a.idx - b.idx);
+      const excludeFields = options?.exclude_fields;
+  
+      if (excludeFields && excludeFields.length > 0) {
+        // Get all column names from the table
+        const columnsResult = await this.db!.getAllAsync(`PRAGMA table_info("${tableName}")`);
+        const columns = columnsResult.map((col: any) => col.name);
+  
+        // Exclude the specified fields if provided
+        const selectedColumns = columns.filter((col: any) => !excludeFields.includes(col));
+  
+        // Construct the SELECT query with the selected columns
+        const query = `SELECT ${selectedColumns.join(', ')} FROM "${tableName}" ORDER BY idx`;
+        const allRows: Array<any> = await this.db!.getAllAsync(query);
+  
+        return allRows.sort((a, b) => a.idx - b.idx).reverse();
+      } else {
+        // If no fields to exclude, select all columns
+        const allRows: Array<any> = await this.db!.getAllAsync(`SELECT * FROM "${tableName}" ORDER BY idx`);
+        return allRows.sort((a, b) => a.idx - b.idx).reverse();
+      }
     } catch (error) {
       return []; // Return empty array if table does not exist
     }
   }
+  
+  
 
   async get(tableName: string, id: number): Promise<any | null> {
     await this.initializeDatabase();

@@ -21,6 +21,7 @@ import ComicStorage from '@/constants/module/comic_storage';
 import { CONTEXT } from '@/constants/module/context';
 import Dropdown from '@/components/dropdown';
 import { DownloadWidget, BookmarkWidget } from '../componenets/widgets';
+import { ensure_safe_table_name } from '@/constants/module/ensure_safe_table_name';
 
 
 import { get, store_comic_cover } from '../module/content'
@@ -126,17 +127,19 @@ const Show = ({}:any) => {
 
         try{
             const stored_comic = await ComicStorage.getByID(ID)
-            console.log(stored_comic)
-            if (!stored_comic) {
+            
+            if (stored_comic) {
                 const DATA:any = {}
                 DATA["id"] = stored_comic.id
-                DATA["chapters"] = []
+                
                 for (const [key, value] of Object.entries(stored_comic.info)) {
                     DATA[key] = value
                 }
-                console.log(DATA)
+                DATA["chapters"] = await ChapterStorage.getAll(ensure_safe_table_name(stored_comic.id),{exclude_field:["data","item"]})
+                
                 SET_CONTENT(DATA)
                 setIsLoading(false)
+                setFeedBack("")
             }else{
                 Toast.show({
                     type: 'error',
@@ -155,8 +158,9 @@ const Show = ({}:any) => {
                         
                     },
                 });
-                setIsLoading(false)
                 setFeedBack("No internet connection available.")
+                setIsLoading(false)
+                
             }
         }catch(e:any){
             setFeedBack(e.message)
@@ -178,7 +182,7 @@ const Show = ({}:any) => {
 
             setTranslate(__translate)
             const net_info = await NetInfo.fetch()
-            if (!net_info.isConnected){
+            if (net_info.isConnected){
                 get(setShowCloudflareTurnstileContext, setIsLoading, signal, __translate, setFeedBack, SOURCE, ID, SET_CONTENT)
             }else{
                 Load_Offline()
@@ -194,9 +198,9 @@ const Show = ({}:any) => {
     const onRefresh = async () => {
         if (!(styles && themeTypeContext && apiBaseContext)) return
         const net_info = await NetInfo.fetch()
+        setIsLoading(true);
+        SET_CONTENT([])
         if (net_info.isConnected){
-            setIsLoading(true);
-            SET_CONTENT([])
             get(setShowCloudflareTurnstileContext, setIsLoading, signal, translate, setFeedBack, SOURCE, ID, SET_CONTENT)
         }else{
             Load_Offline()
@@ -426,7 +430,8 @@ const Show = ({}:any) => {
                         style={{
                             color:Theme[themeTypeContext].text_color,
                             fontFamily:"roboto-medium",
-                            fontSize:(Dimensions.width+Dimensions.height)/2*0.03
+                            fontSize:(Dimensions.width+Dimensions.height)/2*0.03,
+                            textAlign:"center",
                         }}
                     >{feedBack}</Text>
                 </View>
@@ -434,7 +439,7 @@ const Show = ({}:any) => {
                     <View style={styles.body_box_1}>
                         <Image style={styles.item_cover} source={CONTENT.cover}/>
                         <View style={{flex:1,paddingBottom:15,height:"auto"}}>
-                            <Text 
+                            <Text selectable={true}
                                 style={{
                                     ...styles.item_info,
                                     fontSize:((Dimensions.width+Dimensions.height)/2)*0.05,
@@ -443,28 +448,28 @@ const Show = ({}:any) => {
                                 }}
                             >{CONTENT.title}
                             </Text>
-                            <Text 
+                            <Text selectable={true}
                                 style={{
                                     ...styles.item_info,
                                     fontSize:((Dimensions.width+Dimensions.height)/2)*0.03
                                 }}
                             >Author: {CONTENT.author || "Unknown"}
                             </Text>
-                            <Text 
+                            <Text selectable={true}
                                 style={{
                                     ...styles.item_info,
                                     fontSize:((Dimensions.width+Dimensions.height)/2)*0.03
                                 }}
                             >Status: {CONTENT.status}
                             </Text>
-                            <Text 
+                            <Text selectable={true}
                                 style={{
                                     ...styles.item_info,
                                     fontSize:((Dimensions.width+Dimensions.height)/2)*0.03
                                 }}
                             >Category: {CONTENT.category}
                             </Text>
-                            <Text 
+                            <Text selectable={true}
                                 style={{
                                     ...styles.item_info,
                                     fontSize:((Dimensions.width+Dimensions.height)/2)*0.03
@@ -483,7 +488,7 @@ const Show = ({}:any) => {
                                 borderColor:Theme[themeTypeContext].border_color,
                             }}
                             onPress={()=>{
-                                setWidgetContext({state:true,component:()=>{return BookmarkWidget(CONTENT)}})
+                                setWidgetContext({state:true,component:()=>{return BookmarkWidget(onRefresh,SOURCE,CONTENT)}})
                             }}
                         >   
 
@@ -548,7 +553,7 @@ const Show = ({}:any) => {
 
                         </View>
                         
-                        <Text 
+                        <Text selectable={true}
                             style={{
                                 ...styles.item_info,
                                 fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
@@ -604,50 +609,61 @@ const Show = ({}:any) => {
                         </View>
                         
                         <View style={styles.chapter_box}>
-                            {CONTENT.chapters.slice((page-1)*MAX_OFFSET,((page-1)*MAX_OFFSET)+MAX_OFFSET).map((chapter:any,index:number) => (
-                                <View key={index}
-                                    style={{
-                                        display:"flex",
-                                        flexDirection:"row",
-                                        gap:8,
-                                        justifyContent:"space-between",
-                                        alignItems:"center",
-                                    }}
-                                >
-                                    <Button mode='outlined' 
-                                        style={styles.chapter_button}
-                                        labelStyle={{
-                                            ...styles.item_info,
-                                            fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
-                                            fontFamily:"roboto-light",
-                                            padding:5,
-                                        }}
-                                        onPress={() => {
-                                            
-                                            setWidgetContext({state:true,component:DownloadWidget})
-                                        }}
-                                    >
-                                        {chapter.title}
-                                    </Button>
-                                    <TouchableRipple
-                                        rippleColor={Theme[themeTypeContext].ripple_color_outlined}
+                            <>{CONTENT.chapters.length
+                                ? <>{CONTENT.chapters.slice((page-1)*MAX_OFFSET,((page-1)*MAX_OFFSET)+MAX_OFFSET).map((chapter:any,index:number) => (
+                                    <View key={index}
                                         style={{
-                                            borderRadius:5,
-                                            borderWidth:0,
-                                            padding:5,
-                                        }}
-                                        
-                                        onPress={()=>{
-                                            
-                                            
-                                            // Download Chapter Widget
-                                            setWidgetContext({state:true,component:DownloadWidget})
+                                            display:"flex",
+                                            flexDirection:"row",
+                                            gap:8,
+                                            justifyContent:"space-between",
+                                            alignItems:"center",
                                         }}
                                     >
-                                        <Icon source={"cloud-download"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={Theme[themeTypeContext].icon_color}/>
-                                    </TouchableRipple>
-                                </View>
-                            ))}
+                                        <Button mode='outlined' 
+                                            style={styles.chapter_button}
+                                            labelStyle={{
+                                                ...styles.item_info,
+                                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
+                                                fontFamily:"roboto-light",
+                                                padding:5,
+                                            }}
+                                            onPress={() => {
+                                                
+                                                setWidgetContext({state:true,component:DownloadWidget})
+                                            }}
+                                        >
+                                            {chapter.title}
+                                        </Button>
+                                        <TouchableRipple
+                                            rippleColor={Theme[themeTypeContext].ripple_color_outlined}
+                                            style={{
+                                                borderRadius:5,
+                                                borderWidth:0,
+                                                padding:5,
+                                            }}
+                                            
+                                            onPress={()=>{
+                                                
+                                                
+                                                // Download Chapter Widget
+                                                setWidgetContext({state:true,component:DownloadWidget})
+                                            }}
+                                        >
+                                            <Icon source={"cloud-download"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={Theme[themeTypeContext].icon_color}/>
+                                        </TouchableRipple>
+                                    </View>
+                                ))}</>
+                                : <Text
+                                    style={{
+                                        color:Theme[themeTypeContext].text_color,
+                                        fontFamily:"roboto-medium",
+                                        fontSize:(Dimensions.width+Dimensions.height)/2*0.03,
+                                        textAlign:"center",
+                                        padding:16,
+                                    }}
+                                >🫠 No chapter found.</Text>
+                            }</>
                         </View>
                     </View>
                     {Object.keys(CONTENT).length

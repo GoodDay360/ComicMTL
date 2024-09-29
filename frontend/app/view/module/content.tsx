@@ -5,6 +5,8 @@ import translator from '@/constants/module/translator';
 import Storage from '@/constants/module/storage';
 import ComicStorage from '@/constants/module/comic_storage';
 import ImageCacheStorage from '@/constants/module/image_cache_storage';
+import ChapterStorage from '@/constants/module/chapter_storage';
+import { ensure_safe_table_name } from '@/constants/module/ensure_safe_table_name';
 
 
 export const get = async (setShowCloudflareTurnstile:any,setIsLoading:any,signal:AbortSignal,translate:any,setFeedBack:any,source:any,id:any,SET_CONTENT:any) => {
@@ -44,10 +46,12 @@ export const get = async (setShowCloudflareTurnstile:any,setIsLoading:any,signal
             SET_CONTENT(DATA)
         }
         // console.log(DATA)
-        const stored_comic = await ComicStorage.getByID(DATA.id)
+
+        // Store in local if bookmarked.
+        const stored_comic = await ComicStorage.getByID(`${source}-${DATA.id}`)
         if (stored_comic) {
             const cover_result:any = await store_comic_cover(setShowCloudflareTurnstile,signal,DATA)
-            await ComicStorage.updateInfo(DATA.id, {
+            await ComicStorage.updateInfo(`${source}-${DATA.id}`, {
                 cover:cover_result,
                 title:DATA.title,
                 author:DATA.author,
@@ -56,6 +60,10 @@ export const get = async (setShowCloudflareTurnstile:any,setIsLoading:any,signal
                 synopsis:DATA.synopsis,
                 updated:DATA.updated,
             })
+            for (const chapter of DATA.chapters) {
+                const stored_chapter = await ChapterStorage.get(ensure_safe_table_name(`${source}-${DATA.id}`),chapter.id)
+                if (!stored_chapter) await ChapterStorage.add(ensure_safe_table_name(`${source}-${DATA.id}`), chapter.idx, chapter.id, chapter.title, {});
+            }
         }
         setIsLoading(false)
     })()}).catch((error) => {
