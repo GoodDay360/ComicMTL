@@ -6,7 +6,7 @@ import Storage from '@/constants/module/storage';
 import ComicStorage from '@/constants/module/comic_storage';
 import ImageCacheStorage from '@/constants/module/image_cache_storage';
 import ChapterStorage from '@/constants/module/chapter_storage';
-import { ensure_safe_table_name } from '@/constants/module/ensure_safe_table_name';
+
 
 
 export const get = async (setShowCloudflareTurnstile:any,setIsLoading:any,signal:AbortSignal,translate:any,setFeedBack:any,source:any,id:any,SET_CONTENT:any) => {
@@ -61,8 +61,8 @@ export const get = async (setShowCloudflareTurnstile:any,setIsLoading:any,signal
                 updated:DATA.updated,
             })
             for (const chapter of DATA.chapters) {
-                const stored_chapter = await ChapterStorage.get(ensure_safe_table_name(`${source}-${DATA.id}`),chapter.id)
-                if (!stored_chapter) await ChapterStorage.add(ensure_safe_table_name(`${source}-${DATA.id}`), chapter.idx, chapter.id, chapter.title, {});
+                const stored_chapter = await ChapterStorage.get(`${source}-${DATA.id}`,chapter.id)
+                if (!stored_chapter) await ChapterStorage.add(`${source}-${DATA.id}`, chapter.idx, chapter.id, chapter.title, {});
             }
         }
         setIsLoading(false)

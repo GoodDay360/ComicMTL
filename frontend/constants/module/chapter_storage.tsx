@@ -3,9 +3,9 @@
 
 import { Platform } from "react-native";
 import * as SQLite from 'expo-sqlite';
+import { ensure_safe_table_name } from "./ensure_safe_table_name";
 
 const DATABASE_NAME = 'ChapterDB';
-
 
 class Chapter_Storage_Web  {
   private static DATABASE_VERSION: number = 1;
@@ -107,6 +107,41 @@ class Chapter_Storage_Web  {
       };
     });
   }
+  public static async update(item: string, id: string, newData: any): Promise<void> {
+    const db = await this.openDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction('dataStore', 'readwrite');
+      const store = transaction.objectStore('dataStore');
+      const index = store.index('item');
+      const request = index.openCursor(IDBKeyRange.only(item));
+
+      request.onsuccess = (event) => {
+        const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+        if (cursor) {
+          if (cursor.value.id === id) {
+            cursor.value.data = newData; // Directly modify the data field
+            const updateRequest = cursor.update(cursor.value);
+
+            updateRequest.onsuccess = () => {
+              resolve();
+            };
+
+            updateRequest.onerror = () => {
+              reject(updateRequest.error);
+            };
+          } else {
+            cursor.continue();
+          }
+        } else {
+          reject(new Error('Item not found'));
+        }
+      };
+
+      request.onerror = () => {
+        reject(request.error);
+      };
+    });
+  }
 
   public static async drop(item: string): Promise<void> {
     const db = await this.openDB();
@@ -173,20 +208,20 @@ class Chapter_Storage_Native {
   
       if (excludeFields && excludeFields.length > 0) {
         // Get all column names from the table
-        const columnsResult = await this.db!.getAllAsync(`PRAGMA table_info("${tableName}")`);
+        const columnsResult = await this.db!.getAllAsync(`PRAGMA table_info("${ensure_safe_table_name(tableName)}")`);
         const columns = columnsResult.map((col: any) => col.name);
   
         // Exclude the specified fields if provided
         const selectedColumns = columns.filter((col: any) => !excludeFields.includes(col));
   
         // Construct the SELECT query with the selected columns
-        const query = `SELECT ${selectedColumns.join(', ')} FROM "${tableName}" ORDER BY idx`;
+        const query = `SELECT ${selectedColumns.join(', ')} FROM "${ensure_safe_table_name(tableName)}" ORDER BY idx`;
         const allRows: Array<any> = await this.db!.getAllAsync(query);
   
         return allRows.sort((a, b) => a.idx - b.idx).reverse();
       } else {
         // If no fields to exclude, select all columns
-        const allRows: Array<any> = await this.db!.getAllAsync(`SELECT * FROM "${tableName}" ORDER BY idx`);
+        const allRows: Array<any> = await this.db!.getAllAsync(`SELECT * FROM "${ensure_safe_table_name(tableName)}" ORDER BY idx`);
         return allRows.sort((a, b) => a.idx - b.idx).reverse();
       }
     } catch (error) {
@@ -199,7 +234,7 @@ class Chapter_Storage_Native {
   async get(tableName: string, id: number): Promise<any | null> {
     await this.initializeDatabase();
     try {
-      const firstRow = await this.db!.getFirstAsync(`SELECT * FROM "${tableName}" WHERE id = ?`, [id]);
+      const firstRow = await this.db!.getFirstAsync(`SELECT * FROM "${ensure_safe_table_name(tableName)}" WHERE id = ?`, [id]);
       return firstRow || null;
     } catch (error) {
       return null; // Return null if table or row does not exist
@@ -210,24 +245,35 @@ class Chapter_Storage_Native {
     await this.initializeDatabase();
     try {
       
-      await this.db!.runAsync(`CREATE TABLE IF NOT EXISTS "${tableName}" (
+      await this.db!.runAsync(`CREATE TABLE IF NOT EXISTS "${ensure_safe_table_name(tableName)}" (
           idx INTEGER NOT NULL,
           id TEXT PRIMARY KEY NOT NULL,
           title TEXT NOT NULL,
           data TEXT NOT NULL
         );`);
       
-      await this.db!.runAsync(`INSERT INTO "${tableName}" (idx, id, title, data) VALUES (?, ?, ?, ?)`, [idx, id, title, JSON.stringify(data)]);
+      await this.db!.runAsync(`INSERT INTO "${ensure_safe_table_name(tableName)}" (idx, id, title, data) VALUES (?, ?, ?, ?)`, [idx, id, title, JSON.stringify(data)]);
     } catch (error:any) {
       console.log(error.message)
       throw new Error(`Failed to add data: ${error.message}`);
     }
   }
 
+  async update(tableName: string, id: string, data: string): Promise<void> {
+    await this.initializeDatabase();
+    try {
+      const query = `UPDATE "${ensure_safe_table_name(tableName)}" SET data = ? WHERE id = ?`;
+      await this.db!.runAsync(query, [JSON.stringify(data), id]);
+    } catch (error: any) {
+      console.log(error.message);
+      throw new Error(`Failed to update data: ${error.message}`);
+    }
+  }
+
   async remove(tableName: string, id: number): Promise<void> {
     await this.initializeDatabase();
     try {
-      await this.db!.runAsync(`DELETE FROM "${tableName}" WHERE id = ?`, [id]);
+      await this.db!.runAsync(`DELETE FROM "${ensure_safe_table_name(tableName)}" WHERE id = ?`, [id]);
     } catch (error:any) {
       throw new Error(`Failed to remove data: ${error.message}`);
     }
@@ -236,7 +282,7 @@ class Chapter_Storage_Native {
   async drop(tableName: string): Promise<void> {
     await this.initializeDatabase();
     try {
-      await this.db!.execAsync(`DROP TABLE IF EXISTS "${tableName}"`);
+      await this.db!.execAsync(`DROP TABLE IF EXISTS "${ensure_safe_table_name(tableName)}"`);
     } catch (error:any) {
       throw new Error(`Failed to drop table: ${error.message}`);
     }

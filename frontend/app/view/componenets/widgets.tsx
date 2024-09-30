@@ -5,6 +5,7 @@ import { Icon, MD3Colors, Button, Text, TextInput, TouchableRipple, ActivityIndi
 import { View, AnimatePresence } from 'moti';
 import Toast from 'react-native-toast-message';
 import * as FileSystem from 'expo-file-system';
+import axios from 'axios';
 
 
 import Theme from '@/constants/theme';
@@ -14,20 +15,22 @@ import { store_comic_cover } from '../module/content';
 import Storage from '@/constants/module/storage';
 import ComicStorage from '@/constants/module/comic_storage';
 import ImageCacheStorage from '@/constants/module/image_cache_storage';
-import { ensure_safe_table_name } from '@/constants/module/ensure_safe_table_name';
 import ChapterStorage from '@/constants/module/chapter_storage';
 
 
-export const DownloadWidget = () => {
+export const RequestChapterWidget = (SOURCE:string | string[],CHAPTER:any) => {
     const Dimensions = useWindowDimensions();
 
     const {themeTypeContext, setThemeTypeContext}:any = useContext(CONTEXT)
     const {widgetContext, setWidgetContext}:any = useContext(CONTEXT)
+    const {showCloudflareTurnstileContext, setShowCloudflareTurnstileContext}:any = useContext(CONTEXT)
 
 
 
-    const [_colorizer, _setColorizer] = useState(false)
-    const [_translate, _setTranslate] = useState({state:false,from:"zh",to:"en"})
+    const [colorizer, setColorizer] = useState(false)
+    const [translate, setTranslate] = useState({state:false,from:"zh",to:"en"})
+
+    
     return (<AnimatePresence>
         <View 
             style={{
@@ -89,9 +92,9 @@ export const DownloadWidget = () => {
                             value: false
                         },
                     ]}
-                    value={_colorizer}
+                    value={colorizer}
                     onChange={(item:any) => {
-                        _setColorizer(item.value)
+                        setColorizer(item.value)
                     }}
                 />
                 <Dropdown
@@ -105,9 +108,9 @@ export const DownloadWidget = () => {
                             value: 'zh' 
                         },
                     ]}
-                    value={_translate.from}
+                    value={translate.from}
                     onChange={async (item:any) => {
-                        _setTranslate({..._translate,from:item.value})
+                        setTranslate({...translate,from:item.value})
                         
                     }}
                 />
@@ -123,10 +126,10 @@ export const DownloadWidget = () => {
                             value: 'en' 
                         },
                     ]}
-                    value={_translate.to}
+                    value={translate.to}
                     onChange={async (item:any) => {
                         
-                        _setTranslate({..._translate,to:item.value})
+                        setTranslate({...translate,to:item.value})
                         
                     }}
                 />
@@ -161,24 +164,79 @@ export const DownloadWidget = () => {
                     fontSize:(Dimensions.width+Dimensions.height)/2*0.02
                 }} 
                 style={{backgroundColor:"green",borderRadius:5}} 
-                onPress={(()=>{
-                    Toast.show({
-                        type: 'info',
-                        text1: '🕓 Your request has been placed in the queue.',
-                        text2: 'Check back later to download your chapter.\nThe chapter will be removed from the cloud after 30 minutes or when the server out of storage.',
+                onPress={(async ()=>{
+                    const API_BASE = await Storage.get("IN_USE_API_BASE")
+                    const stored_socket_info = await Storage.get("SOCKET_INFO")
+                    axios({
+                        method: 'post',
+                        url: `${API_BASE}/api/request_chapter/`,
+                        headers: {
+                            'X-CLOUDFLARE-TURNSTILE-TOKEN': await Storage.get("cloudflare-turnstile-token")
+                        },
+                        data: {
+                            chapter_id:CHAPTER.id,
+                            source: SOURCE,
+                            socket_id: stored_socket_info.id,
+                            channel_name: stored_socket_info.channel_name,
+                            options: {
+                                colorizer: colorizer,
+                                translate: translate,
+                            }
+
+                        },
+                        timeout: 10000,
                         
-                        position: "bottom",
-                        visibilityTime: 12000,
-                        text1Style:{
-                            fontFamily:"roboto-bold",
-                            fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
-                        },
-                        text2Style:{
-                            fontFamily:"roboto-medium",
-                            fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
+                    }).then(() => {
+                        Toast.show({
+                            type: 'info',
+                            text1: '🕓 Your request has been placed in the queue.',
+                            text2: 'Check back later to download your chapter.\nThe chapter will be removed from the cloud in 24 hours or when the server out of storage after it ready.',
                             
-                        },
-                    });
+                            position: "bottom",
+                            visibilityTime: 12000,
+                            text1Style:{
+                                fontFamily:"roboto-bold",
+                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
+                            },
+                            text2Style:{
+                                fontFamily:"roboto-medium",
+                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
+                                
+                            },
+                        });
+                        setWidgetContext({state:false,component:undefined})
+                        
+                    }).catch((error) => {
+                        console.log(error)
+                        var error_text_1
+                        var error_text_2
+                        if (error.status === 511) {
+                            setShowCloudflareTurnstileContext(true)
+                            error_text_1 = "❗Your session token is expired."
+                            error_text_2 = "You can request again after we renewing new session automaticly"
+                        }else{
+                            error_text_1 = "❗❓Sometime went wrong while requesting."
+                            error_text_2 = "Try refresh to see if it solve the issue.\nIf the error still show, you can report this issue to the Github repo."
+                        }
+                        Toast.show({
+                            type: 'error',
+                            text1: error_text_1,
+                            text2: error_text_2,
+                            
+                            position: "bottom",
+                            visibilityTime: 6000,
+                            text1Style:{
+                                fontFamily:"roboto-bold",
+                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
+                            },
+                            text2Style:{
+                                fontFamily:"roboto-medium",
+                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
+                                
+                            },
+                        });
+                    })
+                    
                 })}
                 >Request</Button>
             </View>
@@ -208,7 +266,7 @@ export const BookmarkWidget = (onRefresh:any, SOURCE:string | string[] ,CONTENT:
     useEffect(()=>{
         (async ()=>{
             const stored_comic = await ComicStorage.getByID(`${SOURCE}-${CONTENT.id}`)
-            console.log(stored_comic)
+            console.log(`${SOURCE}-${CONTENT.id}`)
             if (stored_comic) {
                 setDefaultBookmark(stored_comic.tag)
                 setBookmark(stored_comic.tag)
@@ -561,7 +619,7 @@ export const BookmarkWidget = (onRefresh:any, SOURCE:string | string[] ,CONTENT:
                                         style={{backgroundColor:"red",borderRadius:5}} 
                                         onPress={(async ()=>{
                                             setRemoveBookmark({...removeBookmark,removing:false})
-                                            await ChapterStorage.drop(ensure_safe_table_name(`${SOURCE}-${CONTENT.id}`))
+                                            await ChapterStorage.drop(`${SOURCE}-${CONTENT.id}`)
                                             await ComicStorage.removeByID(`${SOURCE}-${CONTENT.id}`)
                                             
                                             onRefresh()

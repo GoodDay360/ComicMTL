@@ -5,6 +5,7 @@ if len(sys.argv) > 1 and not (sys.argv[1] in ['migrate', "makemigrations", "clea
     print("[Worker] Starting Thread...")
     from backend.invoke_worker import (
         session,
+        chapter_queue,
     )
     print("[Worker] Thread Started!")
 

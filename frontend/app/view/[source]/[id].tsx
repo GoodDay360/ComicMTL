@@ -20,11 +20,11 @@ import ChapterStorage from '@/constants/module/chapter_storage';
 import ComicStorage from '@/constants/module/comic_storage';
 import { CONTEXT } from '@/constants/module/context';
 import Dropdown from '@/components/dropdown';
-import { DownloadWidget, BookmarkWidget } from '../componenets/widgets';
-import { ensure_safe_table_name } from '@/constants/module/ensure_safe_table_name';
+import { RequestChapterWidget, BookmarkWidget } from '../componenets/widgets';
 
 
 import { get, store_comic_cover } from '../module/content'
+import { createSocket, setupSocketNetworkListener } from '../module/socket';
 
 
 
@@ -50,7 +50,8 @@ const Show = ({}:any) => {
     const [translate, setTranslate]:any = useState({});
 
     const [socket, setSocket]:any = useState(null)
-    const [socketRoomID,setSocketRoomID]:any = useState("")
+    const [socketInfo,setSocketInfo]:any = useState({})
+    
 
     const [CONTENT, SET_CONTENT]:any = useState({})
     const [isLoading, setIsLoading]:any = useState(true);
@@ -60,6 +61,7 @@ const Show = ({}:any) => {
     const [refreshing, setRefreshing]:any = useState(false);
     const [sort, setSort]:any = useState("descending")
     const [page, setPage]:any = useState(1)
+    const [bookmarked, setBookmarked]:any = useState(false)
     
     const controller = new AbortController();
     const signal = controller.signal;
@@ -78,33 +80,61 @@ const Show = ({}:any) => {
     })()},[])
 
     const Load_Socket = async () => {
-        const stored_room_id = await Storage.get("SOCKET_ROOM_ID") 
-        var room_id
-        if (stored_room_id) room_id = stored_room_id
+        const stored_socket_info = await Storage.get("SOCKET_INFO") 
+        var socket_id:string | number[]
+        if (stored_socket_info) socket_id = stored_socket_info.id
         else{
-            room_id = uuid.v4()
-            Storage.store("SOCKET_ROOM_ID", room_id) 
+            socket_id = uuid.v4()
+            Storage.store("SOCKET_INFO", {id:socket_id}) 
         }
-        setSocketRoomID(room_id)
+        setSocketInfo({...socketInfo,id:socket_id})
 
-        const _socket = new WebSocket(`${socketBaseContext}/ws/queue/download_chapter/${room_id}`);
+        const _socket = new WebSocket(`${socketBaseContext}/ws/queue/download_chapter/${socket_id}`);
         setSocket(_socket)
         _socket.onopen = (event:any) => {
-            
+            console.log(event)
+        }
+        _socket.onmessage = async (event:any) => {
+            const result = JSON.parse(event.data)
+            console.log(result)
+            if (result.type === "socket_info"){
+                await Storage.store("SOCKET_INFO", {id:socket_id,channel_name:result.channel_name})
+                setSocketInfo({...socketInfo,channel_name:result.channel_name})
+            }
         }
     }
 
     useFocusEffect(useCallback(() => {
-        if (!socket) Load_Socket()
-        return () => {
+        var unsubscribe: () => void;
+        const handleOpen = (event: any) => {
+            console.log("o",event)
+        }
+        const handleMessage = async (event: any) => {
+            const stored_socket_info = await Storage.get("SOCKET_INFO") 
+            const result = JSON.parse(event.data)
+            console.log("m",result)
+            if (result.type === "socket_info"){
+                await Storage.store("SOCKET_INFO", {id:stored_socket_info.id,channel_name:result.channel_name})
+                setSocketInfo({...socketInfo,channel_name:result.channel_name})
+            }
+        }
+        
             
-            if (socket) {
+        createSocket(socketBaseContext, setSocket, handleOpen, handleMessage);
+        unsubscribe = setupSocketNetworkListener(socketBaseContext, socket, setSocket, handleOpen, handleMessage);
+            
+        
+        return () => {
+            if (socket){
                 socket.close()
                 setSocket(null)
+                console.log("socket closed")
             }
+            unsubscribe();
+            
             
         }
-    },[socket]))
+    },[]))
 
     const Load_Offline = async () => {
         Toast.show({
@@ -126,17 +156,17 @@ const Show = ({}:any) => {
         });
 
         try{
-            const stored_comic = await ComicStorage.getByID(ID)
+            const stored_comic = await ComicStorage.getByID(`${SOURCE}-${ID}`)
             
             if (stored_comic) {
                 const DATA:any = {}
-                DATA["id"] = stored_comic.id
+                DATA["id"] = ID
                 
                 for (const [key, value] of Object.entries(stored_comic.info)) {
                     DATA[key] = value
                 }
-                DATA["chapters"] = await ChapterStorage.getAll(ensure_safe_table_name(stored_comic.id),{exclude_field:["data","item"]})
-                
+                DATA["chapters"] = await ChapterStorage.getAll(`${SOURCE}-${ID}`,{exclude_field:["data","item"]})
+                console.log(DATA)
                 SET_CONTENT(DATA)
                 setIsLoading(false)
                 setFeedBack("")
@@ -168,6 +198,31 @@ const Show = ({}:any) => {
         }
     }
 
+
+    const Request_Download = async (CHAPTER:any) => {
+        const stored_comic = await ComicStorage.getByID(`${SOURCE}-${ID}`)
+        if (stored_comic)  setWidgetContext({state:true,component:() => RequestChapterWidget(SOURCE,CHAPTER)})
+        else{
+            Toast.show({
+                type: 'error',
+                text1: '🔖 Bookmark required.',
+                text2: `Add this comic to your bookmark to request download.`,
+                
+                position: "bottom",
+                visibilityTime: 8000,
+                text1Style:{
+                    fontFamily:"roboto-bold",
+                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
+                },
+                text2Style:{
+                    fontFamily:"roboto-medium",
+                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
+                    
+                },
+            });
+        }
+    }
+
     useEffect(() => { 
         (async ()=>{
             setShowMenuContext(false)
@@ -181,6 +236,11 @@ const Show = ({}:any) => {
             }else __translate = __translate
 
             setTranslate(__translate)
+
+            const stored_comic = await ComicStorage.getByID(`${SOURCE}-${ID}`)
+            if (stored_comic) setBookmarked(true)
+            else setBookmarked(false)
+
             const net_info = await NetInfo.fetch()
             if (net_info.isConnected){
                 get(setShowCloudflareTurnstileContext, setIsLoading, signal, __translate, setFeedBack, SOURCE, ID, SET_CONTENT)
@@ -200,6 +260,11 @@ const Show = ({}:any) => {
         const net_info = await NetInfo.fetch()
         setIsLoading(true);
         SET_CONTENT([])
+
+        const stored_comic = await ComicStorage.getByID(`${SOURCE}-${ID}`)
+        if (stored_comic) setBookmarked(true)
+        else setBookmarked(false)
+
         if (net_info.isConnected){
             get(setShowCloudflareTurnstileContext, setIsLoading, signal, translate, setFeedBack, SOURCE, ID, SET_CONTENT)
         }else{
@@ -491,8 +556,11 @@ const Show = ({}:any) => {
                                 setWidgetContext({state:true,component:()=>{return BookmarkWidget(onRefresh,SOURCE,CONTENT)}})
                             }}
                         >   
-
-                             <Icon source={"bookmark-outline"} size={((Dimensions.width+Dimensions.height)/2)*0.05} color={Theme[themeTypeContext].icon_color}/>
+                            <>{bookmarked 
+                                ? <Icon source={"bookmark"} size={((Dimensions.width+Dimensions.height)/2)*0.05} color={Theme[themeTypeContext].icon_color}/>
+                                : <Icon source={"bookmark-outline"} size={((Dimensions.width+Dimensions.height)/2)*0.05} color={Theme[themeTypeContext].icon_color}/>
+                            }</>
+                            
 
                         </TouchableRipple>
                         <Button mode='contained'
@@ -628,10 +696,10 @@ const Show = ({}:any) => {
                                                 fontFamily:"roboto-light",
                                                 padding:5,
                                             }}
-                                            onPress={() => {
+                                            onPress={( () => {
                                                 
-                                                setWidgetContext({state:true,component:DownloadWidget})
-                                            }}
+                                                Request_Download(chapter)
+                                            })}
                                         >
                                             {chapter.title}
                                         </Button>
@@ -644,10 +712,7 @@ const Show = ({}:any) => {
                                             }}
                                             
                                             onPress={()=>{
-                                                
-                                                
-                                                // Download Chapter Widget
-                                                setWidgetContext({state:true,component:DownloadWidget})
+                                                Request_Download(chapter)
                                             }}
                                         >
                                             <Icon source={"cloud-download"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={Theme[themeTypeContext].icon_color}/>

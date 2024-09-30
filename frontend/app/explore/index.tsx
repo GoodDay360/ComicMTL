@@ -405,16 +405,19 @@ const Index = ({}:any) => {
                         </View>
                         : <>
                             {CONTENT.map((item:any,index:number)=>(
-                                <Link href={`/view/${source}/${item.id}`} key={index}>
-                                    <View style={styles.item_box} >
-                                        
-                                            <Image onError={(error:any)=>{console.log("load image error",error)}} source={{uri:`${apiBaseContext}${item.cover}`}} style={styles.item_cover}
+                                <TouchableRipple 
+                                    rippleColor={Theme[themeTypeContext].ripple_color_outlined}
+                                    onPress={()=>{router.navigate(`/view/${source}/${item.id}`)}} key={index}
+                                    style={styles.item_box}
+                                >
+                                    <>
+                                        <Image onError={(error:any)=>{console.log("load image error",error)}} source={{uri:`${apiBaseContext}${item.cover}`}} style={styles.item_cover}
                                                 contentFit="cover" transition={1000}
                                             />
                                         
                                         <Text style={styles.item_title}>{item.title}</Text>
-                                    </View>
-                                </Link>
+                                    </>
+                                </TouchableRipple>
                                 
                             ))}
                         </>

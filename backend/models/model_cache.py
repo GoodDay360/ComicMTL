@@ -2,22 +2,26 @@ from django.db import models
 from backend.module.utils import date_utils
 import uuid
 
+def get_current_utc_time(): return date_utils.utc_time().get()
+
 class RequestCache(models.Model):
     room = models.TextField()
     client = models.UUIDField(primary_key=True)
-    datetime = models.DateTimeField(default=date_utils.utc_time().get)
+    datetime = models.DateTimeField(default=get_current_utc_time)
 
 class CloudflareTurnStileCache(models.Model):
     token = models.TextField(primary_key=True)
-    datetime = models.DateTimeField(default=date_utils.utc_time().get)
+    datetime = models.DateTimeField(default=get_current_utc_time)
     
-class SocketDownloadChapterQueueCache(models.Model):
+class SocketRequestChapterQueueCache(models.Model):
     id = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
-    room = models.UUIDField()
-    channel = models.TextField()
+    socket_id = models.UUIDField()
+    channel_name = models.TextField()
     source = models.TextField()
     chapter_id = models.TextField()
-    datetime = models.DateTimeField(default=date_utils.utc_time().get)
+    
+    options = models.JSONField()
+    datetime = models.DateTimeField(default=get_current_utc_time)
 
     
     

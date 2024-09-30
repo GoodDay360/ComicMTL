@@ -7,8 +7,7 @@ class utc_time():
     # Get current time
     def __init__(self) -> None:
         self.current_time = datetime.now()
-    
-    
+        
     def get(self):
        return self.current_time.astimezone(pytz.UTC)
    

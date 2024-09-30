@@ -93,7 +93,7 @@ export const __styles:any = (theme_type:string,Dimensions:any) => {
             gap:15,
             height:"auto",
             width:Math.max(((Dimensions.width+Dimensions.height)/2)*0.25,100),
-            
+            borderRadius:8,
             
         },
         item_cover:{
