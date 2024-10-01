@@ -21,7 +21,7 @@ const connectWebSocket = (socketBaseContext: string, socket_id: string | number[
             }, 3000); // Wait 3 seconds before attempting to reconnect
         };
 
-        _socket.onclose = handleReconnect;
+        // _socket.onclose = handleReconnect;
         _socket.onerror = (error: any) => {
             console.error('WebSocket error:', error);
             _socket.close();
@@ -60,13 +60,16 @@ export const setupSocketNetworkListener = (
     onOpen: (event: any) => void,
     onMessage: (event: any) => void
 ) => {
+    var isActivated = false
     return NetInfo.addEventListener(state => {
-        var isActivated = false
         if (!isActivated) isActivated = true
         else{
             if (state.isConnected) {
-                console.log('Internet connected. Reconnecting WebSocket...');
-                if(!socket) createSocket(socketBaseContext, setSocket, onOpen, onMessage);
+                
+                if(!socket) {
+                    console.log('Internet connected. Reconnecting WebSocket...');
+                    createSocket(socketBaseContext, setSocket, onOpen, onMessage)
+                };
             }
         }
         

@@ -27,8 +27,10 @@ def request_chapter(request):
         
         payload = json.loads(request.body)
         print(payload)
-        chapter_id = payload.get("chapter_id")
         source = payload.get("source")
+        comic_id = payload.get("comic_id")
+        chapter_id = payload.get("chapter_id")
+        chapter_idx = payload.get("chapter_idx")
         socket_id = payload.get("socket_id")
         channel_name = payload.get("channel_name")
         options = payload.get("options") or {}
@@ -37,7 +39,9 @@ def request_chapter(request):
             socket_id=socket_id, 
             channel_name=channel_name, 
             source=source, 
+            comic_id=comic_id,
             chapter_id=chapter_id, 
+            chapter_idx=chapter_idx,
             options=options
         ).save()
 

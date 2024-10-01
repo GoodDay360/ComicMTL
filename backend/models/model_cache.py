@@ -18,7 +18,9 @@ class SocketRequestChapterQueueCache(models.Model):
     socket_id = models.UUIDField()
     channel_name = models.TextField()
     source = models.TextField()
+    comic_id = models.TextField()
     chapter_id = models.TextField()
+    chapter_idx = models.IntegerField()
     
     options = models.JSONField()
     datetime = models.DateTimeField(default=get_current_utc_time)

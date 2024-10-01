@@ -18,7 +18,7 @@ import ImageCacheStorage from '@/constants/module/image_cache_storage';
 import ChapterStorage from '@/constants/module/chapter_storage';
 
 
-export const RequestChapterWidget = (SOURCE:string | string[],CHAPTER:any) => {
+export const RequestChapterWidget = (SOURCE:string | string[], ID:string | string[], CHAPTER:any) => {
     const Dimensions = useWindowDimensions();
 
     const {themeTypeContext, setThemeTypeContext}:any = useContext(CONTEXT)
@@ -28,7 +28,7 @@ export const RequestChapterWidget = (SOURCE:string | string[],CHAPTER:any) => {
 
 
     const [colorizer, setColorizer] = useState(false)
-    const [translate, setTranslate] = useState({state:false,from:"zh",to:"en"})
+    const [translate, setTranslate] = useState({state:true,target:"ENG"})
 
     
     return (<AnimatePresence>
@@ -101,38 +101,46 @@ export const RequestChapterWidget = (SOURCE:string | string[],CHAPTER:any) => {
                     theme_type={themeTypeContext}
                     Dimensions={Dimensions}
 
-                    label='From Language' 
+                    label='Translation' 
                     data={[
                         { 
-                            label: "Chinese", 
-                            value: 'zh' 
+                            label: "Enable", 
+                            value: true
+                        },
+                        { 
+                            label: "Disable", 
+                            value: false 
                         },
                     ]}
-                    value={translate.from}
+                    value={translate.state}
                     onChange={async (item:any) => {
-                        setTranslate({...translate,from:item.value})
+                        setTranslate({...translate,state:item.value})
                         
                     }}
                 />
-                <Dropdown
-                    theme_type={themeTypeContext}
-                    Dimensions={Dimensions}
+                <>{translate.state &&
+                    <>
+                        <Dropdown
+                            theme_type={themeTypeContext}
+                            Dimensions={Dimensions}
 
-                    label='To Language' 
-                    data={[
-                        
-                        { 
-                            label: "English", 
-                            value: 'en' 
-                        },
-                    ]}
-                    value={translate.to}
-                    onChange={async (item:any) => {
-                        
-                        setTranslate({...translate,to:item.value})
-                        
-                    }}
-                />
+                            label='Target Language' 
+                            data={[
+                                { 
+                                    label: "English", 
+                                    value: 'ENG' 
+                                },
+                                
+                            ]}
+                            value={translate.target}
+                            onChange={async (item:any) => {
+                                setTranslate({...translate,target:item.value})
+                                
+                            }}
+                        />
+                    </>
+                    
+                }</>
             </View>
             
             <View 
@@ -174,8 +182,10 @@ export const RequestChapterWidget = (SOURCE:string | string[],CHAPTER:any) => {
                             'X-CLOUDFLARE-TURNSTILE-TOKEN': await Storage.get("cloudflare-turnstile-token")
                         },
                         data: {
-                            chapter_id:CHAPTER.id,
                             source: SOURCE,
+                            comic_id: ID,
+                            chapter_id:CHAPTER.id,
+                            chapter_idx:CHAPTER.idx,
                             socket_id: stored_socket_info.id,
                             channel_name: stored_socket_info.channel_name,
                             options: {

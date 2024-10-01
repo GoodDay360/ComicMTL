@@ -51,6 +51,7 @@ const Show = ({}:any) => {
 
     const [socket, setSocket]:any = useState(null)
     const [socketInfo,setSocketInfo]:any = useState({})
+    const [socketNetworkListener,setSocketNetworkListener]:any = useState(null)
     
 
     const [CONTENT, SET_CONTENT]:any = useState({})
@@ -79,33 +80,8 @@ const Show = ({}:any) => {
 
     })()},[])
 
-    const Load_Socket = async () => {
-        const stored_socket_info = await Storage.get("SOCKET_INFO") 
-        var socket_id:string | number[]
-        if (stored_socket_info) socket_id = stored_socket_info.id
-        else{
-            socket_id = uuid.v4()
-            Storage.store("SOCKET_INFO", {id:socket_id}) 
-        }
-        setSocketInfo({...socketInfo,id:socket_id})
-
-        const _socket = new WebSocket(`${socketBaseContext}/ws/queue/download_chapter/${socket_id}`);
-        setSocket(_socket)
-        _socket.onopen = (event:any) => {
-            console.log(event)
-        }
-        _socket.onmessage = async (event:any) => {
-            const result = JSON.parse(event.data)
-            console.log(result)
-            if (result.type === "socket_info"){
-                await Storage.store("SOCKET_INFO", {id:socket_id,channel_name:result.channel_name})
-                setSocketInfo({...socketInfo,channel_name:result.channel_name})
-            }
-        }
-    }
-
     useFocusEffect(useCallback(() => {
-        var unsubscribe: () => void;
+        var unsubscribe:any = null
         const handleOpen = (event: any) => {
             console.log("o",event)
         }
@@ -118,23 +94,24 @@ const Show = ({}:any) => {
                 setSocketInfo({...socketInfo,channel_name:result.channel_name})
             }
         }
-        
-            
-        createSocket(socketBaseContext, setSocket, handleOpen, handleMessage);
-        unsubscribe = setupSocketNetworkListener(socketBaseContext, socket, setSocket, handleOpen, handleMessage);
-            
-        
+        if (!socket){
+            createSocket(socketBaseContext, setSocket, handleOpen, handleMessage);
+        }else{
+           unsubscribe = setupSocketNetworkListener(socketBaseContext, socket, setSocket, handleOpen, handleMessage);
+        }
         return () => {
             if (socket){
                 socket.close()
                 setSocket(null)
-                console.log("socket closed")
+                console.log("SOCKET DISCONNECTED")
             }
-            unsubscribe();
-            
-            
+            if (unsubscribe) {
+                unsubscribe()
+                unsubscribe = null
+                console.log("SOCKET NETWORK LISTENER DISCONNECTED")
+            }
         }
-    },[]))
+    },[socket,socketNetworkListener]))
 
     const Load_Offline = async () => {
         Toast.show({
@@ -201,7 +178,7 @@ const Show = ({}:any) => {
 
     const Request_Download = async (CHAPTER:any) => {
         const stored_comic = await ComicStorage.getByID(`${SOURCE}-${ID}`)
-        if (stored_comic)  setWidgetContext({state:true,component:() => RequestChapterWidget(SOURCE,CHAPTER)})
+        if (stored_comic)  setWidgetContext({state:true,component:() => RequestChapterWidget(SOURCE,ID,CHAPTER)})
         else{
             Toast.show({
                 type: 'error',

@@ -48,13 +48,14 @@ def __scrollToBottom(driver:object=None):
         
 
 
-def scrap(id:str="",output_dir:str=""):
-    if not id: raise ValueError("The 'id' parameter is required.")
+def scrap(comic_id:str="",chapter_id:str="",output_dir:str=""):
+    if not comic_id: raise ValueError("The 'comic_id' parameter is required.")
+    if not chapter_id: raise ValueError("The 'chapter_id' parameter is required.")
     if not output_dir: raise ValueError("The 'output_dir' parameter is required.")
     global scraper, RequestContextManager, RequestQueueID
     
 
-    url = f"https://www.colamanga.com/{id}"
+    url = f"https://www.colamanga.com/{chapter_id}"
     
     if not scraper: scraper = SeleniumScraper()
     driver = scraper.driver()
@@ -99,9 +100,9 @@ def scrap(id:str="",output_dir:str=""):
                 response = driver.execute_cdp_cmd('Network.getResponseBody', {'requestId': request_id})
                 img = Image.open(io.BytesIO(base64.decodebytes(bytes(response.get("body"), "utf-8"))))
                 
-                chapter_id = id.split("/")[-1].split(".")[0]
+                chapter_id = chapter_id.split("/")[-1].split(".")[0]
                 
-                dir = os.path.join(output_dir,id.split("/")[0],chapter_id,"original")
+                dir = os.path.join(output_dir)
                 
                 os.makedirs(dir, exist_ok=True)
                 img.save(os.path.join(dir,f"{blob_list.index(url)}.png"))
@@ -110,7 +111,7 @@ def scrap(id:str="",output_dir:str=""):
     return {"status":"success"}
 
 if __name__ == "__main__":
-    DATA = scrap(id="manga-gu881388",chapter=334)
+    DATA = scrap(chapter_id="manga-gu881388",chapter=334)
 
     
     # with open("./temp.html","w", encoding='utf-8') as f:

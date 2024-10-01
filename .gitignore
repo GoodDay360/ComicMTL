@@ -8,6 +8,7 @@ frontend/.git
 
 temp/
 media/
+storage/
 backend/module/utils/image_translator/models/
 
 backend/module/utils/image_translator/result
