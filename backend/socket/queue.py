@@ -7,6 +7,7 @@ from backend.models.model_cache import SocketRequestChapterQueueCache
 from django.dispatch import receiver
 
 
+
 class RequestChapter(WebsocketConsumer):
     channel_session_user = True
     
@@ -37,7 +38,8 @@ class RequestChapter(WebsocketConsumer):
         message = event['data']
 
         self.send(text_data=json.dumps({
-            'data': message
+            'type': 'event_send',
+            'event': message
         }))
         
 

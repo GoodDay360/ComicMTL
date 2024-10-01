@@ -27,7 +27,7 @@ export const RequestChapterWidget = (SOURCE:string | string[], ID:string | strin
 
 
 
-    const [colorizer, setColorizer] = useState(false)
+    const [colorize, setColorize] = useState(false)
     const [translate, setTranslate] = useState({state:true,target:"ENG"})
 
     
@@ -81,7 +81,7 @@ export const RequestChapterWidget = (SOURCE:string | string[], ID:string | strin
                     theme_type={themeTypeContext}
                     Dimensions={Dimensions}
 
-                    label='Colorizer' 
+                    label='colorize' 
                     data={[
                         { 
                             label: "Enable", 
@@ -92,9 +92,9 @@ export const RequestChapterWidget = (SOURCE:string | string[], ID:string | strin
                             value: false
                         },
                     ]}
-                    value={colorizer}
+                    value={colorize}
                     onChange={(item:any) => {
-                        setColorizer(item.value)
+                        setColorize(item.value)
                     }}
                 />
                 <Dropdown
@@ -189,7 +189,7 @@ export const RequestChapterWidget = (SOURCE:string | string[], ID:string | strin
                             socket_id: stored_socket_info.id,
                             channel_name: stored_socket_info.channel_name,
                             options: {
-                                colorizer: colorizer,
+                                colorize: colorize,
                                 translate: translate,
                             }
 

@@ -4,6 +4,7 @@ import Image from '@/components/Image';
 import { StyleSheet, useWindowDimensions, ScrollView, Pressable, RefreshControl, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Icon, MD3Colors, Button, Text, TextInput, TouchableRipple } from 'react-native-paper';
+import CircularProgress from 'react-native-circular-progress-indicator';
 
 import uuid from 'react-native-uuid';
 import Toast from 'react-native-toast-message';
@@ -55,6 +56,7 @@ const Show = ({}:any) => {
     
 
     const [CONTENT, SET_CONTENT]:any = useState({})
+    const [chapterQueue, setChapterQueue]:any = useState({})
     const [isLoading, setIsLoading]:any = useState(true);
     const [feedBack, setFeedBack]:any = useState("");
     const [showOption, setShowOption]:any = useState({type:null})
@@ -88,10 +90,15 @@ const Show = ({}:any) => {
         const handleMessage = async (event: any) => {
             const stored_socket_info = await Storage.get("SOCKET_INFO") 
             const result = JSON.parse(event.data)
-            console.log("m",result)
+            
             if (result.type === "socket_info"){
                 await Storage.store("SOCKET_INFO", {id:stored_socket_info.id,channel_name:result.channel_name})
                 setSocketInfo({...socketInfo,channel_name:result.channel_name})
+            }else if (result.type === "event_send"){
+                const event = result.event
+                if (event.type === "chapter_queue_info"){
+                    setChapterQueue(event.chapter_queue)
+                }
             }
         }
         if (!socket){
@@ -112,6 +119,10 @@ const Show = ({}:any) => {
             }
         }
     },[socket,socketNetworkListener]))
+
+    useEffect(() => {
+        console.log(chapterQueue)
+    },[chapterQueue])
 
     const Load_Offline = async () => {
         Toast.show({
@@ -680,20 +691,45 @@ const Show = ({}:any) => {
                                         >
                                             {chapter.title}
                                         </Button>
-                                        <TouchableRipple
-                                            rippleColor={Theme[themeTypeContext].ripple_color_outlined}
-                                            style={{
-                                                borderRadius:5,
-                                                borderWidth:0,
-                                                padding:5,
-                                            }}
+                                        
+                                            <>{chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`) 
+                                                ? 
+                                                    <CircularProgress 
+                                                        value={100 - (((chapterQueue.queue[`${SOURCE}-${ID}-${chapter.idx}`])*100)/chapterQueue.max_queue)} 
+                                                        maxValue={100}
+                                                        radius={((Dimensions.width+Dimensions.height)/2)*0.03}
+                                                        inActiveStrokeColor={Theme[themeTypeContext].border_color}
+                                                        
+                                                       
+                                                        showProgressValue={false}
+                                                        title={chapterQueue.queue[`${SOURCE}-${ID}-${chapter.idx}`]}
+                                                        titleStyle={{
+                                                            pointerEvents:"none",
+                                                            color:Theme[themeTypeContext].text_color,
+                                                            fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
+                                                            fontFamily:"roboto-medium",
+                                                            textAlign:"center",
+                                                        }}
+                                                    />
+                                                
+                                                : <TouchableRipple
+                                                    rippleColor={Theme[themeTypeContext].ripple_color_outlined}
+                                                    style={{
+                                                        borderRadius:5,
+                                                        borderWidth:0,
+                                                        padding:5,
+                                                    }}
+                                                    
+                                                    onPress={()=>{
+                                                        Request_Download(chapter)
+                                                    }}
+                                                >
+                                                    <Icon source={"cloud-download"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={Theme[themeTypeContext].icon_color}/>
+
+                                                </TouchableRipple>
+                                            }</>
                                             
-                                            onPress={()=>{
-                                                Request_Download(chapter)
-                                            }}
-                                        >
-                                            <Icon source={"cloud-download"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={Theme[themeTypeContext].icon_color}/>
-                                        </TouchableRipple>
+                                        
                                     </View>
                                 ))}</>
                                 : <Text
