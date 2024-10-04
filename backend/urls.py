@@ -7,8 +7,9 @@ from backend.api import test, web_scrap, cloudflare_turnstile, queue
 
 urlpatterns = [
     path('test/', test.run_1),
-    path('request_chapter/', queue.request_chapter),
-    
+    path('queue/request_chapter/', queue.request_chapter),
+    path('queue/request_info/', queue.request_info),
+    # /api/queue/request_info/
     path("cloudflare_turnstile/verify/", cloudflare_turnstile.verify),
     
     path('web_scrap/get_list/', web_scrap.get_list),

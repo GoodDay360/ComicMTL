@@ -5,6 +5,7 @@ import { StyleSheet, useWindowDimensions, ScrollView, Pressable, RefreshControl,
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Icon, MD3Colors, Button, Text, TextInput, TouchableRipple } from 'react-native-paper';
 import CircularProgress from 'react-native-circular-progress-indicator';
+import { ActivityIndicator } from 'react-native-paper';
 
 import uuid from 'react-native-uuid';
 import Toast from 'react-native-toast-message';
@@ -24,7 +25,7 @@ import Dropdown from '@/components/dropdown';
 import { RequestChapterWidget, BookmarkWidget } from '../componenets/widgets';
 
 
-import { get, store_comic_cover } from '../module/content'
+import { get, store_comic_cover, get_requested_info } from '../module/content'
 import { createSocket, setupSocketNetworkListener } from '../module/socket';
 
 
@@ -56,6 +57,7 @@ const Show = ({}:any) => {
     
 
     const [CONTENT, SET_CONTENT]:any = useState({})
+    const [chapterRequested, setChapterRequested]:any = useState({})
     const [chapterQueue, setChapterQueue]:any = useState({})
     const [isLoading, setIsLoading]:any = useState(true);
     const [feedBack, setFeedBack]:any = useState("");
@@ -66,19 +68,12 @@ const Show = ({}:any) => {
     const [page, setPage]:any = useState(1)
     const [bookmarked, setBookmarked]:any = useState(false)
     
+    
     const controller = new AbortController();
     const signal = controller.signal;
 
     // Test Section
     useEffect(() => {(async ()=>{
-        // return
-        // console.log("asdsadsad",await ComicStorage.getByID("id-test"))
-        // await ComicStorage.store("id-test", "tag-test", {type:"AA"});
-        // console.log("AAAAA",await ChapterStorage.getAll(`${SOURCE}-${ID}`))
-        // console.log("AAAAA2",await ChapterStorage.get(`${SOURCE}-${ID}`, '/manga-od825111/1/30.html'))
-        // return
-        // console.log(`${SOURCE}-${ID}`)
-        // await ChapterStorage.add(`${SOURCE}-${ID}`, 251,'/manga-od825111/1/31.html', 'KEooo', "I AM BLOB");
 
     })()},[])
 
@@ -144,7 +139,7 @@ const Show = ({}:any) => {
         });
 
         try{
-            const stored_comic = await ComicStorage.getByID(`${SOURCE}-${ID}`)
+            const stored_comic = await ComicStorage.getByID(SOURCE, ID)
             
             if (stored_comic) {
                 const DATA:any = {}
@@ -188,8 +183,12 @@ const Show = ({}:any) => {
 
 
     const Request_Download = async (CHAPTER:any) => {
-        const stored_comic = await ComicStorage.getByID(`${SOURCE}-${ID}`)
-        if (stored_comic)  setWidgetContext({state:true,component:() => RequestChapterWidget(SOURCE,ID,CHAPTER)})
+        const stored_comic = await ComicStorage.getByID(SOURCE,ID)
+        if (stored_comic)  {
+            setWidgetContext({state:true,component:() => RequestChapterWidget(SOURCE,ID,CHAPTER,
+                ()=>{return get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, signal, SOURCE, ID, stored_comic.chapter_requested)}
+            )})
+        }
         else{
             Toast.show({
                 type: 'error',
@@ -225,8 +224,12 @@ const Show = ({}:any) => {
 
             setTranslate(__translate)
 
-            const stored_comic = await ComicStorage.getByID(`${SOURCE}-${ID}`)
-            if (stored_comic) setBookmarked(true)
+            const stored_comic = await ComicStorage.getByID(SOURCE,ID)
+            if (stored_comic) {
+                await get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, signal, SOURCE, ID, stored_comic.chapter_requested)
+                // setChapterRequested(stored_comic.chapter_requested)
+                setBookmarked(true)
+            }
             else setBookmarked(false)
 
             const net_info = await NetInfo.fetch()
@@ -249,7 +252,7 @@ const Show = ({}:any) => {
         setIsLoading(true);
         SET_CONTENT([])
 
-        const stored_comic = await ComicStorage.getByID(`${SOURCE}-${ID}`)
+        const stored_comic = await ComicStorage.getByID(SOURCE,ID)
         if (stored_comic) setBookmarked(true)
         else setBookmarked(false)
 
@@ -691,16 +694,72 @@ const Show = ({}:any) => {
                                         >
                                             {chapter.title}
                                         </Button>
-                                        
-                                            <>{chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`) 
-                                                ? 
-                                                    <CircularProgress 
+                                            <>{chapterRequested[chapter.id] === "queue" && !chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`) 
+                                                && <ActivityIndicator animating={true} color={Theme[themeTypeContext].icon_color} />
+                                            }</>
+                                            <>{chapterRequested[chapter.id] === "ready2" && !chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`) 
+                                                && <CircularProgress 
+                                                value={50} 
+                                                maxValue={100}
+                                                radius={((Dimensions.width+Dimensions.height)/2)*0.03}
+                                                inActiveStrokeColor={Theme[themeTypeContext].border_color}
+                                                
+                                                showProgressValue={false}
+                                                title={"📥"}
+                                                titleStyle={{
+                                                    pointerEvents:"none",
+                                                    color:Theme[themeTypeContext].text_color,
+                                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
+                                                    fontFamily:"roboto-medium",
+                                                    textAlign:"center",
+                                                }}
+                                            />
+                                            }</>
+
+                                            <>{chapterRequested[chapter.id] === "ready" && !chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`) 
+                                                && <TouchableRipple
+                                                    rippleColor={Theme[themeTypeContext].ripple_color_outlined}
+                                                    style={{
+                                                        borderRadius:5,
+                                                        borderWidth:0,
+                                                        padding:5,
+                                                    }}
+                                                    
+                                                    onPress={()=>{
+                                                        Toast.show({
+                                                            type: 'error',
+                                                            text1: '❓Request not found in server.',
+                                                            text2: "You request this chapter but the server doesn't have this in queue.\nTry request again.",
+                                                            
+                                                            position: "bottom",
+                                                            visibilityTime: 12000,
+                                                            text1Style:{
+                                                                fontFamily:"roboto-bold",
+                                                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
+                                                            },
+                                                            text2Style:{
+                                                                fontFamily:"roboto-medium",
+                                                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
+                                                                
+                                                            },
+                                                        });
+                                                        Request_Download(chapter)
+                                                    }}
+                                                >
+                                                    <Icon source={"alert-circle"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={"red"}/>
+
+                                                </TouchableRipple>
+                                            }</>
+                                            
+                                            <>{chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`)
+                                                && <>{chapterQueue.queue[`${SOURCE}-${ID}-${chapter.idx}`]
+                                                    ? <CircularProgress 
                                                         value={100 - (((chapterQueue.queue[`${SOURCE}-${ID}-${chapter.idx}`])*100)/chapterQueue.max_queue)} 
                                                         maxValue={100}
                                                         radius={((Dimensions.width+Dimensions.height)/2)*0.03}
                                                         inActiveStrokeColor={Theme[themeTypeContext].border_color}
                                                         
-                                                       
+                                                    
                                                         showProgressValue={false}
                                                         title={chapterQueue.queue[`${SOURCE}-${ID}-${chapter.idx}`]}
                                                         titleStyle={{
@@ -711,8 +770,11 @@ const Show = ({}:any) => {
                                                             textAlign:"center",
                                                         }}
                                                     />
-                                                
-                                                : <TouchableRipple
+                                                    : <ActivityIndicator animating={true} color={"green"} />
+                                                }</>
+                                            }</>
+                                            <>{!chapterRequested[chapter.id] && !chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`)
+                                                ? <TouchableRipple
                                                     rippleColor={Theme[themeTypeContext].ripple_color_outlined}
                                                     style={{
                                                         borderRadius:5,
@@ -727,9 +789,8 @@ const Show = ({}:any) => {
                                                     <Icon source={"cloud-download"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={Theme[themeTypeContext].icon_color}/>
 
                                                 </TouchableRipple>
+                                                :<></>
                                             }</>
-                                            
-                                        
                                     </View>
                                 ))}</>
                                 : <Text

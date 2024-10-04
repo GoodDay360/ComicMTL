@@ -84,12 +84,13 @@ interface DropdownProps {
     onChange?: any;
 }
 
-const Dropdown = ({theme_type,Dimensions,data,maxHeight=300,label,value,onChange}:DropdownProps) => {
+const Dropdown = ({disable=false,theme_type,Dimensions,data,maxHeight=300,label,value,onChange}:any) => {
     const style = __style(Dimensions,theme_type)
 
     return <View style={style.container}>
         <Text style={style.label}>{label}</Text>
         <__Dropdown
+            disable={disable}
             style={style.dropdown}
             placeholderStyle={style.placeholderStyle}
             selectedTextStyle={style.selectedTextStyle}

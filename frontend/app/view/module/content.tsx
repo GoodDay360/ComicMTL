@@ -48,10 +48,10 @@ export const get = async (setShowCloudflareTurnstile:any,setIsLoading:any,signal
         // console.log(DATA)
 
         // Store in local if bookmarked.
-        const stored_comic = await ComicStorage.getByID(`${source}-${DATA.id}`)
+        const stored_comic = await ComicStorage.getByID(source,DATA.id)
         if (stored_comic) {
             const cover_result:any = await store_comic_cover(setShowCloudflareTurnstile,signal,DATA)
-            await ComicStorage.updateInfo(`${source}-${DATA.id}`, {
+            await ComicStorage.updateInfo(source,DATA.id, {
                 cover:cover_result,
                 title:DATA.title,
                 author:DATA.author,
@@ -72,6 +72,41 @@ export const get = async (setShowCloudflareTurnstile:any,setIsLoading:any,signal
         if (error.status === 511) setShowCloudflareTurnstile(true)
         setFeedBack("Error unable to fetch data! Try request again.")
         setIsLoading(false)
+    })
+}
+
+export const get_requested_info = async (
+    setShowCloudflareTurnstile:any,
+    setChapterRequested:any,
+    signal:any,
+    source:any,
+    comic_id:any,
+    chapter_requested:any
+) => {
+    const API_BASE = await Storage.get("IN_USE_API_BASE")
+    const socket_info = await Storage.get("SOCKET_INFO")
+    await axios({
+        method: 'post',
+        url: `${API_BASE}/api/queue/request_info/`,
+        headers: {
+            'X-CLOUDFLARE-TURNSTILE-TOKEN': await Storage.get("cloudflare-turnstile-token")
+        },
+        data: {
+            socket_id: socket_info.id,
+            source:source,
+            comic_id:comic_id,
+            chapter_requested:chapter_requested,
+        },
+        timeout: 30000,
+        signal:signal,
+    }).then((response) => {
+        const DATA = response.data
+        console.log(DATA)
+        setChapterRequested(DATA)
+    }).catch((error) => {
+        console.log(error)
+        
+        if (error.status === 511) setShowCloudflareTurnstile(true)
     })
 }
 

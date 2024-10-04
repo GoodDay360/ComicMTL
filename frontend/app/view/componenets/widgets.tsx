@@ -18,7 +18,7 @@ import ImageCacheStorage from '@/constants/module/image_cache_storage';
 import ChapterStorage from '@/constants/module/chapter_storage';
 
 
-export const RequestChapterWidget = (SOURCE:string | string[], ID:string | string[], CHAPTER:any) => {
+export const RequestChapterWidget = (SOURCE:string | string[], ID:string | string[], CHAPTER:any, get_requested_info:any) => {
     const Dimensions = useWindowDimensions();
 
     const {themeTypeContext, setThemeTypeContext}:any = useContext(CONTEXT)
@@ -29,6 +29,7 @@ export const RequestChapterWidget = (SOURCE:string | string[], ID:string | strin
 
     const [colorize, setColorize] = useState(false)
     const [translate, setTranslate] = useState({state:true,target:"ENG"})
+    const [isRequesting, setIsRequesting] = useState(false)
 
     
     return (<AnimatePresence>
@@ -77,7 +78,7 @@ export const RequestChapterWidget = (SOURCE:string | string[], ID:string | strin
                     gap:12,
                 }}
             >
-                <Dropdown
+                <Dropdown disable={isRequesting}
                     theme_type={themeTypeContext}
                     Dimensions={Dimensions}
 
@@ -97,7 +98,7 @@ export const RequestChapterWidget = (SOURCE:string | string[], ID:string | strin
                         setColorize(item.value)
                     }}
                 />
-                <Dropdown
+                <Dropdown disable={isRequesting}
                     theme_type={themeTypeContext}
                     Dimensions={Dimensions}
 
@@ -120,7 +121,7 @@ export const RequestChapterWidget = (SOURCE:string | string[], ID:string | strin
                 />
                 <>{translate.state &&
                     <>
-                        <Dropdown
+                        <Dropdown disable={isRequesting}
                             theme_type={themeTypeContext}
                             Dimensions={Dimensions}
 
@@ -152,103 +153,123 @@ export const RequestChapterWidget = (SOURCE:string | string[], ID:string | strin
                     alignItems:"center",
                 }}
             >
-                <Button mode='contained' 
-                    labelStyle={{
-                        color:Theme[themeTypeContext].text_color,
-                        fontFamily:"roboto-medium",
-                        fontSize:(Dimensions.width+Dimensions.height)/2*0.02
-                    }} 
-                    style={{backgroundColor:"red",borderRadius:5}} 
-                    onPress={(()=>{
-                        
-                        setWidgetContext({state:false,component:undefined})
-                        
-                    })}
-                >Cancel</Button>
-                <Button mode='contained' 
-                labelStyle={{
-                    color:Theme[themeTypeContext].text_color,
-                    fontFamily:"roboto-medium",
-                    fontSize:(Dimensions.width+Dimensions.height)/2*0.02
-                }} 
-                style={{backgroundColor:"green",borderRadius:5}} 
-                onPress={(async ()=>{
-                    const API_BASE = await Storage.get("IN_USE_API_BASE")
-                    const stored_socket_info = await Storage.get("SOCKET_INFO")
-                    axios({
-                        method: 'post',
-                        url: `${API_BASE}/api/request_chapter/`,
-                        headers: {
-                            'X-CLOUDFLARE-TURNSTILE-TOKEN': await Storage.get("cloudflare-turnstile-token")
-                        },
-                        data: {
-                            source: SOURCE,
-                            comic_id: ID,
-                            chapter_id:CHAPTER.id,
-                            chapter_idx:CHAPTER.idx,
-                            socket_id: stored_socket_info.id,
-                            channel_name: stored_socket_info.channel_name,
-                            options: {
-                                colorize: colorize,
-                                translate: translate,
-                            }
-
-                        },
-                        timeout: 10000,
-                        
-                    }).then(() => {
-                        Toast.show({
-                            type: 'info',
-                            text1: '🕓 Your request has been placed in the queue.',
-                            text2: 'Check back later to download your chapter.\nThe chapter will be removed from the cloud in 24 hours or when the server out of storage after it ready.',
-                            
-                            position: "bottom",
-                            visibilityTime: 12000,
-                            text1Style:{
-                                fontFamily:"roboto-bold",
-                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
-                            },
-                            text2Style:{
-                                fontFamily:"roboto-medium",
-                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
-                                
-                            },
-                        });
-                        setWidgetContext({state:false,component:undefined})
-                        
-                    }).catch((error) => {
-                        console.log(error)
-                        var error_text_1
-                        var error_text_2
-                        if (error.status === 511) {
-                            setShowCloudflareTurnstileContext(true)
-                            error_text_1 = "❗Your session token is expired."
-                            error_text_2 = "You can request again after we renewing new session automaticly"
-                        }else{
-                            error_text_1 = "❗❓Sometime went wrong while requesting."
-                            error_text_2 = "Try refresh to see if it solve the issue.\nIf the error still show, you can report this issue to the Github repo."
-                        }
-                        Toast.show({
-                            type: 'error',
-                            text1: error_text_1,
-                            text2: error_text_2,
-                            
-                            position: "bottom",
-                            visibilityTime: 6000,
-                            text1Style:{
-                                fontFamily:"roboto-bold",
-                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
-                            },
-                            text2Style:{
-                                fontFamily:"roboto-medium",
-                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
-                                
-                            },
-                        });
-                    })
+                {isRequesting 
+                    ? <ActivityIndicator animating={true}/>
                     
-                })}
-                >Request</Button>
+                    : <>
+                        <Button mode='contained' 
+                            labelStyle={{
+                                color:Theme[themeTypeContext].text_color,
+                                fontFamily:"roboto-medium",
+                                fontSize:(Dimensions.width+Dimensions.height)/2*0.02
+                            }} 
+                            style={{backgroundColor:"red",borderRadius:5}} 
+                            onPress={(()=>{
+                                
+                                setWidgetContext({state:false,component:undefined})
+                                
+                            })}
+                        >Cancel</Button>
+                        <Button mode='contained' 
+                        labelStyle={{
+                            color:Theme[themeTypeContext].text_color,
+                            fontFamily:"roboto-medium",
+                            fontSize:(Dimensions.width+Dimensions.height)/2*0.02
+                        }} 
+                        style={{backgroundColor:"green",borderRadius:5}} 
+                        onPress={(async ()=>{
+                            setIsRequesting(true)
+                            const API_BASE = await Storage.get("IN_USE_API_BASE")
+                            const stored_socket_info = await Storage.get("SOCKET_INFO")
+                            axios({
+                                method: 'post',
+                                url: `${API_BASE}/api/queue/request_chapter/`,
+                                headers: {
+                                    'X-CLOUDFLARE-TURNSTILE-TOKEN': await Storage.get("cloudflare-turnstile-token")
+                                },
+                                data: {
+                                    source: SOURCE,
+                                    comic_id: ID,
+                                    chapter_id:CHAPTER.id,
+                                    chapter_idx:CHAPTER.idx,
+                                    socket_id: stored_socket_info.id,
+                                    channel_name: stored_socket_info.channel_name,
+                                    options: {
+                                        colorize: colorize,
+                                        translate: translate,
+                                    }
+
+                                },
+                                timeout: 10000,
+                                
+                            }).then(async () => {
+                                const stored_comic = await ComicStorage.getByID(SOURCE, ID);
+                                const chapterQueue = stored_comic.chapter_requested.filter((ch:any) => ch.chapter_id !== CHAPTER.id);
+
+                                chapterQueue.push({
+                                    chapter_id: CHAPTER.id,
+                                    chapter_idx: CHAPTER.idx,
+                                    options: { colorize, translate }
+                                });
+
+                                await ComicStorage.updateChapterQueue(SOURCE, ID, chapterQueue);
+
+                                await get_requested_info()
+                                Toast.show({
+                                    type: 'info',
+                                    text1: '🕓 Your request has been placed in the queue.',
+                                    text2: 'Check back later to download your chapter.\nThe chapter will be removed from the cloud in 24 hours or when the server out of storage after it ready.',
+                                    
+                                    position: "bottom",
+                                    visibilityTime: 12000,
+                                    text1Style:{
+                                        fontFamily:"roboto-bold",
+                                        fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
+                                    },
+                                    text2Style:{
+                                        fontFamily:"roboto-medium",
+                                        fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
+                                        
+                                    },
+                                });
+                                setWidgetContext({state:false,component:undefined})
+                                setIsRequesting(false)
+                            }).catch((error) => {
+                                console.log(error)
+                                var error_text_1
+                                var error_text_2
+                                if (error.status === 511) {
+                                    setShowCloudflareTurnstileContext(true)
+                                    error_text_1 = "❗Your session token is expired."
+                                    error_text_2 = "You can request again after we renewing new session automaticly"
+                                }else{
+                                    error_text_1 = "❗❓Sometime went wrong while requesting."
+                                    error_text_2 = "Try refresh to see if it solve the issue.\nIf the error still show, you can report this issue to the Github repo."
+                                }
+                                Toast.show({
+                                    type: 'error',
+                                    text1: error_text_1,
+                                    text2: error_text_2,
+                                    
+                                    position: "bottom",
+                                    visibilityTime: 6000,
+                                    text1Style:{
+                                        fontFamily:"roboto-bold",
+                                        fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
+                                    },
+                                    text2Style:{
+                                        fontFamily:"roboto-medium",
+                                        fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
+                                        
+                                    },
+                                });
+                                setIsRequesting(false)
+                            })
+                            
+                        })}
+                        >Request</Button>
+                    </>
+                }
             </View>
         </View>
     </AnimatePresence>) 
@@ -275,7 +296,7 @@ export const BookmarkWidget = (onRefresh:any, SOURCE:string | string[] ,CONTENT:
 
     useEffect(()=>{
         (async ()=>{
-            const stored_comic = await ComicStorage.getByID(`${SOURCE}-${CONTENT.id}`)
+            const stored_comic = await ComicStorage.getByID(SOURCE,CONTENT.id)
             console.log(`${SOURCE}-${CONTENT.id}`)
             if (stored_comic) {
                 setDefaultBookmark(stored_comic.tag)
@@ -374,7 +395,7 @@ export const BookmarkWidget = (onRefresh:any, SOURCE:string | string[] ,CONTENT:
                                         backgroundColor: "transparent",
                                     }}
                                     onPress={(async ()=>{
-                                        const stored_comic = await ComicStorage.getByID(`${SOURCE}-${CONTENT.id}`)
+                                        const stored_comic = await ComicStorage.getByID(SOURCE,CONTENT.id)
                                         if (stored_comic) setRemoveBookmark({...removeBookmark,state:true})
                                         else setBookmark("")
                                     })}
@@ -419,12 +440,12 @@ export const BookmarkWidget = (onRefresh:any, SOURCE:string | string[] ,CONTENT:
                                 }} 
                                 onPress={(async ()=>{
                                     if (defaultBookmark !== bookmark){
-                                        const stored_comic = await ComicStorage.getByID(`${SOURCE}-${CONTENT.id}`)
-                                        if (stored_comic) await ComicStorage.replaceTag(`${SOURCE}-${CONTENT.id}`, bookmark)
+                                        const stored_comic = await ComicStorage.getByID(SOURCE,CONTENT.id)
+                                        if (stored_comic) await ComicStorage.replaceTag(SOURCE, CONTENT.id, bookmark)
                                         else {
                                             const cover_result:any = await store_comic_cover(setShowCloudflareTurnstileContext,signal,CONTENT)
                                             
-                                            await ComicStorage.store(`${SOURCE}-${CONTENT.id}`, bookmark, {
+                                            await ComicStorage.store(SOURCE,CONTENT.id, bookmark, {
                                                 cover:cover_result,
                                                 title:CONTENT.title,
                                                 author:CONTENT.author,
@@ -630,7 +651,7 @@ export const BookmarkWidget = (onRefresh:any, SOURCE:string | string[] ,CONTENT:
                                         onPress={(async ()=>{
                                             setRemoveBookmark({...removeBookmark,removing:false})
                                             await ChapterStorage.drop(`${SOURCE}-${CONTENT.id}`)
-                                            await ComicStorage.removeByID(`${SOURCE}-${CONTENT.id}`)
+                                            await ComicStorage.removeByID(SOURCE,CONTENT.id)
                                             
                                             onRefresh()
                                             setWidgetContext({state:false,component:null})

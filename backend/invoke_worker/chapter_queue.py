@@ -151,7 +151,7 @@ class Job(Thread):
 
 thread = Job()
 thread.daemon = True
-thread.start()
+# thread.start()
 
 class UpdateSocketQueue(Thread):
     def run(self):
@@ -167,13 +167,13 @@ class UpdateSocketQueue(Thread):
                         query_result_2 = SocketRequestChapterQueueCache.objects.filter(socket_id=socket_id).order_by("datetime").values("source","comic_id","chapter_idx")
                         
                         for item in query_result_2:
-                            queue += 1
-                            
                             source = item.get("source")
                             comic_id = item.get("comic_id")
                             chapter_idx = item.get("chapter_idx")
                             
                             object[f"{source}-{comic_id}-{chapter_idx}"] = queue
+                            
+                            queue += 1
                         
                         query_result_3 = SocketRequestChapterQueueCache.objects.filter(socket_id=socket_id).first()
                         if (query_result_3):
