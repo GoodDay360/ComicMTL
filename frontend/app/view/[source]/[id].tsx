@@ -23,16 +23,17 @@ import ComicStorage from '@/constants/module/comic_storage';
 import { CONTEXT } from '@/constants/module/context';
 import Dropdown from '@/components/dropdown';
 import { RequestChapterWidget, BookmarkWidget } from '../componenets/widgets';
+import ChapterComponent from '../componenets/chapter';
 
 
-import { get, store_comic_cover, get_requested_info } from '../module/content'
+import { get, store_comic_cover, get_requested_info, download_chapter } from '../module/content'
 import { createSocket, setupSocketNetworkListener } from '../module/socket';
 
 
 
 
 
-const Show = ({}:any) => {
+const Index = ({}:any) => {
     const SOURCE = useLocalSearchParams().source;
     const ID = useLocalSearchParams().id;
 
@@ -47,6 +48,7 @@ const Show = ({}:any) => {
 
     const Dimensions = useWindowDimensions();
     const MAX_OFFSET = 50
+    
 
     const [styles, setStyles]:any = useState("")
     const [translate, setTranslate]:any = useState({});
@@ -58,6 +60,7 @@ const Show = ({}:any) => {
 
     const [CONTENT, SET_CONTENT]:any = useState({})
     const [chapterRequested, setChapterRequested]:any = useState({})
+    const [chapterToDownload, setChapterToDownload]:any = useState({})
     const [chapterQueue, setChapterQueue]:any = useState({})
     const [isLoading, setIsLoading]:any = useState(true);
     const [feedBack, setFeedBack]:any = useState("");
@@ -73,9 +76,28 @@ const Show = ({}:any) => {
     const signal = controller.signal;
 
     // Test Section
-    useEffect(() => {(async ()=>{
+    useEffect(() => {
+        // console.log("------")
+        // console.log(chapterRequested)
+        // console.log(chapterRequested["manga-kp086237/1/1296.html"]?.state)
+        // console.log("------")
+    },[chapterRequested])
 
-    })()},[])
+
+    // Worker for downloading chapter
+    const download_chapter_interval:any = useRef(null)
+    const isDownloading:any = useRef(false)
+    useEffect(() => {
+        clearInterval(download_chapter_interval.current)
+        download_chapter_interval.current = setInterval(() => {
+            if (!isDownloading.current){
+                isDownloading.current = true
+                download_chapter(setShowCloudflareTurnstileContext, isDownloading, SOURCE, ID, chapterToDownload, setChapterToDownload, signal)
+            }
+        },5000)
+
+        return () => clearInterval(download_chapter_interval.current)
+    },[chapterToDownload])
 
     useFocusEffect(useCallback(() => {
         var unsubscribe:any = null
@@ -83,6 +105,7 @@ const Show = ({}:any) => {
             console.log("o",event)
         }
         const handleMessage = async (event: any) => {
+            
             const stored_socket_info = await Storage.get("SOCKET_INFO") 
             const result = JSON.parse(event.data)
             
@@ -90,6 +113,8 @@ const Show = ({}:any) => {
                 await Storage.store("SOCKET_INFO", {id:stored_socket_info.id,channel_name:result.channel_name})
                 setSocketInfo({...socketInfo,channel_name:result.channel_name})
             }else if (result.type === "event_send"){
+                const stored_comic = await ComicStorage.getByID(SOURCE, ID)
+                if (!stored_comic) return
                 const event = result.event
                 if (event.type === "chapter_queue_info"){
                     setChapterQueue(event.chapter_queue)
@@ -112,8 +137,16 @@ const Show = ({}:any) => {
                 unsubscribe = null
                 console.log("SOCKET NETWORK LISTENER DISCONNECTED")
             }
+            
         }
     },[socket,socketNetworkListener]))
+
+    useFocusEffect(useCallback(() => {
+        return () => {
+            controller.abort();
+            console.log("ALL REQUEST ABORTED")
+        }
+    },[]))
 
     useEffect(() => {
         console.log(chapterQueue)
@@ -181,35 +214,6 @@ const Show = ({}:any) => {
         }
     }
 
-
-    const Request_Download = async (CHAPTER:any) => {
-        const stored_comic = await ComicStorage.getByID(SOURCE,ID)
-        if (stored_comic)  {
-            setWidgetContext({state:true,component:() => RequestChapterWidget(SOURCE,ID,CHAPTER,
-                ()=>{return get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, signal, SOURCE, ID, stored_comic.chapter_requested)}
-            )})
-        }
-        else{
-            Toast.show({
-                type: 'error',
-                text1: '🔖 Bookmark required.',
-                text2: `Add this comic to your bookmark to request download.`,
-                
-                position: "bottom",
-                visibilityTime: 8000,
-                text1Style:{
-                    fontFamily:"roboto-bold",
-                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
-                },
-                text2Style:{
-                    fontFamily:"roboto-medium",
-                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
-                    
-                },
-            });
-        }
-    }
-
     useEffect(() => { 
         (async ()=>{
             setShowMenuContext(false)
@@ -226,7 +230,7 @@ const Show = ({}:any) => {
 
             const stored_comic = await ComicStorage.getByID(SOURCE,ID)
             if (stored_comic) {
-                await get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, signal, SOURCE, ID, stored_comic.chapter_requested)
+                await get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, setChapterToDownload, signal, SOURCE, ID)
                 // setChapterRequested(stored_comic.chapter_requested)
                 setBookmarked(true)
             }
@@ -241,9 +245,6 @@ const Show = ({}:any) => {
             
         })()
 
-        return () => {
-            controller.abort();
-        };
     },[])
 
     const onRefresh = async () => {
@@ -366,110 +367,112 @@ const Show = ({}:any) => {
 
                 </View>
             </View>
-            {showOption.type === "translate" &&
-                <View style={styles.option_container}
-                    from={{
-                        opacity: 0,
-                        scale: 0.9,
-                    }}
-                    animate={{
-                        opacity: 1,
-                        scale: 1,
-                    }}
-                    exit={{
-                        opacity: 0,
-                        scale: 0.5,
-                    }}
-                    transition={{
-                        type: 'timing',
-                        duration: 500,
-                    }}
-                    exitTransition={{
-                        type: 'timing',
-                        duration: 250,
-                    }}
-                >
-                    <View style={{
-                        display:"flex",
-                        flexDirection:"row",
-                        width:"100%",
-                        justifyContent:"space-around",
-                        gap:25,
-                        
-                    }}>
-                        <View style={{flexGrow:1,}}>
-                            <Dropdown
-                                theme_type={themeTypeContext}
-                                Dimensions={Dimensions}
-
-                                label='From Language' 
-                                data={[
-                                    { 
-                                        label: "Auto", 
-                                        value: 'auto' 
-                                    },
-                                    { 
-                                        label: "Chinese", 
-                                        value: 'zh' 
-                                    },
-                                ]}
-                                value={translate.from}
-                                onChange={async (item:any) => {
-                                    setTranslate({...translate,from:item.value})
-                                    await Storage.store("explore_show_translate",{...translate,from:item.value})
-                                }}
-                            />
-                        </View>
-                        <View style={{flexGrow:1,}}>
-                            <Dropdown
-                                theme_type={themeTypeContext}
-                                Dimensions={Dimensions}
-                                label='To Language' 
-                                data={[
-                                    { 
-                                        label: "English", 
-                                        value: 'en' 
-                                    },
-                                ]}
-                                value={translate.to}
-                                onChange={async (item:any) => {
-                                    setTranslate({...translate,to:item.value})
-                                    await Storage.store("explore_show_translate",{...translate,to:item.value})
-                                }}
-                            />
-                        </View>
-                    </View>
-                    <View style={{
-                        width:"100%",
-                        display:"flex",
-                        alignItems:"center",
-                        justifyContent:"center",
-                        flexDirection:"row",
-                    }}>
-                        
-                        <Button mode={"contained"} style={{
-                            width:"auto",
-                            borderRadius:8,
-                            backgroundColor: translate.state ? "red": "green",
+            <AnimatePresence>
+                {showOption.type === "translate" &&
+                    <View style={styles.option_container} key={"translate"}
+                        from={{
+                            opacity: 0,
+                            scale: 0.9,
                         }}
-                            onPress={async () => {
-                                if (translate.state){
-                                    setTranslate({...translate,state:false})
-                                    await Storage.store("explore_show_translate",{...translate,state:false})
-                                }else{
-                                    setTranslate({...translate,state:true})
-                                    await Storage.store("explore_show_translate",{...translate,state:true})
-                                }
-                                
-                            }}
-                        >
-                            {translate.state ? "Disable Translation" : "Enable Translation"}
-                        </Button>
+                        animate={{
+                            opacity: 1,
+                            scale: 1,
+                        }}
+                        exit={{
+                            opacity: 0,
+                            scale: 0.5,
+                        }}
+                        transition={{
+                            type: 'timing',
+                            duration: 500,
+                        }}
+                        exitTransition={{
+                            type: 'timing',
+                            duration: 250,
+                        }}
+                    >
+                        <View style={{
+                            display:"flex",
+                            flexDirection:"row",
+                            width:"100%",
+                            justifyContent:"space-around",
+                            gap:25,
+                            
+                        }}>
+                            <View style={{flexGrow:1,}}>
+                                <Dropdown
+                                    theme_type={themeTypeContext}
+                                    Dimensions={Dimensions}
 
-                        
+                                    label='From Language' 
+                                    data={[
+                                        { 
+                                            label: "Auto", 
+                                            value: 'auto' 
+                                        },
+                                        { 
+                                            label: "Chinese", 
+                                            value: 'zh' 
+                                        },
+                                    ]}
+                                    value={translate.from}
+                                    onChange={async (item:any) => {
+                                        setTranslate({...translate,from:item.value})
+                                        await Storage.store("explore_show_translate",{...translate,from:item.value})
+                                    }}
+                                />
+                            </View>
+                            <View style={{flexGrow:1,}}>
+                                <Dropdown
+                                    theme_type={themeTypeContext}
+                                    Dimensions={Dimensions}
+                                    label='To Language' 
+                                    data={[
+                                        { 
+                                            label: "English", 
+                                            value: 'en' 
+                                        },
+                                    ]}
+                                    value={translate.to}
+                                    onChange={async (item:any) => {
+                                        setTranslate({...translate,to:item.value})
+                                        await Storage.store("explore_show_translate",{...translate,to:item.value})
+                                    }}
+                                />
+                            </View>
+                        </View>
+                        <View style={{
+                            width:"100%",
+                            display:"flex",
+                            alignItems:"center",
+                            justifyContent:"center",
+                            flexDirection:"row",
+                        }}>
+                            
+                            <Button mode={"contained"} style={{
+                                width:"auto",
+                                borderRadius:8,
+                                backgroundColor: translate.state ? "red": "green",
+                            }}
+                                onPress={async () => {
+                                    if (translate.state){
+                                        setTranslate({...translate,state:false})
+                                        await Storage.store("explore_show_translate",{...translate,state:false})
+                                    }else{
+                                        setTranslate({...translate,state:true})
+                                        await Storage.store("explore_show_translate",{...translate,state:true})
+                                    }
+                                    
+                                }}
+                            >
+                                {translate.state ? "Disable Translation" : "Enable Translation"}
+                            </Button>
+
+                            
+                        </View>
                     </View>
-                </View>
-            }
+                }
+            </AnimatePresence>
             <>{feedBack && !Object.keys(CONTENT).length 
                 ? <View
                     style={{
@@ -669,130 +672,20 @@ const Show = ({}:any) => {
                         
                         <View style={styles.chapter_box}>
                             <>{CONTENT.chapters.length
-                                ? <>{CONTENT.chapters.slice((page-1)*MAX_OFFSET,((page-1)*MAX_OFFSET)+MAX_OFFSET).map((chapter:any,index:number) => (
-                                    <View key={index}
-                                        style={{
-                                            display:"flex",
-                                            flexDirection:"row",
-                                            gap:8,
-                                            justifyContent:"space-between",
-                                            alignItems:"center",
-                                        }}
-                                    >
-                                        <Button mode='outlined' 
-                                            style={styles.chapter_button}
-                                            labelStyle={{
-                                                ...styles.item_info,
-                                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
-                                                fontFamily:"roboto-light",
-                                                padding:5,
-                                            }}
-                                            onPress={( () => {
-                                                
-                                                Request_Download(chapter)
-                                            })}
-                                        >
-                                            {chapter.title}
-                                        </Button>
-                                            <>{chapterRequested[chapter.id] === "queue" && !chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`) 
-                                                && <ActivityIndicator animating={true} color={Theme[themeTypeContext].icon_color} />
-                                            }</>
-                                            <>{chapterRequested[chapter.id] === "ready2" && !chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`) 
-                                                && <CircularProgress 
-                                                value={50} 
-                                                maxValue={100}
-                                                radius={((Dimensions.width+Dimensions.height)/2)*0.03}
-                                                inActiveStrokeColor={Theme[themeTypeContext].border_color}
-                                                
-                                                showProgressValue={false}
-                                                title={"📥"}
-                                                titleStyle={{
-                                                    pointerEvents:"none",
-                                                    color:Theme[themeTypeContext].text_color,
-                                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
-                                                    fontFamily:"roboto-medium",
-                                                    textAlign:"center",
-                                                }}
-                                            />
-                                            }</>
-
-                                            <>{chapterRequested[chapter.id] === "ready" && !chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`) 
-                                                && <TouchableRipple
-                                                    rippleColor={Theme[themeTypeContext].ripple_color_outlined}
-                                                    style={{
-                                                        borderRadius:5,
-                                                        borderWidth:0,
-                                                        padding:5,
-                                                    }}
-                                                    
-                                                    onPress={()=>{
-                                                        Toast.show({
-                                                            type: 'error',
-                                                            text1: '❓Request not found in server.',
-                                                            text2: "You request this chapter but the server doesn't have this in queue.\nTry request again.",
-                                                            
-                                                            position: "bottom",
-                                                            visibilityTime: 12000,
-                                                            text1Style:{
-                                                                fontFamily:"roboto-bold",
-                                                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
-                                                            },
-                                                            text2Style:{
-                                                                fontFamily:"roboto-medium",
-                                                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
-                                                                
-                                                            },
-                                                        });
-                                                        Request_Download(chapter)
-                                                    }}
-                                                >
-                                                    <Icon source={"alert-circle"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={"red"}/>
-
-                                                </TouchableRipple>
-                                            }</>
-                                            
-                                            <>{chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`)
-                                                && <>{chapterQueue.queue[`${SOURCE}-${ID}-${chapter.idx}`]
-                                                    ? <CircularProgress 
-                                                        value={100 - (((chapterQueue.queue[`${SOURCE}-${ID}-${chapter.idx}`])*100)/chapterQueue.max_queue)} 
-                                                        maxValue={100}
-                                                        radius={((Dimensions.width+Dimensions.height)/2)*0.03}
-                                                        inActiveStrokeColor={Theme[themeTypeContext].border_color}
-                                                        
-                                                    
-                                                        showProgressValue={false}
-                                                        title={chapterQueue.queue[`${SOURCE}-${ID}-${chapter.idx}`]}
-                                                        titleStyle={{
-                                                            pointerEvents:"none",
-                                                            color:Theme[themeTypeContext].text_color,
-                                                            fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
-                                                            fontFamily:"roboto-medium",
-                                                            textAlign:"center",
-                                                        }}
-                                                    />
-                                                    : <ActivityIndicator animating={true} color={"green"} />
-                                                }</>
-                                            }</>
-                                            <>{!chapterRequested[chapter.id] && !chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`)
-                                                ? <TouchableRipple
-                                                    rippleColor={Theme[themeTypeContext].ripple_color_outlined}
-                                                    style={{
-                                                        borderRadius:5,
-                                                        borderWidth:0,
-                                                        padding:5,
-                                                    }}
-                                                    
-                                                    onPress={()=>{
-                                                        Request_Download(chapter)
-                                                    }}
-                                                >
-                                                    <Icon source={"cloud-download"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={Theme[themeTypeContext].icon_color}/>
-
-                                                </TouchableRipple>
-                                                :<></>
-                                            }</>
-                                    </View>
-                                ))}</>
+                                ? <>{CONTENT.chapters.slice((page-1)*MAX_OFFSET,((page-1)*MAX_OFFSET)+MAX_OFFSET).map((chapter:any,index:number) => 
+                                    <ChapterComponent 
+                                        key={index}
+                                        SOURCE={SOURCE}
+                                        ID={ID}
+                                        chapter={chapter}
+                                        signal={signal}
+                                        chapterRequested={chapterRequested}
+                                        setChapterRequested={setChapterRequested}
+                                        chapterToDownload={chapterToDownload}
+                                        setChapterToDownload={setChapterToDownload}
+                                        chapterQueue={chapterQueue}
+                                    />
+                                )}</>
                                 : <Text
                                     style={{
                                         color:Theme[themeTypeContext].text_color,
@@ -971,6 +864,7 @@ const Show = ({}:any) => {
                     }
                 </View>
             }</>
+            
         </ScrollView>
         : <View style={{zIndex:5,width:"100%",height:"100%",display:"flex",justifyContent:"center",alignItems:"center",backgroundColor:Theme[themeTypeContext].background_color}}>
             <Image setShowCloudflareTurnstile={setShowCloudflareTurnstileContext} source={require("@/assets/gif/cat-loading.gif")} style={{width:((Dimensions.width+Dimensions.height)/2)*0.15,height:((Dimensions.width+Dimensions.height)/2)*0.15}}/>
@@ -980,5 +874,5 @@ const Show = ({}:any) => {
 
 }
 
-export default Show;
+export default Index;
 

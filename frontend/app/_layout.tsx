@@ -130,21 +130,23 @@ export default function RootLayout() {
                     }} />
                 </View>
                 : <>
-                  {widgetContext.state &&
-                    <View style={{
-                      width:"100%",
-                      height:"100%",
-                      position:"absolute",
-                      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                      display:"flex",
-                      justifyContent:"center",
-                      alignItems:"center",
-                      zIndex:1,
-                      padding:15,
-                    }}
-                    
-                    ><widgetContext.component/></View>
-                  }
+                  <AnimatePresence exitBeforeEnter>
+                    {widgetContext.state &&
+                      <View style={{
+                        width:"100%",
+                        height:"100%",
+                        position:"absolute",
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        display:"flex",
+                        justifyContent:"center",
+                        alignItems:"center",
+                        zIndex:1,
+                        padding:15,
+                      }}
+                      
+                      ><widgetContext.component/></View>
+                    }
+                  </AnimatePresence>
                   <View style={{
                         position:"absolute",
                         width:"100%",
@@ -160,8 +162,9 @@ export default function RootLayout() {
                           
                           <Stack.Screen name="+not-found" />
                         </Stack>
-                      
-                      {showMenuContext && <MemoMenu/>}
+                        <AnimatePresence exitBeforeEnter>
+                          {showMenuContext && <MemoMenu/>}
+                        </AnimatePresence>
                   </View>
                 </>
             }

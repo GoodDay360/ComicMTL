@@ -1,5 +1,7 @@
 import axios from 'axios';
+import JSZip from 'jszip';
 import * as FileSystem from 'expo-file-system';
+import { Platform } from 'react-native';
 
 import translator from '@/constants/module/translator';
 import Storage from '@/constants/module/storage';
@@ -75,40 +77,6 @@ export const get = async (setShowCloudflareTurnstile:any,setIsLoading:any,signal
     })
 }
 
-export const get_requested_info = async (
-    setShowCloudflareTurnstile:any,
-    setChapterRequested:any,
-    signal:any,
-    source:any,
-    comic_id:any,
-    chapter_requested:any
-) => {
-    const API_BASE = await Storage.get("IN_USE_API_BASE")
-    const socket_info = await Storage.get("SOCKET_INFO")
-    await axios({
-        method: 'post',
-        url: `${API_BASE}/api/queue/request_info/`,
-        headers: {
-            'X-CLOUDFLARE-TURNSTILE-TOKEN': await Storage.get("cloudflare-turnstile-token")
-        },
-        data: {
-            socket_id: socket_info.id,
-            source:source,
-            comic_id:comic_id,
-            chapter_requested:chapter_requested,
-        },
-        timeout: 30000,
-        signal:signal,
-    }).then((response) => {
-        const DATA = response.data
-        console.log(DATA)
-        setChapterRequested(DATA)
-    }).catch((error) => {
-        console.log(error)
-        
-        if (error.status === 511) setShowCloudflareTurnstile(true)
-    })
-}
 
 export const store_comic_cover = async (setShowCloudflareTurnstile:any,signal:any,CONTENT:any) => {
     const result = await ImageCacheStorage.get(setShowCloudflareTurnstile,CONTENT.cover.uri,signal);
@@ -133,4 +101,119 @@ export const store_comic_cover = async (setShowCloudflareTurnstile:any,signal:an
 
         
     }else return result
+}
+
+export const get_requested_info = async (
+    setShowCloudflareTurnstile:any,
+    setChapterRequested:any,
+    setChapterToDownload:any,
+    signal:any,
+    source:any,
+    comic_id:any,
+) => {
+    const API_BASE = await Storage.get("IN_USE_API_BASE")
+    const socket_info = await Storage.get("SOCKET_INFO")
+    const stored_comic = await ComicStorage.getByID(source,comic_id)
+    await axios({
+        method: 'post',
+        url: `${API_BASE}/api/queue/request_info/`,
+        headers: {
+            'X-CLOUDFLARE-TURNSTILE-TOKEN': await Storage.get("cloudflare-turnstile-token")
+        },
+        data: {
+            socket_id: socket_info.id,
+            source:source,
+            comic_id:comic_id,
+            chapter_requested:stored_comic.chapter_requested,
+        },
+        timeout: 30000,
+        signal:signal,
+    }).then((response) => {
+        const DATA = response.data
+        console.log("GET_INFOOOo",DATA)
+        setChapterRequested(DATA)
+        
+        const new_obj:any = {}
+        for (const [key, value] of Object.entries(DATA) as any) {
+            
+            
+            if (value.state === "ready") {
+                new_obj[key] = {
+                    chapter_idx: value.chapter_idx,
+                    options: value.options,
+                }
+            }
+        }
+        setChapterToDownload(new_obj)
+        
+    }).catch((error) => {
+        console.log(error)
+        
+        if (error.status === 511) setShowCloudflareTurnstile(true)
+    })
+}
+
+export const download_chapter = async (
+    setShowCloudflareTurnstile:any, 
+    isDownloading:any, 
+    source:string | string[], 
+    comic_id:string | string[], 
+    chapterToDownload:any, 
+    setChapterToDownload:any, 
+    signal:any
+) => {
+    const API_BASE = await Storage.get("IN_USE_API_BASE")
+    if (Object.keys(chapterToDownload).length){
+        console.log(chapterToDownload)
+        const [chapter_id, request_info]:any = Object.entries(chapterToDownload)[0];
+        console.log(chapter_id,request_info)
+        await axios({
+            method: 'post',
+            url: `${API_BASE}/api/stream_file/download_chapter/`,
+            responseType: 'blob',
+            headers: {
+                'X-CLOUDFLARE-TURNSTILE-TOKEN': await Storage.get("cloudflare-turnstile-token")
+            },
+            data: {
+                source:source,
+                comic_id:comic_id,
+                chapter_id:chapter_id,
+                chapter_idx:request_info.chapter_idx,
+                options:request_info.options,
+            },
+            onDownloadProgress: (progressEvent) => {
+                const totalLength = progressEvent.total;
+                if (totalLength !== undefined) {
+                    const progress = progressEvent.loaded;
+                    console.log(`Download Progress: ${progress}/${totalLength}`);
+
+                    setChapterToDownload({...chapterToDownload,[chapter_id]:{...chapterToDownload[chapter_id],progress:{current:progress,total:totalLength}}})
+                }
+            },
+            timeout: 600000,
+            signal:signal,
+        }).then(async (response) => {
+            const DATA = response.data
+            if (Platform.OS === "web"){
+                await ChapterStorage.update(`${source}-${comic_id}`,chapter_id,{type:"blob", value:DATA}, "completed")
+            }
+
+            const chapter_to_download = chapterToDownload
+            delete chapter_to_download[chapter_id]
+            setChapterToDownload(chapter_to_download)
+            const chapter_requested = (await ComicStorage.getByID(source,comic_id)).chapter_requested
+            const new_chapter_requested = chapter_requested.filter((item:any) => item.chapter_id !== chapter_id);
+            await ComicStorage.updateChapterQueue(source,comic_id,new_chapter_requested)
+            
+
+            // isDownloading.state = false
+
+        }).catch((error) => {
+            console.log(error)
+            
+            if (error.status === 511) setShowCloudflareTurnstile(true)
+        })
+    }else{
+        // isDownloading.state = false
+    }
 }

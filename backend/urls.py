@@ -1,12 +1,14 @@
 
 from django.contrib import admin
 from django.urls import path, include, re_path
-from backend.api import test, web_scrap, cloudflare_turnstile, queue
+from backend.api import test, stream_file, web_scrap, cloudflare_turnstile, queue
 
 
 
 urlpatterns = [
     path('test/', test.run_1),
+    path('stream_file/download_chapter/', stream_file.download_chapter),
+    
     path('queue/request_chapter/', queue.request_chapter),
     path('queue/request_info/', queue.request_info),
     # /api/queue/request_info/

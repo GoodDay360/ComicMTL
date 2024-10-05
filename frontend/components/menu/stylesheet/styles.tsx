@@ -4,6 +4,8 @@ import Theme from "@/constants/theme";
 export const __styles:any = (theme_type:string,Dimensions:any) => {
     return StyleSheet.create({
         menu_container: {
+            position: "absolute",
+            bottom: 0,
             display: "flex",
             flexDirection: "row",
             justifyContent: "space-around",

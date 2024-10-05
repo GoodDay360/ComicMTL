@@ -96,7 +96,7 @@ class Chapter_Storage_Web  {
       const transaction = db.transaction('dataStore', 'readwrite');
       const store = transaction.objectStore('dataStore');
 
-      const request = store.add({ id, item, idx, title, data });
+      const request = store.add({ id, item, idx, title, data, data_state:"empty" });
 
       request.onsuccess = () => {
         resolve();
@@ -107,7 +107,7 @@ class Chapter_Storage_Web  {
       };
     });
   }
-  public static async update(item: string, id: string, newData: any): Promise<void> {
+  public static async update(item: string, id: string, newData: any, data_state: string): Promise<void> {
     const db = await this.openDB();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction('dataStore', 'readwrite');
@@ -119,7 +119,8 @@ class Chapter_Storage_Web  {
         const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
         if (cursor) {
           if (cursor.value.id === id) {
-            cursor.value.data = newData; // Directly modify the data field
+            cursor.value.data = newData; 
+            cursor.value.data_state = data_state;
             const updateRequest = cursor.update(cursor.value);
 
             updateRequest.onsuccess = () => {
@@ -249,21 +250,22 @@ class Chapter_Storage_Native {
           idx INTEGER NOT NULL,
           id TEXT PRIMARY KEY NOT NULL,
           title TEXT NOT NULL,
-          data TEXT NOT NULL
+          data TEXT NOT NULL,
+          data_state TEXT NOT NULL,
         );`);
       
-      await this.db!.runAsync(`INSERT INTO "${ensure_safe_table_name(tableName)}" (idx, id, title, data) VALUES (?, ?, ?, ?)`, [idx, id, title, JSON.stringify(data)]);
+      await this.db!.runAsync(`INSERT INTO "${ensure_safe_table_name(tableName)}" (idx, id, title, data, data_state) VALUES (?, ?, ?, ?, ?)`, [idx, id, title, JSON.stringify(data), "empty"]);
     } catch (error:any) {
       console.log(error.message)
       throw new Error(`Failed to add data: ${error.message}`);
     }
   }
 
-  async update(tableName: string, id: string, data: string): Promise<void> {
+  async update(tableName: string, id: string, data: string, data_state: string): Promise<void> {
     await this.initializeDatabase();
     try {
-      const query = `UPDATE "${ensure_safe_table_name(tableName)}" SET data = ? WHERE id = ?`;
-      await this.db!.runAsync(query, [JSON.stringify(data), id]);
+      const query = `UPDATE "${ensure_safe_table_name(tableName)}" SET data = ?, data_state = ? WHERE id = ?`;
+      await this.db!.runAsync(query, [JSON.stringify(data), data_state, id]);
     } catch (error: any) {
       console.log(error.message);
       throw new Error(`Failed to update data: ${error.message}`);
@@ -312,6 +314,8 @@ export default ChapterStorage;
 
 
 /*
+[item] = "source-comic_id"
+
 - Add data with different items and indexes
 await ChapterStorage.add('itemA', 1<index>, 'id-123', 'TitleA', { key: 'valueA' });
 await ChapterStorage.add('itemB', 2, 'id-456', 'TitleB', { key: 'valueB' });

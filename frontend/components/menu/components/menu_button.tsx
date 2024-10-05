@@ -23,7 +23,7 @@ const MenuButton = ({pathname, label, icon}:any) => {
 
 
     return (<>{style && <>
-        <View style={style.menu_button_box}
+        <View style={style.menu_button_box} key={pathname}
             from={{
                 opacity: 0,
                 scale: 0.9,
@@ -52,7 +52,7 @@ const MenuButton = ({pathname, label, icon}:any) => {
                         
                         router.push(pathname)
                     }}
-                    // mode={"contained"}
+                    
                     style={style.selected_menu_button}
                 >
 

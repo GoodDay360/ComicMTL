@@ -34,17 +34,28 @@ def request_chapter(request):
         channel_name = payload.get("channel_name")
         options = payload.get("options") or {}
         
-        SocketRequestChapterQueueCache(
-            socket_id=socket_id, 
-            channel_name=channel_name, 
+        query_count = ComicStorageCache.objects.filter(
             source=source, 
-            comic_id=comic_id,
-            chapter_id=chapter_id, 
+            comic_id=comic_id, 
+            chapter_id=chapter_id,
             chapter_idx=chapter_idx,
-            options=options
-        ).save()
-
-        return JsonResponse({"status":"success"}) 
+            colorize=options.get("colorize"),
+            translate=options.get("translate").get("state"),
+            target_lang = options.get("translate").get("target") if options.get("translate").get("state") else ""
+        ).count()
+        
+        if query_count: return JsonResponse({"status":"ready"})
+        else:
+            SocketRequestChapterQueueCache(
+                socket_id=socket_id, 
+                channel_name=channel_name, 
+                source=source, 
+                comic_id=comic_id,
+                chapter_id=chapter_id, 
+                chapter_idx=chapter_idx,
+                options=options
+            ).save()
+            return JsonResponse({"status":"queue"})
     except Exception as e: 
         print(e)
         return HttpResponseBadRequest('Internal Error.', status=500)
@@ -82,8 +93,8 @@ def request_info(request):
                     target_lang = options.get("translate").get("target") if options.get("translate").get("state") else ""
                 ).count()
                 
-                if query_count: result_request[chapter.get("chapter_id")] = "ready"
-                else: result_request[chapter.get("chapter_id")] = "unknown"
+                if query_count: result_request[chapter.get("chapter_id")] = {"state":"ready","chapter_idx":chapter.get("chapter_idx"),"options":options}
+                else: result_request[chapter.get("chapter_id")] = {"state":"unkown","chapter_idx":chapter.get("chapter_idx"),"options":options}
         return JsonResponse(result_request)
         
     except Exception as e: 
