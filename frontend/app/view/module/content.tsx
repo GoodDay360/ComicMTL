@@ -47,12 +47,12 @@ export const get = async (setShowCloudflareTurnstile:any,setIsLoading:any,signal
         else {
             SET_CONTENT(DATA)
         }
-        // console.log(DATA)
+        
 
         // Store in local if bookmarked.
         const stored_comic = await ComicStorage.getByID(source,DATA.id)
         if (stored_comic) {
-            const cover_result:any = await store_comic_cover(setShowCloudflareTurnstile,signal,DATA)
+            const cover_result:any = await store_comic_cover(setShowCloudflareTurnstile,signal,source,id,DATA)
             await ComicStorage.updateInfo(source,DATA.id, {
                 cover:cover_result,
                 title:DATA.title,
@@ -78,12 +78,19 @@ export const get = async (setShowCloudflareTurnstile:any,setIsLoading:any,signal
 }
 
 
-export const store_comic_cover = async (setShowCloudflareTurnstile:any,signal:any,CONTENT:any) => {
+export const store_comic_cover = async (
+    setShowCloudflareTurnstile:any,
+    signal:any,
+    source:string | string[],
+    comic_id:string| string[],
+    CONTENT:any
+) => {
     const result = await ImageCacheStorage.get(setShowCloudflareTurnstile,CONTENT.cover.uri,signal);
     if (result.type === "file_path"){
         const from_path = result.data
         
-        const storage_dir = FileSystem.documentDirectory + "ComicMTL/" + `${CONTENT.id}/`;
+        const storage_dir = FileSystem.documentDirectory + "ComicMTL/" + `${source}/` + `${comic_id}/` + `${CONTENT.id}/`;
+        
         try{
             const dirInfo = await FileSystem.getInfoAsync(storage_dir);
             if (!dirInfo.exists) await FileSystem.makeDirectoryAsync(storage_dir, { intermediates: true });
@@ -94,7 +101,7 @@ export const store_comic_cover = async (setShowCloudflareTurnstile:any,signal:an
             
             return {type:"file_path",data:storage_dir + "cover.png"}
         }catch (error: any) {
-            console.error(error)
+            console.log("store_comic_cover: ", error)
             return { type: "error", data: null };
         }
 
@@ -130,7 +137,7 @@ export const get_requested_info = async (
         signal:signal,
     }).then((response) => {
         const DATA = response.data
-        console.log("GET_INFOOOo",DATA)
+        
         setChapterRequested(DATA)
         
         const new_obj:any = {}
@@ -158,15 +165,17 @@ export const download_chapter = async (
     isDownloading:any, 
     source:string | string[], 
     comic_id:string | string[], 
+    chapterRequested:any,
+    setChapterRequested:any,
     chapterToDownload:any, 
     setChapterToDownload:any, 
     signal:any
 ) => {
     const API_BASE = await Storage.get("IN_USE_API_BASE")
     if (Object.keys(chapterToDownload).length){
-        console.log(chapterToDownload)
+        
         const [chapter_id, request_info]:any = Object.entries(chapterToDownload)[0];
-        console.log(chapter_id,request_info)
+        
         await axios({
             method: 'post',
             url: `${API_BASE}/api/stream_file/download_chapter/`,
@@ -185,8 +194,6 @@ export const download_chapter = async (
                 const totalLength = progressEvent.total;
                 if (totalLength !== undefined) {
                     const progress = progressEvent.loaded;
-                    console.log(`Download Progress: ${progress}/${totalLength}`);
-
                     setChapterToDownload({...chapterToDownload,[chapter_id]:{...chapterToDownload[chapter_id],progress:{current:progress,total:totalLength}}})
                 }
             },
@@ -196,24 +203,36 @@ export const download_chapter = async (
             const DATA = response.data
             if (Platform.OS === "web"){
                 await ChapterStorage.update(`${source}-${comic_id}`,chapter_id,{type:"blob", value:DATA}, "completed")
+            }else{
+                // const storage_dir = FileSystem.documentDirectory + "ComicMTL/" + `${}/`;
             }
-
-            const chapter_to_download = chapterToDownload
-            delete chapter_to_download[chapter_id]
-            setChapterToDownload(chapter_to_download)
-            const chapter_requested = (await ComicStorage.getByID(source,comic_id)).chapter_requested
-            const new_chapter_requested = chapter_requested.filter((item:any) => item.chapter_id !== chapter_id);
-            await ComicStorage.updateChapterQueue(source,comic_id,new_chapter_requested)
             
 
-            // isDownloading.state = false
+            const stored_chapter_requested = (await ComicStorage.getByID(source,comic_id)).chapter_requested
+            const new_chapter_requested = stored_chapter_requested.filter((item:any) => item.chapter_id !== chapter_id);
+            await ComicStorage.updateChapterQueue(source,comic_id,new_chapter_requested)
 
-        }).catch((error) => {
+            delete chapterRequested[chapter_id]
+            setChapterRequested(chapterRequested)
+
+            
+        }).catch(async (error) => {
             console.log(error)
             
-            if (error.status === 511) setShowCloudflareTurnstile(true)
+                if (error.status === 511) setShowCloudflareTurnstile(true)
+                else {
+                    const chapter_to_download = chapterToDownload
+                delete chapter_to_download[chapter_id]
+                setChapterToDownload(chapter_to_download)
+                
+                const chapter_requested = (await ComicStorage.getByID(source,comic_id)).chapter_requested
+                const new_chapter_requested = chapter_requested.filter((item:any) => item.chapter_id !== chapter_id);
+                await ComicStorage.updateChapterQueue(source,comic_id,new_chapter_requested)
+                
+                isDownloading.current = false
+            }
         })
     }else{
-        // isDownloading.state = false
+        isDownloading.current = false
     }
 }

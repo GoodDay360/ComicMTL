@@ -25,7 +25,7 @@ import Dropdown from '@/components/dropdown';
 import { RequestChapterWidget, BookmarkWidget } from './widgets';
 
 
-import { get, store_comic_cover, get_requested_info, download_chapter } from '../module/content'
+import { get, store_comic_cover, get_requested_info } from '../module/content'
 import { createSocket, setupSocketNetworkListener } from '../module/socket';
 
 const ChapterComponent = ({
@@ -33,11 +33,14 @@ const ChapterComponent = ({
     ID,
     chapter,
     signal,
+    isDownloading,
     chapterRequested,
     setChapterRequested,
     chapterToDownload,
     setChapterToDownload,
+    setChapterQueue,
     chapterQueue,
+
 }:any) => {
     const {showMenuContext, setShowMenuContext}:any = useContext(CONTEXT)
     const {themeTypeContext, setThemeTypeContext}:any = useContext(CONTEXT)
@@ -49,19 +52,25 @@ const ChapterComponent = ({
     const Dimensions = useWindowDimensions();
 
     const [styles, setStyles]:any = useState("")
-    const [download_complete, set_download_complete] = useState(false)
-
-
+    const [is_saved, set_is_saved] = useState(false)
+    const [is_working_on_queue, set_is_working_on_queue] = useState(false)
 
     useEffect(() => {
+        
+    },[chapterRequested])
+
+    useEffect(() => {(async () => {
+
         setStyles(__styles(themeTypeContext,Dimensions))
-    }, [])
+        const stored_chapter = await ChapterStorage.get(`${SOURCE}-${ID}`,chapter.id, {exclude_fields:["data"]})
+        if (stored_chapter?.data_state === "completed") set_is_saved(true)
+    })()}, [])
 
     const Request_Download = async (CHAPTER:any) => {
         
         const stored_comic = await ComicStorage.getByID(SOURCE,ID)
         if (stored_comic)  {
-            setWidgetContext({state:true,component:() => RequestChapterWidget(SOURCE,ID,CHAPTER,chapterRequested,setChapterRequested,
+            setWidgetContext({state:true,component:() => RequestChapterWidget(SOURCE,ID,CHAPTER,chapterQueue,setChapterQueue,chapterRequested,setChapterRequested,
                 ()=>{return get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, setChapterToDownload, signal, SOURCE, ID)}
             )})
         }
@@ -103,17 +112,38 @@ const ChapterComponent = ({
                 fontFamily:"roboto-light",
                 padding:5,
             }}
-            onPress={( () => {
-                
-                Request_Download(chapter)
-            })}
+            onPress={async () => {
+                const stored_chapter = await ChapterStorage.get(`${SOURCE}-${ID}`,chapter.id, {exclude_fields:["data"]})
+                if (stored_chapter?.data_state === "completed") {
+                    
+                    router.push(`/view/${SOURCE}/${ID}/${chapter.idx}`)
+                }else{
+                    Toast.show({
+                        type: 'info',
+                        text1: 'Chapter not download yet.',
+                        text2: "Press the download button to download the chapter.",
+                        
+                        position: "bottom",
+                        visibilityTime: 3000,
+                        text1Style:{
+                            fontFamily:"roboto-bold",
+                            fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
+                        },
+                        text2Style:{
+                            fontFamily:"roboto-medium",
+                            fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
+                            
+                        },
+                    });
+                }
+            }}
         >
             {chapter.title}
         </Button>
-        {download_complete 
+        {is_saved 
             ? <Icon source={"content-save-check"} size={((Dimensions.width+Dimensions.height)/2)*0.0425} color={Theme[themeTypeContext].icon_color}/>
             : <>
-                <>{chapterRequested[chapter.id]?.state === "queue" && !chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`) 
+                <>{chapterRequested[chapter.id]?.state === "queue" && !chapterQueue?.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`) 
                     && <ActivityIndicator animating={true} color={Theme[themeTypeContext].icon_color} />
                 }</>
                 <>{chapterRequested[chapter.id]?.state === "ready" && !chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`) 
@@ -134,7 +164,11 @@ const ChapterComponent = ({
                                 textAlign:"center",
                             }}
                             onAnimationComplete={()=>{
-                                set_download_complete(true)
+                                const chapter_to_download = chapterToDownload
+                                delete chapter_to_download[chapter.id]
+                                setChapterToDownload(chapter_to_download)
+                                set_is_saved(true)
+                                isDownloading.current = false
                             }}
                         />
                         : <ActivityIndicator animating={true} color={"green"} />
@@ -195,13 +229,15 @@ const ChapterComponent = ({
                                 textAlign:"center",
                             }}
                             onAnimationComplete={()=>{
+                                
                                 get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, setChapterToDownload, signal, SOURCE, ID)
                             }}
                         />
                         : <ActivityIndicator animating={true} />
                     }</>
                 }</>
-                <>{!chapterRequested[chapter.id] && !chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`)
+
+                <>{!chapterRequested.hasOwnProperty(chapter.id) && !chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`)
                     ? <TouchableRipple
                         rippleColor={Theme[themeTypeContext].ripple_color_outlined}
                         style={{

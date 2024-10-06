@@ -22,6 +22,8 @@ export const RequestChapterWidget = (
     SOURCE:string | string[],
     ID:string | string[], 
     CHAPTER:any, 
+    chapterQueue:any,
+    setChapterQueue:any,
     chapterRequested:any, 
     setChapterRequested:any, 
     get_requested_info:any
@@ -188,7 +190,7 @@ export const RequestChapterWidget = (
                         const new_queue:any = {}
                         new_queue[CHAPTER.id] = "queue"
                         setChapterRequested({...chapterRequested,...new_queue})
-                        console.log("HELP",{...chapterRequested,...new_queue})
+                        
                         const API_BASE = await Storage.get("IN_USE_API_BASE")
                         const stored_socket_info = await Storage.get("SOCKET_INFO")
                         axios({
@@ -214,21 +216,21 @@ export const RequestChapterWidget = (
                             
                         }).then(async () => {
                             const stored_comic = await ComicStorage.getByID(SOURCE, ID);
-                            const chapterQueue = stored_comic.chapter_requested.filter((ch:any) => ch.chapter_id !== CHAPTER.id);
+                            const stored_chapter_queue = stored_comic.chapter_requested.filter((ch:any) => ch.chapter_id !== CHAPTER.id);
 
-                            chapterQueue.push({
+                            stored_chapter_queue.push({
                                 chapter_id: CHAPTER.id,
                                 chapter_idx: CHAPTER.idx,
                                 options: { colorize, translate }
                             });
+                            await ComicStorage.updateChapterQueue(SOURCE, ID, stored_chapter_queue);
 
-                            await ComicStorage.updateChapterQueue(SOURCE, ID, chapterQueue);
 
                             await get_requested_info()
                             Toast.show({
                                 type: 'info',
                                 text1: '🕓 Your request has been placed in the queue.',
-                                text2: 'Check back later to download your chapter.\nThe chapter will be removed from the cloud in 24 hours or when the server out of storage after it ready.',
+                                text2: 'Check back later to download your chapter.\nAfter it ready, chapter will be removed from the cloud when server out of storage.',
                                 
                                 position: "bottom",
                                 visibilityTime: 12000,
@@ -284,7 +286,7 @@ export const RequestChapterWidget = (
     </View>) 
 }
 
-export const BookmarkWidget = (onRefresh:any, SOURCE:string | string[] ,CONTENT:any) => {
+export const BookmarkWidget = (onRefresh:any, SOURCE:string | string[],ID:string | string[], CONTENT:any) => {
     const Dimensions = useWindowDimensions();
 
     const {themeTypeContext, setThemeTypeContext}:any = useContext(CONTEXT)
@@ -306,7 +308,7 @@ export const BookmarkWidget = (onRefresh:any, SOURCE:string | string[] ,CONTENT:
     useEffect(()=>{
         (async ()=>{
             const stored_comic = await ComicStorage.getByID(SOURCE,CONTENT.id)
-            console.log(`${SOURCE}-${CONTENT.id}`)
+            
             if (stored_comic) {
                 setDefaultBookmark(stored_comic.tag)
                 setBookmark(stored_comic.tag)
@@ -452,7 +454,7 @@ export const BookmarkWidget = (onRefresh:any, SOURCE:string | string[] ,CONTENT:
                                     const stored_comic = await ComicStorage.getByID(SOURCE,CONTENT.id)
                                     if (stored_comic) await ComicStorage.replaceTag(SOURCE, CONTENT.id, bookmark)
                                     else {
-                                        const cover_result:any = await store_comic_cover(setShowCloudflareTurnstileContext,signal,CONTENT)
+                                        const cover_result:any = await store_comic_cover(setShowCloudflareTurnstileContext,signal,SOURCE,ID,CONTENT)
                                         
                                         await ComicStorage.store(SOURCE,CONTENT.id, bookmark, {
                                             cover:cover_result,

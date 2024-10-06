@@ -68,7 +68,7 @@ class Chapter_Storage_Web  {
 
 
 
-  public static async get(item: string, id: string): Promise<any | null> {
+  public static async get(item: string, id: string, options?: { exclude_fields?: string[] }): Promise<any | null> {
     const db = await this.openDB();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction('dataStore', 'readonly');
@@ -78,6 +78,15 @@ class Chapter_Storage_Web  {
       request.onsuccess = (event) => {
         const result = (event.target as IDBRequest<any>).result;
         if (result && result.item === item) {
+          
+          if (options?.exclude_fields) {
+            options.exclude_fields.forEach(field => {
+                if (result.hasOwnProperty(field)) {
+                    delete result[field];
+                }
+            });
+          }
+
           resolve(result);
         } else {
           resolve(null);
@@ -232,15 +241,34 @@ class Chapter_Storage_Native {
   
   
 
-  async get(tableName: string, id: number): Promise<any | null> {
+  async get(tableName: string, id: number, options?: { exclude_fields?: string[] }): Promise<any | null> {
     await this.initializeDatabase();
     try {
-      const firstRow = await this.db!.getFirstAsync(`SELECT * FROM "${ensure_safe_table_name(tableName)}" WHERE id = ?`, [id]);
-      return firstRow || null;
+        const excludeFields = options?.exclude_fields;
+
+        if (excludeFields && excludeFields.length > 0) {
+            // Get all column names from the table
+            const columnsResult = await this.db!.getAllAsync(`PRAGMA table_info("${ensure_safe_table_name(tableName)}")`);
+            const columns = columnsResult.map((col: any) => col.name);
+
+            // Exclude the specified fields if provided
+            const selectedColumns = columns.filter((col: any) => !excludeFields.includes(col));
+
+            // Construct the SELECT query with the selected columns
+            const query = `SELECT ${selectedColumns.join(', ')} FROM "${ensure_safe_table_name(tableName)}" WHERE id = ?`;
+            const firstRow = await this.db!.getFirstAsync(query, [id]);
+
+            return firstRow || null;
+        } else {
+            // If no fields to exclude, select all columns
+            const firstRow = await this.db!.getFirstAsync(`SELECT * FROM "${ensure_safe_table_name(tableName)}" WHERE id = ?`, [id]);
+            return firstRow || null;
+        }
     } catch (error) {
-      return null; // Return null if table or row does not exist
+        return null; // Return null if table or row does not exist
     }
-  }
+}
+
 
   async add(tableName: string, idx: number, id: string, title: string, data: string): Promise<void> {
     await this.initializeDatabase();
@@ -251,7 +279,7 @@ class Chapter_Storage_Native {
           id TEXT PRIMARY KEY NOT NULL,
           title TEXT NOT NULL,
           data TEXT NOT NULL,
-          data_state TEXT NOT NULL,
+          data_state TEXT NOT NULL
         );`);
       
       await this.db!.runAsync(`INSERT INTO "${ensure_safe_table_name(tableName)}" (idx, id, title, data, data_state) VALUES (?, ?, ?, ?, ?)`, [idx, id, title, JSON.stringify(data), "empty"]);

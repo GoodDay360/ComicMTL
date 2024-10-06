@@ -42,7 +42,7 @@ class Job(Thread):
                     source = query_result.source
                     comic_id = query_result.comic_id
                     chapter_id = query_result.chapter_id   
-                    chapter_idx = str(query_result.chapter_idx)
+                    chapter_idx = query_result.chapter_idx
                     options = query_result.options
                     if (options.get("translate").get("state")): 
                         target_lang = options.get("translate").get("target")
@@ -64,19 +64,19 @@ class Job(Thread):
                         connections['cache'].close()
                         print(socket_id, channel_name, source, comic_id , chapter_id, options)
                         
-                        input_dir = os.path.join(STORAGE_DIR,source,comic_id,chapter_idx,"temp")
+                        input_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),"temp")
                         
                         if (options.get("translate").get("state") and options.get("colorize")):
                             
-                            managed_output_dir = os.path.join(STORAGE_DIR,source,comic_id,chapter_idx,f"{options.get("translate").get("target")}_translated_colorized")
+                            managed_output_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),f"{options.get("translate").get("target")}_translated_colorized")
                             script = ["python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--no-text-lang-skip", "--use-mocr-merge", "--det-auto-rotate", "--det-gamma-correct", "--manga2eng", "--colorize=mc2", "--translator=m2m100_big", "-l", f"{options.get("translate").get("target")}", "-i", f"{input_dir}", "-o", f"{managed_output_dir}"]
                         elif (options.get("translate").get("state") and not options.get("colorize")):
                             
-                            managed_output_dir = os.path.join(STORAGE_DIR,source,comic_id,chapter_idx,f"{options.get("translate").get("target")}_translated")
+                            managed_output_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),f"{options.get("translate").get("target")}_translated")
                             script = ["python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--no-text-lang-skip", "--use-mocr-merge", "--det-auto-rotate", "--det-gamma-correct", "--manga2eng", "--translator=m2m100_big", "-l", f"{options.get("translate").get("target")}", "-i", f"{input_dir}", "-o", f"{managed_output_dir}"]
                         elif (options.get("colorize") and not options.get("translate").get("state")):
                             
-                            managed_output_dir = os.path.join(STORAGE_DIR,source,comic_id,chapter_idx,"colorized")
+                            managed_output_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),"colorized")
                             script = ["python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--no-text-lang-skip", "--use-mocr-merge", "--det-auto-rotate", "--det-gamma-correct", "--manga2eng", "--colorize=mc2", "-i", f"{input_dir}", "-o", f"{managed_output_dir}"]
                         
                         if (options.get("colorize") or options.get("translate").get("state")):
@@ -101,7 +101,6 @@ class Job(Thread):
                                 shutil.rmtree(managed_output_dir)
                                 
                                 
-                                
                                 ComicStorageCache(
                                     source = source,
                                     comic_id = comic_id,
@@ -113,9 +112,26 @@ class Job(Thread):
                                     target_lang = target_lang,
                                     
                                 ).save()
+                                
+                                
+                                query_result_3 = SocketRequestChapterQueueCache.objects.filter(id=query_result.id).first()
+                                channel_name = query_result_3.channel_name if query_result_3 else ""
+                                channel_layer = get_channel_layer()
+                                async_to_sync(channel_layer.send)(channel_name, {
+                                    'type': 'event_send',
+                                    'data': {
+                                        "type": "chapter_ready_to_download",
+                                        "data": {
+                                            "source": source,
+                                            "comic_id": comic_id,
+                                            "chapter_id": chapter_id,
+                                            "chapter_idx": chapter_idx
+                                        }
+                                    }
+                                })
                                 SocketRequestChapterQueueCache.objects.filter(id=query_result.id).delete()
                         else:
-                            input_dir = os.path.join(STORAGE_DIR,source,comic_id,chapter_idx,"original")
+                            input_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),"original")
                             if os.path.exists(input_dir): shutil.rmtree(input_dir)
                             
                             job = web_scrap.source_control["colamanga"].get_chapter.scrap(comic_id=comic_id,chapter_id=chapter_id,output_dir=input_dir)
@@ -139,7 +155,23 @@ class Job(Thread):
                                     target_lang = "",
                                     
                             ).save()
-                            SocketRequestChapterQueueCache.objects.filter(id=query_result.id).delete()             
+                            query_result_3 = SocketRequestChapterQueueCache.objects.filter(id=query_result.id).first()
+                            channel_name = query_result_3.channel_name if query_result_3 else ""
+                            channel_layer = get_channel_layer()
+                            async_to_sync(channel_layer.send)(channel_name, {
+                                'type': 'event_send',
+                                'data': {
+                                    "type": "chapter_ready_to_download",
+                                    "data": {
+                                        "source": source,
+                                        "comic_id": comic_id,
+                                        "chapter_id": chapter_id,
+                                        "chapter_idx": chapter_idx
+                                    }
+                                }
+                            })
+                            SocketRequestChapterQueueCache.objects.filter(id=query_result.id).delete() 
+                              
                         connections['cache'].close()
                 else:
                     connections['cache'].close()
@@ -151,7 +183,7 @@ class Job(Thread):
 
 thread = Job()
 thread.daemon = True
-# thread.start()
+thread.start()
 
 class UpdateSocketQueue(Thread):
     def run(self):

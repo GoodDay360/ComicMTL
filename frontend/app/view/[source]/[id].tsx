@@ -77,10 +77,7 @@ const Index = ({}:any) => {
 
     // Test Section
     useEffect(() => {
-        // console.log("------")
-        // console.log(chapterRequested)
-        // console.log(chapterRequested["manga-kp086237/1/1296.html"]?.state)
-        // console.log("------")
+        
     },[chapterRequested])
 
 
@@ -89,10 +86,11 @@ const Index = ({}:any) => {
     const isDownloading:any = useRef(false)
     useEffect(() => {
         clearInterval(download_chapter_interval.current)
+        
         download_chapter_interval.current = setInterval(() => {
             if (!isDownloading.current){
                 isDownloading.current = true
-                download_chapter(setShowCloudflareTurnstileContext, isDownloading, SOURCE, ID, chapterToDownload, setChapterToDownload, signal)
+                download_chapter(setShowCloudflareTurnstileContext, isDownloading, SOURCE, ID, chapterRequested, setChapterRequested, chapterToDownload, setChapterToDownload, signal)
             }
         },5000)
 
@@ -102,7 +100,7 @@ const Index = ({}:any) => {
     useFocusEffect(useCallback(() => {
         var unsubscribe:any = null
         const handleOpen = (event: any) => {
-            console.log("o",event)
+            
         }
         const handleMessage = async (event: any) => {
             
@@ -118,6 +116,8 @@ const Index = ({}:any) => {
                 const event = result.event
                 if (event.type === "chapter_queue_info"){
                     setChapterQueue(event.chapter_queue)
+                }else if (event.type === "chapter_ready_to_download"){
+                    get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, setChapterToDownload, signal, SOURCE, ID)
                 }
             }
         }
@@ -148,9 +148,6 @@ const Index = ({}:any) => {
         }
     },[]))
 
-    useEffect(() => {
-        console.log(chapterQueue)
-    },[chapterQueue])
 
     const Load_Offline = async () => {
         Toast.show({
@@ -182,7 +179,7 @@ const Index = ({}:any) => {
                     DATA[key] = value
                 }
                 DATA["chapters"] = await ChapterStorage.getAll(`${SOURCE}-${ID}`,{exclude_field:["data","item"]})
-                console.log(DATA)
+                
                 SET_CONTENT(DATA)
                 setIsLoading(false)
                 setFeedBack("")
@@ -231,7 +228,7 @@ const Index = ({}:any) => {
             const stored_comic = await ComicStorage.getByID(SOURCE,ID)
             if (stored_comic) {
                 await get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, setChapterToDownload, signal, SOURCE, ID)
-                // setChapterRequested(stored_comic.chapter_requested)
+                
                 setBookmarked(true)
             }
             else setBookmarked(false)
@@ -547,7 +544,7 @@ const Index = ({}:any) => {
                                 borderColor:Theme[themeTypeContext].border_color,
                             }}
                             onPress={()=>{
-                                setWidgetContext({state:true,component:()=>{return BookmarkWidget(onRefresh,SOURCE,CONTENT)}})
+                                setWidgetContext({state:true,component:()=>{return BookmarkWidget(onRefresh,SOURCE,ID,CONTENT)}})
                             }}
                         >   
                             <>{bookmarked 
@@ -679,10 +676,12 @@ const Index = ({}:any) => {
                                         ID={ID}
                                         chapter={chapter}
                                         signal={signal}
+                                        isDownloading={isDownloading}
                                         chapterRequested={chapterRequested}
                                         setChapterRequested={setChapterRequested}
                                         chapterToDownload={chapterToDownload}
                                         setChapterToDownload={setChapterToDownload}
+                                        setChapterQueue={setChapterQueue}
                                         chapterQueue={chapterQueue}
                                     />
                                 )}</>

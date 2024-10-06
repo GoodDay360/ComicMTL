@@ -81,7 +81,7 @@ def request_info(request):
         for chapter in chapter_requested:
             options = chapter.get("options")
             query_count = SocketRequestChapterQueueCache.objects.filter(socket_id=socket_id, source=source, comic_id=comic_id, chapter_id=chapter.get("chapter_id")).count()
-            if query_count: result_request[chapter.get("chapter_id")] =  "queue"
+            if query_count: result_request[chapter.get("chapter_id")] =  {"state":"queue","chapter_idx":chapter.get("chapter_idx"),"options":options}
             else:
                 query_count = ComicStorageCache.objects.filter(
                     source=source, 
