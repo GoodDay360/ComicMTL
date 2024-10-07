@@ -116,7 +116,7 @@ const ChapterComponent = ({
                 const stored_chapter = await ChapterStorage.get(`${SOURCE}-${ID}`,chapter.id, {exclude_fields:["data"]})
                 if (stored_chapter?.data_state === "completed") {
                     
-                    router.push(`/view/${SOURCE}/${ID}/${chapter.idx}`)
+                    router.push(`/read/${SOURCE}/${ID}/${chapter.idx}`)
                 }else{
                     Toast.show({
                         type: 'info',

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useContext, useRef } from 'react';
-import { useWindowDimensions } from 'react-native';
+import { Platform, useWindowDimensions } from 'react-native';
 
 import { Icon, MD3Colors, Button, Text, TextInput, TouchableRipple, ActivityIndicator } from 'react-native-paper';
 import { View, AnimatePresence } from 'moti';
@@ -661,6 +661,11 @@ export const BookmarkWidget = (onRefresh:any, SOURCE:string | string[],ID:string
                                     style={{backgroundColor:"red",borderRadius:5}} 
                                     onPress={(async ()=>{
                                         setRemoveBookmark({...removeBookmark,removing:false})
+                                        if (Platform.OS !== "web"){
+                                            const comic_dir = FileSystem.documentDirectory + "ComicMTL/" + `${SOURCE}/` + `${ID}/`
+                                            await FileSystem.deleteAsync(comic_dir, { idempotent: true })
+                                        }
+                                        
                                         await ChapterStorage.drop(`${SOURCE}-${CONTENT.id}`)
                                         await ComicStorage.removeByID(SOURCE,CONTENT.id)
                                         

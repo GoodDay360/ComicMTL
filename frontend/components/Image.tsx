@@ -2,7 +2,7 @@ import { useState, useEffect, useContext } from "react"
 import { Image as _Image } from 'expo-image';
 import { View } from "react-native"
 import ImageCacheStorage from "@/constants/module/image_cache_storage";
-import blobToBase64 from "@/constants/module/blob_to_base64";
+import {blobToBase64} from "@/constants/module/file_manager";
 import { Icon, Button } from 'react-native-paper';
 import { ActivityIndicator } from 'react-native-paper';
 import { CONTEXT } from "@/constants/module/context";

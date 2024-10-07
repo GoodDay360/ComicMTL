@@ -8,6 +8,7 @@ import Storage from '@/constants/module/storage';
 import ComicStorage from '@/constants/module/comic_storage';
 import ImageCacheStorage from '@/constants/module/image_cache_storage';
 import ChapterStorage from '@/constants/module/chapter_storage';
+import {blobToBase64} from '@/constants/module/file_manager';
 
 
 
@@ -89,7 +90,7 @@ export const store_comic_cover = async (
     if (result.type === "file_path"){
         const from_path = result.data
         
-        const storage_dir = FileSystem.documentDirectory + "ComicMTL/" + `${source}/` + `${comic_id}/` + `${CONTENT.id}/`;
+        const storage_dir = FileSystem.documentDirectory + "ComicMTL/" + `${source}/` + `${comic_id}/`;
         
         try{
             const dirInfo = await FileSystem.getInfoAsync(storage_dir);
@@ -172,67 +173,71 @@ export const download_chapter = async (
     signal:any
 ) => {
     const API_BASE = await Storage.get("IN_USE_API_BASE")
-    if (Object.keys(chapterToDownload).length){
-        
-        const [chapter_id, request_info]:any = Object.entries(chapterToDownload)[0];
-        
-        await axios({
-            method: 'post',
-            url: `${API_BASE}/api/stream_file/download_chapter/`,
-            responseType: 'blob',
-            headers: {
-                'X-CLOUDFLARE-TURNSTILE-TOKEN': await Storage.get("cloudflare-turnstile-token")
-            },
-            data: {
-                source:source,
-                comic_id:comic_id,
-                chapter_id:chapter_id,
-                chapter_idx:request_info.chapter_idx,
-                options:request_info.options,
-            },
-            onDownloadProgress: (progressEvent) => {
-                const totalLength = progressEvent.total;
-                if (totalLength !== undefined) {
-                    const progress = progressEvent.loaded;
-                    setChapterToDownload({...chapterToDownload,[chapter_id]:{...chapterToDownload[chapter_id],progress:{current:progress,total:totalLength}}})
-                }
-            },
-            timeout: 600000,
-            signal:signal,
-        }).then(async (response) => {
-            const DATA = response.data
-            if (Platform.OS === "web"){
-                await ChapterStorage.update(`${source}-${comic_id}`,chapter_id,{type:"blob", value:DATA}, "completed")
-            }else{
-                // const storage_dir = FileSystem.documentDirectory + "ComicMTL/" + `${}/`;
-            }
-            
 
-            const stored_chapter_requested = (await ComicStorage.getByID(source,comic_id)).chapter_requested
-            const new_chapter_requested = stored_chapter_requested.filter((item:any) => item.chapter_id !== chapter_id);
+    const [chapter_id, request_info]:any = Object.entries(chapterToDownload)[0];
+    
+    await axios({
+        method: 'post',
+        url: `${API_BASE}/api/stream_file/download_chapter/`,
+        responseType: 'blob',
+        headers: {
+            'X-CLOUDFLARE-TURNSTILE-TOKEN': await Storage.get("cloudflare-turnstile-token")
+        },
+        data: {
+            source:source,
+            comic_id:comic_id,
+            chapter_id:chapter_id,
+            chapter_idx:request_info.chapter_idx,
+            options:request_info.options,
+        },
+        onDownloadProgress: (progressEvent) => {
+            const totalLength = progressEvent.total;
+            if (totalLength !== undefined) {
+                const progress = progressEvent.loaded;
+                setChapterToDownload({...chapterToDownload,[chapter_id]:{...chapterToDownload[chapter_id],progress:{current:progress,total:totalLength}}})
+            }
+        },
+        timeout: 600000,
+        signal:signal,
+    }).then(async (response) => {
+        const DATA = response.data
+        if (Platform.OS === "web"){
+            await ChapterStorage.update(`${source}-${comic_id}`,chapter_id,{type:"blob", value:DATA}, "completed")
+        }else{
+            const chapter_dir = FileSystem.documentDirectory + "ComicMTL/" + `${source}/` + `${comic_id}/` + `chapters/`;
+            const dirInfo = await FileSystem.getInfoAsync(chapter_dir);
+            if (!dirInfo.exists) await FileSystem.makeDirectoryAsync(chapter_dir, { intermediates: true });
+            await FileSystem.writeAsStringAsync(chapter_dir + `${request_info.chapter_idx}.zip`, (await blobToBase64(DATA)).split(',')[1], {
+                encoding: FileSystem.EncodingType.Base64,
+            });
+            console.log(JSON.stringify({type:"file_path", value:chapter_dir + `${request_info.chapter_idx}.zip`}))
+            await ChapterStorage.update(`${source}-${comic_id}`,chapter_id,{type:"file_path", value:chapter_dir + `${request_info.chapter_idx}.zip`}, "completed")
+        }
+        
+
+        const stored_chapter_requested = (await ComicStorage.getByID(source,comic_id)).chapter_requested
+        const new_chapter_requested = stored_chapter_requested.filter((item:any) => item.chapter_id !== chapter_id);
+        await ComicStorage.updateChapterQueue(source,comic_id,new_chapter_requested)
+
+        delete chapterRequested[chapter_id]
+        setChapterRequested(chapterRequested)
+
+        
+    }).catch(async (error) => {
+        console.log(error)
+        
+            if (error.status === 511) setShowCloudflareTurnstile(true)
+            else {
+                const chapter_to_download = chapterToDownload
+            delete chapter_to_download[chapter_id]
+            setChapterToDownload(chapter_to_download)
+            
+            const chapter_requested = (await ComicStorage.getByID(source,comic_id)).chapter_requested
+            const new_chapter_requested = chapter_requested.filter((item:any) => item.chapter_id !== chapter_id);
             await ComicStorage.updateChapterQueue(source,comic_id,new_chapter_requested)
-
-            delete chapterRequested[chapter_id]
-            setChapterRequested(chapterRequested)
-
             
-        }).catch(async (error) => {
-            console.log(error)
-            
-                if (error.status === 511) setShowCloudflareTurnstile(true)
-                else {
-                    const chapter_to_download = chapterToDownload
-                delete chapter_to_download[chapter_id]
-                setChapterToDownload(chapter_to_download)
-                
-                const chapter_requested = (await ComicStorage.getByID(source,comic_id)).chapter_requested
-                const new_chapter_requested = chapter_requested.filter((item:any) => item.chapter_id !== chapter_id);
-                await ComicStorage.updateChapterQueue(source,comic_id,new_chapter_requested)
-                
-                isDownloading.current = false
-            }
-        })
-    }else{
-        isDownloading.current = false
-    }
+            isDownloading.current = false
+        }
+    })
+    
 }

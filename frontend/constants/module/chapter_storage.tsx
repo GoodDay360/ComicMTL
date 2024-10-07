@@ -99,6 +99,44 @@ class Chapter_Storage_Web  {
     });
   }
 
+  public static async getByIdx(item: string, idx: number, options?: { exclude_fields?: string[] }): Promise<any | null> {
+    const db = await this.openDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction('dataStore', 'readonly');
+        const store = transaction.objectStore('dataStore');
+        const index = store.index('item'); // Assuming 'item' is the name of the index
+        const request = index.openCursor(IDBKeyRange.only(item));
+
+        request.onsuccess = (event) => {
+            const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+            if (cursor) {
+                
+                const record = cursor.value;
+                if (record.idx === idx) {
+                    if (options?.exclude_fields) {
+                        options.exclude_fields.forEach(field => {
+                            if (record.hasOwnProperty(field)) {
+                                delete record[field];
+                            }
+                        });
+                    }
+                    console.log(cursor)
+                    resolve(record);
+                    return;
+                }
+                cursor.continue();
+            } else {
+                resolve(null);
+            }
+        };
+
+        request.onerror = () => {
+            reject(request.error);
+        };
+    });
+}
+
+
   public static async add(item: string, idx: number, id: string, title: string, data: any): Promise<void> {
     const db = await this.openDB();
     return new Promise((resolve, reject) => {
@@ -211,7 +249,7 @@ class Chapter_Storage_Native {
     }
   }
 
-  async getAll(tableName: string, options?: { exclude_fields?: string[] }): Promise<any[]> {
+  async getAll(tableName: string, options: { exclude_fields: Array<string> }): Promise<any[]> {
     await this.initializeDatabase();
     try {
       const excludeFields = options?.exclude_fields;
@@ -227,11 +265,12 @@ class Chapter_Storage_Native {
         // Construct the SELECT query with the selected columns
         const query = `SELECT ${selectedColumns.join(', ')} FROM "${ensure_safe_table_name(tableName)}" ORDER BY idx`;
         const allRows: Array<any> = await this.db!.getAllAsync(query);
-  
+        allRows.forEach(row => {row.data = JSON.parse(row.data)});
         return allRows.sort((a, b) => a.idx - b.idx).reverse();
       } else {
         // If no fields to exclude, select all columns
         const allRows: Array<any> = await this.db!.getAllAsync(`SELECT * FROM "${ensure_safe_table_name(tableName)}" ORDER BY idx`);
+        if (!options.exclude_fields.includes("data")) allRows.forEach(row => {row.data = JSON.parse(row.data)});
         return allRows.sort((a, b) => a.idx - b.idx).reverse();
       }
     } catch (error) {
@@ -257,17 +296,49 @@ class Chapter_Storage_Native {
             // Construct the SELECT query with the selected columns
             const query = `SELECT ${selectedColumns.join(', ')} FROM "${ensure_safe_table_name(tableName)}" WHERE id = ?`;
             const firstRow = await this.db!.getFirstAsync(query, [id]);
-
+            if (!excludeFields.includes("data")) firstRow.data = JSON.parse(firstRow.data);
             return firstRow || null;
         } else {
             // If no fields to exclude, select all columns
             const firstRow = await this.db!.getFirstAsync(`SELECT * FROM "${ensure_safe_table_name(tableName)}" WHERE id = ?`, [id]);
+            firstRow.data = JSON.parse(firstRow.data);
             return firstRow || null;
         }
     } catch (error) {
         return null; // Return null if table or row does not exist
     }
-}
+  }
+
+  async getByIdx(tableName: string, idx: number, options?: { exclude_fields?: string[] }): Promise<any | null> {
+    await this.initializeDatabase();
+    try {
+        const excludeFields = options?.exclude_fields;
+
+        if (excludeFields && excludeFields.length > 0) {
+            // Get all column names from the table
+            const columnsResult = await this.db!.getAllAsync(`PRAGMA table_info("${ensure_safe_table_name(tableName)}")`);
+            const columns = columnsResult.map((col: any) => col.name);
+
+            // Exclude the specified fields if provided
+            const selectedColumns = columns.filter((col: any) => !excludeFields.includes(col));
+
+            // Construct the SELECT query with the selected columns
+            const query = `SELECT ${selectedColumns.join(', ')} FROM "${ensure_safe_table_name(tableName)}" WHERE idx = ?`;
+            const firstRow = await this.db!.getFirstAsync(query, [idx]);
+            if (!excludeFields.includes("data")) firstRow.data = JSON.parse(firstRow.data);
+            return firstRow || null;
+        } else {
+            // If no fields to exclude, select all columns
+            const firstRow = await this.db!.getFirstAsync(`SELECT * FROM "${ensure_safe_table_name(tableName)}" WHERE idx = ?`, [idx]);
+            firstRow.data = JSON.parse(firstRow.data);
+            return firstRow || null;
+        }
+    } catch (error) {
+        console.log("[Error] Chapter Storage Native (getByIdx): ",error)
+        return null; // Return null if table or row does not exist
+    }
+  }
+
 
 
   async add(tableName: string, idx: number, id: string, title: string, data: string): Promise<void> {
@@ -294,6 +365,7 @@ class Chapter_Storage_Native {
     try {
       const query = `UPDATE "${ensure_safe_table_name(tableName)}" SET data = ?, data_state = ? WHERE id = ?`;
       await this.db!.runAsync(query, [JSON.stringify(data), data_state, id]);
+      console.log(query, [JSON.stringify(data), data_state, id]);
     } catch (error: any) {
       console.log(error.message);
       throw new Error(`Failed to update data: ${error.message}`);
@@ -313,6 +385,7 @@ class Chapter_Storage_Native {
     await this.initializeDatabase();
     try {
       await this.db!.execAsync(`DROP TABLE IF EXISTS "${ensure_safe_table_name(tableName)}"`);
+      
     } catch (error:any) {
       throw new Error(`Failed to drop table: ${error.message}`);
     }

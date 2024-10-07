@@ -35,7 +35,7 @@ import { createSocket, setupSocketNetworkListener } from '../module/socket';
 
 const Index = ({}:any) => {
     const SOURCE = useLocalSearchParams().source;
-    const ID = useLocalSearchParams().id;
+    const ID = useLocalSearchParams().comic_id;
 
     const {showMenuContext, setShowMenuContext}:any = useContext(CONTEXT)
     const {themeTypeContext, setThemeTypeContext}:any = useContext(CONTEXT)
@@ -88,11 +88,11 @@ const Index = ({}:any) => {
         clearInterval(download_chapter_interval.current)
         
         download_chapter_interval.current = setInterval(() => {
-            if (!isDownloading.current){
+            if (!isDownloading.current && Object.keys(chapterToDownload).length){
                 isDownloading.current = true
                 download_chapter(setShowCloudflareTurnstileContext, isDownloading, SOURCE, ID, chapterRequested, setChapterRequested, chapterToDownload, setChapterToDownload, signal)
             }
-        },5000)
+        },1000)
 
         return () => clearInterval(download_chapter_interval.current)
     },[chapterToDownload])
@@ -256,6 +256,7 @@ const Index = ({}:any) => {
 
         if (net_info.isConnected){
             get(setShowCloudflareTurnstileContext, setIsLoading, signal, translate, setFeedBack, SOURCE, ID, SET_CONTENT)
+            get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, setChapterToDownload, signal, SOURCE, ID)
         }else{
             Load_Offline()
         }
