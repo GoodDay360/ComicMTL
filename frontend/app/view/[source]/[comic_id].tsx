@@ -122,7 +122,11 @@ const Index = ({}:any) => {
             }
         }
         if (!socket){
-            createSocket(socketBaseContext, setSocket, handleOpen, handleMessage);
+            NetInfo.fetch().then((state) => {
+                if (state.isConnected) return
+                createSocket(socketBaseContext, setSocket, handleOpen, handleMessage);
+            })
+            
         }else{
            unsubscribe = setupSocketNetworkListener(socketBaseContext, socket, setSocket, handleOpen, handleMessage);
         }

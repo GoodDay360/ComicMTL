@@ -30,7 +30,8 @@ const Index = ({}:any) => {
     const {themeTypeContext, setThemeTypeContext}:any = useContext(CONTEXT)
     const {showCloudflareTurnstileContext, setShowCloudflareTurnstileContext}:any = useContext(CONTEXT)
 
-    const [images, setImages]:any = useState({})
+    const [imagesID, setImagesID]:any = useState([])
+    const images:any = useRef({})
     useEffect(()=>{
         setShowMenuContext(false)
     },[])
@@ -41,6 +42,7 @@ const Index = ({}:any) => {
         console.log(stored_chapter)
         if (stored_chapter?.data_state === "completed"){
             const zip = new JSZip();
+            const file_keys:Array<string> = []
             const files: { [key: string]: string } = {};
 
             if (stored_chapter?.data.type === "blob"){
@@ -50,9 +52,10 @@ const Index = ({}:any) => {
                         continue; // Skip directories
                     }
                     const fileData = await zipContent.files[fileName].async('base64');
+                    file_keys.push(fileName)
                     files[fileName] = "data:image/png;base64," + fileData;
+                    
                 }
-                setImages(files)
 
             }else if (stored_chapter?.data.type === "file_path"){
            
@@ -67,21 +70,21 @@ const Index = ({}:any) => {
                         continue; // Skip directories
                     }
                     const fileData = await zipContent.files[fileName].async('base64');
-                    
+                    file_keys.push(fileName)
                     files[fileName] = "data:image/png;base64," + fileData;;
                 }
-                setImages(files)
-
                 console.log("Done")
             }
+            images.current = files
+            setImagesID(file_keys)
         }
     })()},[])
 
-    const ImageComponent = ({value}:any)=>{
+    const ImageComponent = ({image_key}:any)=>{
         const [layout, setLayout]:any = useState({});
 
         useEffect(()=>{
-            RNImage.getSize(value, (width, height) => {
+            RNImage.getSize(images.current[image_key], (width, height) => {
                 setLayout({ width, height });
             });
 
@@ -97,11 +100,15 @@ const Index = ({}:any) => {
                     backgroundColor:Theme[themeTypeContext].background_color,
                 }}
             >
-                <Image source={{type:"base64",data:value}} 
+                <Image source={{type:"base64",data:images.current[image_key]}} 
                     contentFit="contain"
                     style={{
                         width:Dimensions.width > 720 ? Dimensions.width * 0.8 : "100%",
                         aspectRatio: layout.width / layout.height,
+                    }}
+                    onLoadEnd={()=>{
+                        console.log("CLEANED")
+                        // delete images.current[image_key]
                     }}
                 />
             </View>
@@ -110,19 +117,17 @@ const Index = ({}:any) => {
     }
 
 
-    return (<>{Object.keys(images).length 
+    return (<>{imagesID.length 
         ? <ScrollView  style={{
             width:"100%",
             height:"100%",
             backgroundColor:Theme[themeTypeContext].background_color,
         }}>
-            
-
-                 <>{Object.entries(images).map(([key, value]) => (
-                    
-                    <ImageComponent key={key}  value={value} />
-                    
-                ))}</>
+            <>{imagesID.map((image_key:string, index:number) => (
+                
+                <ImageComponent key={index}  image_key={image_key} />
+                
+            ))}</>
 
             
         </ScrollView>

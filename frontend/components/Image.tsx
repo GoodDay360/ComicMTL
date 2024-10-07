@@ -9,7 +9,7 @@ import { CONTEXT } from "@/constants/module/context";
 
 
 
-const Image = ({source, style, onError, contentFit, transition}:any) => {
+const Image = ({source, style, onError, contentFit, transition, onLoad, onLoadEnd}:any) => {
     const [imageData, setImageData]:any = useState(null)
     const [isError, setIsError]:any = useState(false)
     const {showCloudflareTurnstileContext, setShowCloudflareTurnstileContext}:any = useContext(CONTEXT)
@@ -79,6 +79,8 @@ const Image = ({source, style, onError, contentFit, transition}:any) => {
                         style={style}
                         contentFit={contentFit}
                         transition={transition}
+                        onLoad={onLoad}
+                        onLoadEnd={onLoadEnd}
                     />
                     : <View style={{...style,display:'flex',justifyContent:"center",alignItems:"center"}}>
                         <ActivityIndicator animating={true}/>

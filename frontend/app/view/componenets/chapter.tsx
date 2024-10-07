@@ -53,13 +53,12 @@ const ChapterComponent = ({
 
     const [styles, setStyles]:any = useState("")
     const [is_saved, set_is_saved] = useState(false)
-    const [is_working_on_queue, set_is_working_on_queue] = useState(false)
-
-    useEffect(() => {
-        
-    },[chapterRequested])
+    const [is_net_connected, set_is_net_connected]:any = useState(false)
+    const [is_working_on_queue, set_is_working_on_queue]:any = useState(false)
 
     useEffect(() => {(async () => {
+        const net_info = await NetInfo.fetch()
+        set_is_net_connected(net_info.isConnected)
 
         setStyles(__styles(themeTypeContext,Dimensions))
         const stored_chapter = await ChapterStorage.get(`${SOURCE}-${ID}`,chapter.id, {exclude_fields:["data"]})
@@ -140,122 +139,125 @@ const ChapterComponent = ({
         >
             {chapter.title}
         </Button>
-        {is_saved 
-            ? <Icon source={"content-save-check"} size={((Dimensions.width+Dimensions.height)/2)*0.0425} color={Theme[themeTypeContext].icon_color}/>
-            : <>
-                <>{chapterRequested[chapter.id]?.state === "queue" && !chapterQueue?.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`) 
-                    && <ActivityIndicator animating={true} color={Theme[themeTypeContext].icon_color} />
-                }</>
-                <>{chapterRequested[chapter.id]?.state === "ready" && !chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`) 
-                    && <>{chapterToDownload[chapter.id]?.progress
-                        ? <CircularProgress 
-                            value={chapterToDownload[chapter.id]?.progress.current} 
-                            maxValue={chapterToDownload[chapter.id]?.progress.total}
-                            radius={((Dimensions.width+Dimensions.height)/2)*0.03}
-                            inActiveStrokeColor={Theme[themeTypeContext].border_color}
-                            
-                            showProgressValue={false}
-                            title={"📥"}
-                            titleStyle={{
-                                pointerEvents:"none",
-                                color:Theme[themeTypeContext].text_color,
-                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
-                                fontFamily:"roboto-medium",
-                                textAlign:"center",
-                            }}
-                            onAnimationComplete={()=>{
-                                const chapter_to_download = chapterToDownload
-                                delete chapter_to_download[chapter.id]
-                                setChapterToDownload(chapter_to_download)
-                                set_is_saved(true)
-                                isDownloading.current = false
-                            }}
-                        />
-                        : <ActivityIndicator animating={true} color={"green"} />
+        {is_net_connected || is_saved
+            ? <>{is_saved 
+                ? <Icon source={"content-save-check"} size={((Dimensions.width+Dimensions.height)/2)*0.0425} color={Theme[themeTypeContext].icon_color}/>
+                : <>
+                    <>{chapterRequested[chapter.id]?.state === "queue" && !chapterQueue?.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`) 
+                        && <ActivityIndicator animating={true} color={Theme[themeTypeContext].icon_color} />
                     }</>
-                }</>
-
-                <>{chapterRequested[chapter.id]?.state === "unkown" && !chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`) 
-                    && <TouchableRipple
-                        rippleColor={Theme[themeTypeContext].ripple_color_outlined}
-                        style={{
-                            borderRadius:5,
-                            borderWidth:0,
-                            padding:5,
-                        }}
-                        
-                        onPress={()=>{
-                            Toast.show({
-                                type: 'error',
-                                text1: '❓Request not found in server.',
-                                text2: "You request this chapter but the server doesn't have this in queue.\nTry request again.",
+                    <>{chapterRequested[chapter.id]?.state === "ready" && !chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`) 
+                        && <>{chapterToDownload[chapter.id]?.progress
+                            ? <CircularProgress 
+                                value={chapterToDownload[chapter.id]?.progress.current} 
+                                maxValue={chapterToDownload[chapter.id]?.progress.total}
+                                radius={((Dimensions.width+Dimensions.height)/2)*0.03}
+                                inActiveStrokeColor={Theme[themeTypeContext].border_color}
                                 
-                                position: "bottom",
-                                visibilityTime: 12000,
-                                text1Style:{
-                                    fontFamily:"roboto-bold",
-                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
-                                },
-                                text2Style:{
+                                showProgressValue={false}
+                                title={"📥"}
+                                titleStyle={{
+                                    pointerEvents:"none",
+                                    color:Theme[themeTypeContext].text_color,
+                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
                                     fontFamily:"roboto-medium",
-                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
-                                    
-                                },
-                            });
-                            Request_Download(chapter)
-                        }}
-                    >
-                        <Icon source={"alert-circle"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={"red"}/>
-
-                    </TouchableRipple>
-                }</>
-                
-                <>{chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`)
-                    && <>{chapterQueue.queue[`${SOURCE}-${ID}-${chapter.idx}`]
-                        ? <CircularProgress 
-                            value={100 - (((chapterQueue.queue[`${SOURCE}-${ID}-${chapter.idx}`])*100)/chapterQueue.max_queue)} 
-                            maxValue={100}
-                            radius={((Dimensions.width+Dimensions.height)/2)*0.03}
-                            inActiveStrokeColor={Theme[themeTypeContext].border_color}
-                            
-                        
-                            showProgressValue={false}
-                            title={chapterQueue.queue[`${SOURCE}-${ID}-${chapter.idx}`]}
-                            titleStyle={{
-                                pointerEvents:"none",
-                                color:Theme[themeTypeContext].text_color,
-                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
-                                fontFamily:"roboto-medium",
-                                textAlign:"center",
-                            }}
-                            onAnimationComplete={()=>{
-                                
-                                get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, setChapterToDownload, signal, SOURCE, ID)
-                            }}
-                        />
-                        : <ActivityIndicator animating={true} />
+                                    textAlign:"center",
+                                }}
+                                onAnimationComplete={()=>{
+                                    const chapter_to_download = chapterToDownload
+                                    delete chapter_to_download[chapter.id]
+                                    setChapterToDownload(chapter_to_download)
+                                    set_is_saved(true)
+                                    isDownloading.current = false
+                                }}
+                            />
+                            : <ActivityIndicator animating={true} color={"green"} />
+                        }</>
                     }</>
-                }</>
 
-                <>{!chapterRequested.hasOwnProperty(chapter.id) && !chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`)
-                    ? <TouchableRipple
-                        rippleColor={Theme[themeTypeContext].ripple_color_outlined}
-                        style={{
-                            borderRadius:5,
-                            borderWidth:0,
-                            padding:5,
-                        }}
-                        
-                        onPress={()=>{
-                            Request_Download(chapter)
-                        }}
-                    >
-                        <Icon source={"cloud-download"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={Theme[themeTypeContext].icon_color}/>
+                    <>{chapterRequested[chapter.id]?.state === "unkown" && !chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`) 
+                        && <TouchableRipple
+                            rippleColor={Theme[themeTypeContext].ripple_color_outlined}
+                            style={{
+                                borderRadius:5,
+                                borderWidth:0,
+                                padding:5,
+                            }}
+                            
+                            onPress={()=>{
+                                Toast.show({
+                                    type: 'error',
+                                    text1: '❓Request not found in server.',
+                                    text2: "You request this chapter but the server doesn't have this in queue.\nTry request again.",
+                                    
+                                    position: "bottom",
+                                    visibilityTime: 12000,
+                                    text1Style:{
+                                        fontFamily:"roboto-bold",
+                                        fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
+                                    },
+                                    text2Style:{
+                                        fontFamily:"roboto-medium",
+                                        fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
+                                        
+                                    },
+                                });
+                                Request_Download(chapter)
+                            }}
+                        >
+                            <Icon source={"alert-circle"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={"red"}/>
 
-                    </TouchableRipple>
-                    :<></>
-                }</>
-            </>
+                        </TouchableRipple>
+                    }</>
+                    
+                    <>{chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`)
+                        && <>{chapterQueue.queue[`${SOURCE}-${ID}-${chapter.idx}`]
+                            ? <CircularProgress 
+                                value={100 - (((chapterQueue.queue[`${SOURCE}-${ID}-${chapter.idx}`])*100)/chapterQueue.max_queue)} 
+                                maxValue={100}
+                                radius={((Dimensions.width+Dimensions.height)/2)*0.03}
+                                inActiveStrokeColor={Theme[themeTypeContext].border_color}
+                                
+                            
+                                showProgressValue={false}
+                                title={chapterQueue.queue[`${SOURCE}-${ID}-${chapter.idx}`]}
+                                titleStyle={{
+                                    pointerEvents:"none",
+                                    color:Theme[themeTypeContext].text_color,
+                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
+                                    fontFamily:"roboto-medium",
+                                    textAlign:"center",
+                                }}
+                                onAnimationComplete={()=>{
+                                    
+                                    get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, setChapterToDownload, signal, SOURCE, ID)
+                                }}
+                            />
+                            : <ActivityIndicator animating={true} />
+                        }</>
+                    }</>
+
+                    <>{!chapterRequested.hasOwnProperty(chapter.id) && !chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`)
+                        ? <TouchableRipple
+                            rippleColor={Theme[themeTypeContext].ripple_color_outlined}
+                            style={{
+                                borderRadius:5,
+                                borderWidth:0,
+                                padding:5,
+                            }}
+                            
+                            onPress={()=>{
+                                Request_Download(chapter)
+                            }}
+                        >
+                            <Icon source={"cloud-download"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={Theme[themeTypeContext].icon_color}/>
+
+                        </TouchableRipple>
+                        :<></>
+                    }</>
+                </>
+            }</>
+            : <Icon source={"wifi-off"} size={((Dimensions.width+Dimensions.height)/2)*0.0425} color={Theme[themeTypeContext].icon_color}/>
         }
     </View>}</>
 }

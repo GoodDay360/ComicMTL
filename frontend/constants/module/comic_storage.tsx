@@ -265,7 +265,6 @@ class Comic_Storage_Native {
     public async getByID(source: string, id: string) {
         try {
             const db = await this.DATABASE;
-            
             await db.runAsync('CREATE TABLE IF NOT EXISTS ComicStorage (id TEXT PRIMARY KEY NOT NULL, source TEXT, tag TEXT, info TEXT, chapter_requested TEXT);');
             const DATA: any = await db.getFirstAsync(
                 'SELECT id, source, tag, info, chapter_requested FROM ComicStorage WHERE source = ? AND id = ?;', source, id

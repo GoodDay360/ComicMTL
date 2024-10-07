@@ -266,14 +266,16 @@ class Chapter_Storage_Native {
         const query = `SELECT ${selectedColumns.join(', ')} FROM "${ensure_safe_table_name(tableName)}" ORDER BY idx`;
         const allRows: Array<any> = await this.db!.getAllAsync(query);
         allRows.forEach(row => {row.data = JSON.parse(row.data)});
+        
+        if (options?.exclude_fields && !options?.exclude_fields.includes("data")) allRows.forEach(row => {row.data = JSON.parse(row.data)});
         return allRows.sort((a, b) => a.idx - b.idx).reverse();
       } else {
         // If no fields to exclude, select all columns
         const allRows: Array<any> = await this.db!.getAllAsync(`SELECT * FROM "${ensure_safe_table_name(tableName)}" ORDER BY idx`);
-        if (!options.exclude_fields.includes("data")) allRows.forEach(row => {row.data = JSON.parse(row.data)});
         return allRows.sort((a, b) => a.idx - b.idx).reverse();
       }
     } catch (error) {
+      console.log("[Error] Chapter Storage Native (getAll): ",error)
       return []; // Return empty array if table does not exist
     }
   }
