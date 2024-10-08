@@ -71,7 +71,7 @@ const Index = ({}:any) => {
                     }
                     const fileData = await zipContent.files[fileName].async('base64');
                     file_keys.push(fileName)
-                    files[fileName] = "data:image/png;base64," + fileData;;
+                    files[fileName] = "data:image/png;base64," + fileData;
                 }
                 console.log("Done")
             }

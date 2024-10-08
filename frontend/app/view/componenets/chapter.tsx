@@ -69,9 +69,16 @@ const ChapterComponent = ({
         
         const stored_comic = await ComicStorage.getByID(SOURCE,ID)
         if (stored_comic)  {
-            setWidgetContext({state:true,component:() => RequestChapterWidget(SOURCE,ID,CHAPTER,chapterQueue,setChapterQueue,chapterRequested,setChapterRequested,
-                ()=>{return get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, setChapterToDownload, signal, SOURCE, ID)}
-            )})
+            setWidgetContext({state:true,component:<RequestChapterWidget
+                SOURCE={SOURCE}
+                ID={ID}
+                CHAPTER={CHAPTER}
+                chapterQueue={chapterQueue}
+                setChapterQueue={setChapterQueue}
+                chapterRequested={chapterRequested}
+                setChapterRequested={setChapterRequested}
+                get_requested_info={() => get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, setChapterToDownload, signal, SOURCE, ID)}
+            />})
         }
         else{
             Toast.show({

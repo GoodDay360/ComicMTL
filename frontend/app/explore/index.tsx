@@ -16,9 +16,10 @@ import { CONTEXT } from '@/constants/module/context';
 import { get_list } from '@/app/explore/module/content'
 import { transformAsync } from '@babel/core';
 import { View, AnimatePresence } from 'moti';
+import { PageNavigationWidget } from './components/widgets';
 
 const Index = ({}:any) => {
-    
+    const Dimensions = useWindowDimensions();
 
     const {showMenuContext, setShowMenuContext}:any = useContext(CONTEXT)
     const {themeTypeContext, setThemeTypeContext}:any = useContext(CONTEXT)
@@ -27,7 +28,7 @@ const Index = ({}:any) => {
     const {showCloudflareTurnstileContext, setShowCloudflareTurnstileContext}:any = useContext(CONTEXT)
     
     const [styles, setStyles]:any = useState("")
-    const Dimensions = useWindowDimensions();
+    
 
     const [CONTENT, SET_CONTENT]:any = useState([])
     const [isLoading, setIsLoading]:any = useState(true);
@@ -463,110 +464,8 @@ const Index = ({}:any) => {
                                 borderColor:Theme[themeTypeContext].border_color,
                             }} 
                             onPress={(()=>{
-                                setWidgetContext({state:true,component:()=>{
-                                    const [goToPage, setGoToPage] = useState("");
-                                    const [_feedBack, _setFeedBack] = useState("");
-                                    return (<View 
-                                        style={{
-                                            backgroundColor:Theme[themeTypeContext].background_color,
-                                            maxWidth:500,
-                                            width:"100%",
-                                            
-                                            borderColor:Theme[themeTypeContext].border_color,
-                                            borderWidth:2,
-                                            borderRadius:8,
-                                            padding:12,
-                                            display:"flex",
-                                            justifyContent:"center",
-                                            
-                                            flexDirection:"column",
-                                            gap:12,
-                                        }}>
-                                        <View style={{height:"auto"}}>
-                                            <TextInput mode="outlined" label="Go to page"  textColor={Theme[themeTypeContext].text_color} maxLength={1000000000}
-                                                placeholder="Go to page"
-                                                style={{
-                                                    
-                                                    backgroundColor:Theme[themeTypeContext].background_color,
-                                                    borderColor:Theme[themeTypeContext].border_color,
-                                                    
-                                                }}
-                                                outlineColor={Theme[themeTypeContext].text_input_border_color}
-                                                value={goToPage}
-                                                onChange={(event)=>{
-                                                    
-                                                    const value = event.nativeEvent.text
-                                                    
-                                                    const isInt = /^-?\d+$/.test(value);
-                                                    if (isInt || value === "") {
-                                                        _setFeedBack("")
-                                                        setGoToPage(value)
-                                                    }
-                                                    else _setFeedBack("Input is not a valid number.")
-                                                    
-                                                }}
-                                            />
-                                            
-                                        </View>
-                                        {_feedBack 
-                                            ? <Text 
-                                                style={{
-                                                    color:Theme[themeTypeContext].text_color,
-                                                    fontFamily:"roboto-medium",
-                                                    fontSize:(Dimensions.width+Dimensions.height)/2*0.02,
-                                                    textAlign:"center",
-                                                }}
-                                                
-                                            >{_feedBack}</Text>
-                                            : <></>
-                                        }
-                                        <View 
-                                            style={{
-                                                display:"flex",
-                                                flexDirection:"row",
-                                                width:"100%",
-                                                justifyContent:"space-around",
-                                                alignItems:"center",
-                                            }}
-                                        >
-                                            <Button mode='contained' 
-                                                labelStyle={{
-                                                    color:Theme[themeTypeContext].text_color,
-                                                    fontFamily:"roboto-medium",
-                                                    fontSize:(Dimensions.width+Dimensions.height)/2*0.02
-                                                }} 
-                                                style={{backgroundColor:"red",borderRadius:5}} 
-                                                onPress={(()=>{
-                                                    
-                                                    setWidgetContext({state:false,component:undefined})
-                                                    
-                                                })}
-                                            >Cancel</Button>
-                                            <Button mode='contained' 
-                                            labelStyle={{
-                                                color:Theme[themeTypeContext].text_color,
-                                                fontFamily:"roboto-medium",
-                                                fontSize:(Dimensions.width+Dimensions.height)/2*0.02
-                                            }} 
-                                            style={{backgroundColor:"green",borderRadius:5}} 
-                                            onPress={(()=>{
-                                                const isInt = /^-?\d+$/.test(goToPage);
-                                                
-                                                if (isInt) {
-                                                    if (!parseInt(goToPage)){
-                                                        _setFeedBack("Page is out of index.")
-                                                    }else{
-                                                        setPage(parseInt(goToPage))
-                                                        setWidgetContext({state:false,component:undefined})
-                                                    }
-                                                    
-                                                }else _setFeedBack("Input is not a valid number.")
-                                            })}
-                                        >Go</Button>
-                                        </View>
-                                        
-                                    </View>)
-                                }})
+                                setWidgetContext({state:true,component:<PageNavigationWidget setPage={setPage}/>})
+                                    
                             })}
 
                         >{page}</Button>

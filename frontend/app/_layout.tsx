@@ -65,7 +65,7 @@ export default function RootLayout() {
   const [themeTypeContext,setThemeTypeContext]:any = useState("")
   const [apiBaseContext, setApiBaseContext]:any = useState("")
   const [socketBaseContext, setSocketBaseContext]:any = useState("")
-  const [widgetContext, setWidgetContext]:any = useState({state:false,component:null})
+  const [widgetContext, setWidgetContext]:any = useState({state:false,component:<></>})
   const [showCloudflareTurnstileContext, setShowCloudflareTurnstileContext]:any = useState(false)
 
   const MemoMenu = memo(Menu)
@@ -144,7 +144,7 @@ export default function RootLayout() {
                         padding:15,
                       }}
                       
-                      ><widgetContext.component/></View>
+                      >{widgetContext.component}</View>
                     }
                   </AnimatePresence>
                   <View style={{
