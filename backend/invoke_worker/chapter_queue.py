@@ -17,6 +17,8 @@ import requests, environ, os, subprocess, shutil, zipfile, uuid
 
 env = environ.Env()
 
+# os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
 STORAGE_DIR = os.path.join(BASE_DIR,"storage")
 
 MAX_STORAGE_SIZE = 20 * 1024**3
@@ -66,18 +68,23 @@ class Job(Thread):
                         
                         input_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),"temp")
                         
+                        script = []
+                        
                         if (options.get("translate").get("state") and options.get("colorize")):
                             
                             managed_output_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),f"{options.get("translate").get("target")}_translated_colorized")
-                            script = ["python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--no-text-lang-skip", "--use-mocr-merge", "--det-auto-rotate", "--det-gamma-correct", "--manga2eng", "--colorize=mc2", "--translator=m2m100_big", "-l", f"{options.get("translate").get("target")}", "-i", f"{input_dir}", "-o", f"{managed_output_dir}"]
+                            script = ["python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--no-text-lang-skip", "--use-mocr-merge", "--det-auto-rotate", "--det-gamma-correct", "--colorize=mc2", "--translator=m2m100_big", "-l", f"{options.get("translate").get("target")}", "-i", f"{input_dir}", "-o", f"{managed_output_dir}"]
                         elif (options.get("translate").get("state") and not options.get("colorize")):
                             
                             managed_output_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),f"{options.get("translate").get("target")}_translated")
-                            script = ["python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--no-text-lang-skip", "--use-mocr-merge", "--det-auto-rotate", "--det-gamma-correct", "--manga2eng", "--translator=m2m100_big", "-l", f"{options.get("translate").get("target")}", "-i", f"{input_dir}", "-o", f"{managed_output_dir}"]
+                            script = ["python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--no-text-lang-skip", "--use-mocr-merge", "--det-auto-rotate", "--det-gamma-correct", "--translator=m2m100_big", "-l", f"{options.get("translate").get("target")}", "-i", f"{input_dir}", "-o", f"{managed_output_dir}"]
                         elif (options.get("colorize") and not options.get("translate").get("state")):
                             
                             managed_output_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),"colorized")
-                            script = ["python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--no-text-lang-skip", "--use-mocr-merge", "--det-auto-rotate", "--det-gamma-correct", "--manga2eng", "--colorize=mc2", "-i", f"{input_dir}", "-o", f"{managed_output_dir}"]
+                            script = ["python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--no-text-lang-skip", "--use-mocr-merge", "--det-auto-rotate", "--det-gamma-correct", "--colorize=mc2", "-i", f"{input_dir}", "-o", f"{managed_output_dir}"]
+                        
+                        if target_lang == "ENG": script.append("--manga2eng")
+                            
                         
                         if (options.get("colorize") or options.get("translate").get("state")):
                             if os.path.exists(input_dir): shutil.rmtree(input_dir)
