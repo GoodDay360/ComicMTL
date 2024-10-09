@@ -9,6 +9,7 @@ from PIL import Image
 from backend.module.utils import date_utils
 
 import json,time, threading,os, uuid, sqlite3, io, base64
+MAX_TIMEOUT = 10
 
 scraper = None
 
@@ -76,12 +77,17 @@ def scrap(comic_id:str="",chapter_id:str="",output_dir:str=""):
             url = image_element.get_attribute("src")
             if not url: continue
             if url.split(":")[0] == "blob":
+                timeout = 0
                 while True:
+                    if timeout >= MAX_TIMEOUT: raise Exception('#1 Timed out!')
                     is_image_loaded = driver.execute_script(
                         "return arguments[0].complete", 
                         image_element
                     )
                     if is_image_loaded: break
+                    
+                    timeout += 1
+                    time.sleep(1)
                 blob_list.append(url)
         
         
