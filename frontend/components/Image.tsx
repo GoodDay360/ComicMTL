@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from "react"
+import { useState, useEffect, useContext, useCallback } from "react"
 import { Image as _Image } from 'expo-image';
 import { View } from "react-native"
 import ImageCacheStorage from "@/constants/module/image_cache_storage";
@@ -6,6 +6,7 @@ import {blobToBase64} from "@/constants/module/file_manager";
 import { Icon, Button } from 'react-native-paper';
 import { ActivityIndicator } from 'react-native-paper';
 import { CONTEXT } from "@/constants/module/context";
+import { useFocusEffect } from "expo-router";
 
 
 
@@ -48,12 +49,14 @@ const Image = ({source, style, onError, contentFit, transition, onLoad, onLoadEn
         
     }
 
-    useEffect(()=>{
-        request_image()
-        
+    useFocusEffect(useCallback(() => {
         return () => {
             controller.abort();
         };
+    },[]))
+
+    useEffect(()=>{
+        request_image()
     },[])
 
     return ( <>

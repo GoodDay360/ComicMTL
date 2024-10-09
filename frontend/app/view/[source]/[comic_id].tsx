@@ -148,7 +148,6 @@ const Index = ({}:any) => {
     useFocusEffect(useCallback(() => {
         return () => {
             controller.abort();
-            console.log("ALL REQUEST ABORTED")
         }
     },[]))
 
@@ -260,7 +259,7 @@ const Index = ({}:any) => {
 
         if (net_info.isConnected){
             get(setShowCloudflareTurnstileContext, setIsLoading, signal, translate, setFeedBack, SOURCE, ID, SET_CONTENT)
-            get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, setChapterToDownload, signal, SOURCE, ID)
+            if (stored_comic) get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, setChapterToDownload, signal, SOURCE, ID)
         }else{
             Load_Offline()
         }

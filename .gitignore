@@ -4,6 +4,7 @@ venv/
 frontend/.git
 .env
 .cache
+.git
 *.sqlite3
 
 temp/

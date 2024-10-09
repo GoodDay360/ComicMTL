@@ -76,6 +76,7 @@ const Index = ({}:any) => {
                 console.log("Done")
             }
             images.current = files
+            file_keys.sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
             setImagesID(file_keys)
         }
     })()},[])
