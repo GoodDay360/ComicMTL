@@ -75,7 +75,6 @@ def request_info(request):
         comic_id = payload.get("comic_id")
         chapter_requested = payload.get("chapter_requested")
         
-        print(payload)
         
         result_request = {}
         for chapter in chapter_requested:
@@ -83,7 +82,7 @@ def request_info(request):
             query_count = SocketRequestChapterQueueCache.objects.filter(socket_id=socket_id, source=source, comic_id=comic_id, chapter_id=chapter.get("chapter_id")).count()
             if query_count: result_request[chapter.get("chapter_id")] =  {"state":"queue","chapter_idx":chapter.get("chapter_idx"),"options":options}
             else:
-                query_count = ComicStorageCache.objects.filter(
+                query_result = ComicStorageCache.objects.filter(
                     source=source, 
                     comic_id=comic_id, 
                     chapter_id=chapter.get("chapter_id"),
@@ -91,10 +90,17 @@ def request_info(request):
                     colorize=options.get("colorize"),
                     translate=options.get("translate").get("state"),
                     target_lang = options.get("translate").get("target") if options.get("translate").get("state") else ""
-                ).count()
+                ).first()
                 
-                if query_count: result_request[chapter.get("chapter_id")] = {"state":"ready","chapter_idx":chapter.get("chapter_idx"),"options":options}
-                else: result_request[chapter.get("chapter_id")] = {"state":"unkown","chapter_idx":chapter.get("chapter_idx"),"options":options}
+                if query_result:
+                    file_path = query_result.file_path
+                    if os.path.exists(file_path): 
+                        result_request[chapter.get("chapter_id")] = {"state":"ready","chapter_idx":chapter.get("chapter_idx"),"options":options}
+                    else:
+                        ComicStorageCache.objects.filter(id=query_result.id).delete()
+                        result_request[chapter.get("chapter_id")] = {"state":"unkown","chapter_idx":chapter.get("chapter_idx"),"options":options}
+                else:
+                    result_request[chapter.get("chapter_id")] = {"state":"unkown","chapter_idx":chapter.get("chapter_idx"),"options":options}
         return JsonResponse(result_request)
         
     except Exception as e: 

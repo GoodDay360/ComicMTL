@@ -64,25 +64,24 @@ class Job(Thread):
                         connections['cache'].close()
                     else:
                         connections['cache'].close()
-                        print(socket_id, channel_name, source, comic_id , chapter_id, options)
-                        
-                        input_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),"temp")
                         
                         script = []
+                        
+                        input_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),"temp")
                         
                         if (options.get("translate").get("state") and options.get("colorize")):
                             
                             managed_output_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),f"{options.get("translate").get("target")}_translated_colorized")
-                            script = ["python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--no-text-lang-skip", "--use-mocr-merge", "--det-auto-rotate", "--det-gamma-correct", "--colorize=mc2", "--translator=m2m100_big", "-l", f"{options.get("translate").get("target")}", "-i", f"{input_dir}", "-o", f"{managed_output_dir}"]
+                            script = ["python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--ocr=mocr", "--no-text-lang-skip", "--det-auto-rotate", "--det-gamma-correct", "--colorize=mc2", "--translator=m2m100_big", "-l", f"{options.get("translate").get("target")}", "-i", f"{input_dir}", "-o", f"{managed_output_dir}"]
                         elif (options.get("translate").get("state") and not options.get("colorize")):
                             
                             managed_output_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),f"{options.get("translate").get("target")}_translated")
-                            script = ["python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--no-text-lang-skip", "--use-mocr-merge", "--det-auto-rotate", "--det-gamma-correct", "--translator=m2m100_big", "-l", f"{options.get("translate").get("target")}", "-i", f"{input_dir}", "-o", f"{managed_output_dir}"]
+                            script = ["python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--ocr=mocr", "--no-text-lang-skip", "--det-auto-rotate", "--det-gamma-correct", "--translator=m2m100_big", "-l", f"{options.get("translate").get("target")}", "-i", f"{input_dir}", "-o", f"{managed_output_dir}"]
                         elif (options.get("colorize") and not options.get("translate").get("state")):
                             
                             managed_output_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),"colorized")
-                            script = ["python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--no-text-lang-skip", "--use-mocr-merge", "--det-auto-rotate", "--det-gamma-correct", "--colorize=mc2", "-i", f"{input_dir}", "-o", f"{managed_output_dir}"]
-                        
+                            script = ["python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--ocr=mocr", "--no-text-lang-skip", "--det-auto-rotate", "--det-gamma-correct", "--colorize=mc2", "-i", f"{input_dir}", "-o", f"{managed_output_dir}"]
+
                         if target_lang == "ENG": script.append("--manga2eng")
                             
                         
