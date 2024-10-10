@@ -31,6 +31,8 @@ import { createSocket, setupSocketNetworkListener } from '../module/socket';
 const ChapterComponent = ({
     SOURCE,
     ID,
+    page,
+    sort,
     chapter,
     signal,
     isDownloading,
@@ -63,7 +65,14 @@ const ChapterComponent = ({
         setStyles(__styles(themeTypeContext,Dimensions))
         const stored_chapter = await ChapterStorage.get(`${SOURCE}-${ID}`,chapter.id, {exclude_fields:["data"]})
         if (stored_chapter?.data_state === "completed") set_is_saved(true)
+        else set_is_saved(false)
     })()}, [])
+
+    useEffect(()=>{(async () => {
+        const stored_chapter = await ChapterStorage.get(`${SOURCE}-${ID}`,chapter.id, {exclude_fields:["data"]})
+        if (stored_chapter?.data_state === "completed") set_is_saved(true)
+        else set_is_saved(false)
+    })()},[page,sort])
 
     const Request_Download = async (CHAPTER:any) => {
         

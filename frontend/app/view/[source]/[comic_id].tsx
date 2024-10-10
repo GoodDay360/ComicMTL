@@ -684,6 +684,8 @@ const Index = ({}:any) => {
                                         key={index}
                                         SOURCE={SOURCE}
                                         ID={ID}
+                                        page={page}
+                                        sort={sort}
                                         chapter={chapter}
                                         signal={signal}
                                         isDownloading={isDownloading}

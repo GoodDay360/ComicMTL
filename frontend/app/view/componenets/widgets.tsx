@@ -41,7 +41,28 @@ export const PageNavigationWidget = ({MAX_OFFSET,setPage,CONTENT}:any) =>{
             
             flexDirection:"column",
             gap:12,
-        }}>
+        }}
+        from={{
+            opacity: 0,
+            scale: 0.9,
+        }}
+        animate={{
+            opacity: 1,
+            scale: 1,
+        }}
+        exit={{
+            opacity: 0,
+            scale: 0.5,
+        }}
+        transition={{
+            type: 'timing',
+            duration: 500,
+        }}
+        exitTransition={{
+            type: 'timing',
+            duration: 250,
+        }}
+    >
         <View style={{height:"auto"}}>
             <TextInput mode="outlined" label="Go to page"  textColor={Theme[themeTypeContext].text_color} maxLength={1000000000}
                 placeholder="Go to page"
