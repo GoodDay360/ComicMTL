@@ -9,14 +9,14 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 from backend.module.utils import date_utils
-__Lock = threading.Lock()
+
 
 scraper = None
 
 def scrap(id:int=1):
     if not id: raise ValueError("The 'id' parameter is required.")
     global scraper
-    __Lock.acquire()
+
     try:
         url = f"https://www.colamanga.com/{id}/"
         
@@ -75,7 +75,7 @@ def scrap(id:int=1):
         line_number = exc_tb.tb_lineno
         print(f"Error on line {line_number}: {e}")
         raise Exception(e) 
-    finally: __Lock.release()
+    finally: pass
 
 if __name__ == "__main__":
     DATA = scrap(page=1,search="妖")

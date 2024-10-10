@@ -36,4 +36,17 @@ class SequentialRequestMiddleware:
         request_type = request.scope.get("type")
         request_path = request.path
 
-        return self.get_response(request)
+        if request_type == "http":
+            
+            with TimeoutContext(30) as executor:
+                self.__Lock.acquire()
+                try:
+                    resposne =  executor.run(self.get_response,request)
+                    self.__Lock.release()
+                    return resposne
+
+                except: 
+                    self.__Lock.release()
+                    return HttpResponseBadRequest("Timeout", status=403)
+            
+        else: return self.get_response(request)

@@ -13,7 +13,7 @@ MAX_TIMEOUT = 10
 
 scraper = None
 
-__Lock = threading.Lock()
+
 
 def __scrollToBottom(driver:object=None):
     if not driver: raise ValueError("The 'driver' argument is required.")
@@ -57,7 +57,7 @@ def scrap(comic_id:str="",chapter_id:str="",output_dir:str=""):
     if not output_dir: raise ValueError("The 'output_dir' parameter is required.")
     global scraper
     
-    __Lock.acquire()
+
     try:
         url = f"https://www.colamanga.com/{chapter_id}"
         
@@ -118,7 +118,7 @@ def scrap(comic_id:str="",chapter_id:str="",output_dir:str=""):
                 
                 
         return {"status":"success"}
-    finally: __Lock.release()
+    finally: pass
 
 if __name__ == "__main__":
     DATA = scrap(chapter_id="manga-gu881388",chapter=334)

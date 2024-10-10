@@ -1,10 +1,11 @@
-import React, { useEffect, useState, useCallback, useContext, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useContext, useRef, useMemo } from 'react';
 import { Link, router, useLocalSearchParams, useNavigation, useFocusEffect } from 'expo-router';
-import { Image as RNImage, StyleSheet, useWindowDimensions, ScrollView, Pressable, RefreshControl, Platform } from 'react-native';
+import { Image as RNImage, StyleSheet, useWindowDimensions, ScrollView, Pressable, RefreshControl, Platform, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Icon, MD3Colors, Button, Text, TextInput, TouchableRipple } from 'react-native-paper';
 import CircularProgress from 'react-native-circular-progress-indicator';
 import { ActivityIndicator } from 'react-native-paper';
+import { FlashList } from "@shopify/flash-list";
 
 import uuid from 'react-native-uuid';
 import Toast from 'react-native-toast-message';
@@ -17,14 +18,17 @@ import JSZip from 'jszip';
 import ChapterStorage from '@/constants/module/chapter_storage';
 import Image from '@/components/Image';
 import {CONTEXT} from '@/constants/module/context';
-import {blobToBase64, base64ToBlob} from "@/constants/module/file_manager";
+import {blobToBase64, base64ToBlob, getImageLayout} from "@/constants/module/file_manager";
 import Theme from '@/constants/theme';
+
+import ChapterImage from '../../components/chapter_image';
 
 const Index = ({}:any) => {
     const SOURCE = useLocalSearchParams().source;
     const COMIC_ID = useLocalSearchParams().comic_id;
     const CHAPTER_IDX = Number(useLocalSearchParams().chapter_idx as string);
     const Dimensions = useWindowDimensions();
+    const StaticDimensions = useMemo(() => Dimensions, [])
 
     const {showMenuContext, setShowMenuContext}:any = useContext(CONTEXT)
     const {themeTypeContext, setThemeTypeContext}:any = useContext(CONTEXT)
@@ -43,7 +47,7 @@ const Index = ({}:any) => {
         if (stored_chapter?.data_state === "completed"){
             const zip = new JSZip();
             const file_keys:Array<string> = []
-            const files: { [key: string]: string } = {};
+            const files: { [key: string]: any } = {};
 
             if (stored_chapter?.data.type === "blob"){
                 const zipContent = await zip.loadAsync(stored_chapter?.data.value);
@@ -53,7 +57,10 @@ const Index = ({}:any) => {
                     }
                     const fileData = await zipContent.files[fileName].async('base64');
                     file_keys.push(fileName)
-                    files[fileName] = "data:image/png;base64," + fileData;
+                    files[fileName] = {
+                        layout: await getImageLayout("data:image/png;base64," + fileData),
+                        data: "data:image/png;base64," + fileData
+                    };
                     
                 }
 
@@ -71,7 +78,10 @@ const Index = ({}:any) => {
                     }
                     const fileData = await zipContent.files[fileName].async('base64');
                     file_keys.push(fileName)
-                    files[fileName] = "data:image/png;base64," + fileData;
+                    files[fileName] = {
+                        layout: await getImageLayout("data:image/png;base64," + fileData),
+                        data: "data:image/png;base64," + fileData
+                    };
                 }
                 console.log("Done")
             }
@@ -81,57 +91,35 @@ const Index = ({}:any) => {
         }
     })()},[])
 
-    const ImageComponent = ({image_key}:any)=>{
-        const [layout, setLayout]:any = useState({});
+    useFocusEffect(useCallback(() => {
+        return () => {
+            images.current = {}
+        }
+    },[]))
 
-        useEffect(()=>{
-            RNImage.getSize(images.current[image_key], (width, height) => {
-                setLayout({ width, height });
-            });
-
-        },[])
-
-        return <>{Object.keys(layout).length 
-            ? <View
-                style={{
-                    width:"100%",
-                    height:"auto",
-                    display:"flex",
-                    alignItems:"center",
-                    backgroundColor:Theme[themeTypeContext].background_color,
-                }}
-            >
-                <Image source={{type:"base64",data:images.current[image_key]}} 
-                    contentFit="contain"
-                    style={{
-                        width:Dimensions.width > 720 ? Dimensions.width * 0.8 : "100%",
-                        aspectRatio: layout.width / layout.height,
-                    }}
-                    onLoadEnd={()=>{
-                        console.log("CLEANED")
-                        // delete images.current[image_key]
-                    }}
-                />
-            </View>
-            : <></>
-        }</>
-    }
-
+    const renderItem = useCallback(({ item, index }:any) => {
+        return (
+            <ChapterImage key={index} image_data={images.current[item].data} layout={images.current[item].layout}/>
+        )
+    }, [])
 
     return (<>{imagesID.length 
-        ? <ScrollView  style={{
-            width:"100%",
-            height:"100%",
-            backgroundColor:Theme[themeTypeContext].background_color,
-        }}>
-            <>{imagesID.map((image_key:string, index:number) => (
-                
-                <ImageComponent key={index}  image_key={image_key} />
-                
-            ))}</>
+        ? <View
+            style={{
+                width:"100%",
+                height:"100%",
+                backgroundColor:Theme[themeTypeContext].background_color,
+            }}
+        >
+            <FlashList 
+                data={imagesID}
+                renderItem={renderItem}
+                estimatedItemSize={StaticDimensions.height}
+            />
 
-            
-        </ScrollView>
+        </View>
+        
+
         :<View style={{zIndex:5,width:"100%",height:"100%",display:"flex",justifyContent:"center",alignItems:"center",backgroundColor:Theme[themeTypeContext].background_color}}>
             <Image setShowCloudflareTurnstile={setShowCloudflareTurnstileContext} source={require("@/assets/gif/cat-loading.gif")} style={{width:((Dimensions.width+Dimensions.height)/2)*0.15,height:((Dimensions.width+Dimensions.height)/2)*0.15}}/>
         </View>

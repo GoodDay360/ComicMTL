@@ -10,7 +10,7 @@ import json, base64, os, sys, time, threading
 
 MAX_TIMEOUT = 10
 
-__Lock = threading.Lock()
+
 
 scraper = None
 def scrap(id:int=None,cover_id:int=None):
@@ -18,7 +18,7 @@ def scrap(id:int=None,cover_id:int=None):
     if not cover_id: raise ValueError("The 'url' parameter is required.")
     global scraper
     
-    __Lock.acquire()
+
     
     try:
         url = f"https://www.colamanga.com/{id}/"
@@ -92,7 +92,7 @@ def scrap(id:int=None,cover_id:int=None):
         line_number = exc_tb.tb_lineno
         print(f"Error on line {line_number}: {e}")
         raise Exception(e) 
-    finally: __Lock.release()
+    finally: pass
 if __name__ == "__main__":
     # DATA = scrap(page=1,search="妖")
     pass

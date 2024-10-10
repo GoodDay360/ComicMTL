@@ -7,7 +7,7 @@ from core.settings import BASE_DIR
 
 from backend.module.utils import date_utils
 
-__Lock = threading.Lock()
+
 
 scraper = None
 
@@ -15,7 +15,7 @@ def scrap(search:str="",page:int=1):
     if not search: raise ValueError("The 'search' parameter is required.")
     global scraper
     
-    __Lock.acquire()
+
 
     try:
         url = f"https://www.colamanga.com/search?type={search.get("type")}&page={page}&searchString={search.get("text").replace(" ", "%20")}"
@@ -52,7 +52,7 @@ def scrap(search:str="",page:int=1):
     except Exception as e: 
 
         raise Exception(e)
-    except: __Lock.release()
+    except: pass
 
 if __name__ == "__main__":
     DATA = scrap(page=1,search="妖")

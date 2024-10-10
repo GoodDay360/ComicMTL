@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 import threading
 
 
-__Lock = threading.Lock()
+
 
 scraper = None
 
@@ -14,7 +14,7 @@ scraper = None
 def scrap(orderBy:str="monthlyCount",page:int=1):
     global scraper
     
-    __Lock.acquire()
+
     try:
         url = f"https://www.colamanga.com/show?orderBy={orderBy}&page={page}"
         
@@ -47,4 +47,4 @@ def scrap(orderBy:str="monthlyCount",page:int=1):
         return DATA
     except Exception as e: 
         raise Exception(e)
-    finally: __Lock.release()
+    finally: pass
