@@ -188,7 +188,6 @@ class Job(Thread):
                         connections['cache'].close()
                 else:
                     connections['cache'].close()
-                    sleep(5)
             except Exception as e: 
                 print("[Error] Chapter Queue Socket:", e) 
                 if (input_dir): 
