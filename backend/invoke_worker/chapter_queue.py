@@ -26,6 +26,8 @@ MAX_STORAGE_SIZE = 20 * 1024**3
 class Job(Thread):
     def run(self):
         while True: 
+            input_dir = ""
+            managed_output_dir = ""
             try:
                 
                 query_result = SocketRequestChapterQueueCache.objects.order_by("datetime").first()
@@ -85,6 +87,7 @@ class Job(Thread):
                         if target_lang == "ENG": script.append("--manga2eng")
                             
                         
+                        
                         if (options.get("colorize") or options.get("translate").get("state")):
                             if os.path.exists(input_dir): shutil.rmtree(input_dir)
                             if os.path.exists(managed_output_dir): shutil.rmtree(managed_output_dir)
@@ -93,7 +96,11 @@ class Job(Thread):
                             if job.get("status") == "success":
                                 subprocess.run(
                                     script,
-                                    cwd=os.path.join(BASE_DIR,"backend","module","utils","image_translator"), shell=True, check=True
+                                    cwd=os.path.join(BASE_DIR,"backend","module","utils","image_translator"), 
+                                    shell=True, 
+                                    check=True,
+                                    capture_output=True,
+                                    text=True,
                                 )
                                 os.makedirs(managed_output_dir,exist_ok=True)
                                 shutil.rmtree(input_dir)
@@ -183,7 +190,23 @@ class Job(Thread):
                     connections['cache'].close()
                     sleep(5)
             except Exception as e: 
-                print(e) 
+                print("[Error] Chapter Queue Socket:", e) 
+                if (input_dir): 
+                    if os.path.exists(input_dir): shutil.rmtree(input_dir) 
+                if (managed_output_dir):
+                    if os.path.exists(managed_output_dir): shutil.rmtree(managed_output_dir)
+                query_result_3 = SocketRequestChapterQueueCache.objects.filter(id=query_result.id).first()
+                channel_name = query_result_3.channel_name if query_result_3 else ""
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.send)(channel_name, {
+                    'type': 'event_send',
+                    'data': {
+                        "type": "chapter_ready_to_download",
+                        "data": {"state":"error"}
+                    }
+                })
+                
+                SocketRequestChapterQueueCache.objects.filter(id=query_result.id).delete() 
                 connections['cache'].close()
                 sleep(10)
 

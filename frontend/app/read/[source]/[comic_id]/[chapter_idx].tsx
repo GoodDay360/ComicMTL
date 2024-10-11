@@ -115,6 +115,7 @@ const Index = ({}:any) => {
                 data={imagesID}
                 renderItem={renderItem}
                 estimatedItemSize={StaticDimensions.height}
+                
             />
 
         </View>

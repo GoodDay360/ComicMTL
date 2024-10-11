@@ -115,6 +115,7 @@ const Index = ({}:any) => {
                 if (!stored_comic) return
                 const event = result.event
                 if (event.type === "chapter_queue_info"){
+                    console.log(event.chapter_queue)
                     setChapterQueue(event.chapter_queue)
                 }else if (event.type === "chapter_ready_to_download"){
                     get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, setChapterToDownload, signal, SOURCE, ID)
@@ -123,7 +124,7 @@ const Index = ({}:any) => {
         }
         if (!socket){
             NetInfo.fetch().then((state) => {
-                if (state.isConnected) return
+                if (!state.isConnected) return
                 createSocket(socketBaseContext, setSocket, handleOpen, handleMessage);
             })
             

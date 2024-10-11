@@ -167,7 +167,7 @@ const ChapterComponent = ({
                             ? <CircularProgress 
                                 value={chapterToDownload[chapter.id]?.progress.current} 
                                 maxValue={chapterToDownload[chapter.id]?.progress.total}
-                                radius={((Dimensions.width+Dimensions.height)/2)*0.03}
+                                radius={((Dimensions.width+Dimensions.height)/2)*0.0225}
                                 inActiveStrokeColor={Theme[themeTypeContext].border_color}
                                 
                                 showProgressValue={false}
@@ -231,7 +231,7 @@ const ChapterComponent = ({
                             ? <CircularProgress 
                                 value={100 - (((chapterQueue.queue[`${SOURCE}-${ID}-${chapter.idx}`])*100)/chapterQueue.max_queue)} 
                                 maxValue={100}
-                                radius={((Dimensions.width+Dimensions.height)/2)*0.03}
+                                radius={((Dimensions.width+Dimensions.height)/2)*0.0225}
                                 inActiveStrokeColor={Theme[themeTypeContext].border_color}
                                 
                             

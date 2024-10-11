@@ -41,7 +41,9 @@ const ChapterImage = ({image_data, layout}:any)=>{
                 height:"auto",
                 display:"flex",
                 alignItems:"center",
-                backgroundColor:Theme[themeTypeContext].background_color,
+                padding:0,
+                margin:0,
+                borderWidth:0,
             }}
         >
             <Image source={{type:"base64",data:image_data}} 

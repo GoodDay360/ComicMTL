@@ -282,11 +282,31 @@ get_requested_info
 
                         label='Target Language' 
                         data={[
-                            { 
-                                label: "English", 
-                                value: 'ENG' 
-                            },
-                            
+                            { label: "Chinese (Simplified)", value: "CHS" },
+                            { label: "Chinese (Traditional)", value: "CHT" },
+                            { label: "Czech", value: "CSY" },
+                            { label: "Dutch", value: "NLD" },
+                            { label: "English", value: "ENG" },
+                            { label: "French", value: "FRA" },
+                            { label: "German", value: "DEU" },
+                            { label: "Hungarian", value: "HUN" },
+                            { label: "Italian", value: "ITA" },
+                            { label: "Japanese", value: "JPN" },
+                            { label: "Korean", value: "KOR" },
+                            { label: "Polish", value: "PLK" },
+                            { label: "Portuguese (Brazil)", value: "PTB" },
+                            { label: "Romanian", value: "ROM" },
+                            { label: "Russian", value: "RUS" },
+                            { label: "Spanish", value: "ESP" },
+                            { label: "Turkish", value: "TRK" },
+                            { label: "Ukrainian", value: "UKR" },
+                            { label: "Vietnamese", value: "VIN" },
+                            { label: "Arabic", value: "ARA" },
+                            { label: "Serbian", value: "SRP" },
+                            { label: "Croatian", value: "HRV" },
+                            { label: "Thai", value: "THA" },
+                            { label: "Indonesian", value: "IND" },
+                            { label: "Filipino (Tagalog)", value: "FIL" }
                         ]}
                         value={translate.target}
                         onChange={async (item:any) => {
