@@ -14,6 +14,8 @@ import * as Clipboard from 'expo-clipboard';
 import * as FileSystem from 'expo-file-system';
 import NetInfo from "@react-native-community/netinfo";
 import JSZip from 'jszip';
+import { Marquee } from '@animatereactnative/marquee';
+import { Slider } from '@rneui/themed';
 
 import ChapterStorage from '@/constants/module/chapter_storage';
 import Image from '@/components/Image';
@@ -29,18 +31,23 @@ const Index = ({}:any) => {
     const CHAPTER_IDX = Number(useLocalSearchParams().chapter_idx as string);
     const Dimensions = useWindowDimensions();
     const StaticDimensions = useMemo(() => Dimensions, [])
+    
 
     const {showMenuContext, setShowMenuContext}:any = useContext(CONTEXT)
     const {themeTypeContext, setThemeTypeContext}:any = useContext(CONTEXT)
     const {showCloudflareTurnstileContext, setShowCloudflareTurnstileContext}:any = useContext(CONTEXT)
 
+    const [showOptions, setShowOptions]:any = useState(false)
     const [imagesID, setImagesID]:any = useState([])
+    const [zoom, setZoom]:any = useState(0)
+
     const images:any = useRef({})
     useEffect(()=>{
         setShowMenuContext(false)
     },[])
 
     useEffect(()=>{(async () => {
+        // return
         console.log(SOURCE,COMIC_ID,CHAPTER_IDX)
         const stored_chapter = await ChapterStorage.getByIdx(`${SOURCE}-${COMIC_ID}`,CHAPTER_IDX)   
         console.log(stored_chapter)
@@ -91,34 +98,220 @@ const Index = ({}:any) => {
         }
     })()},[])
 
+    useEffect(()=>{
+        if (!imagesID.length){
+            images.current = {}
+        }
+    },[imagesID])
+
     useFocusEffect(useCallback(() => {
         return () => {
-            images.current = {}
+            setImagesID([])
+            
         }
     },[]))
 
     const renderItem = useCallback(({ item, index }:any) => {
         return (
-            <ChapterImage key={index} image_data={images.current[item].data} layout={images.current[item].layout}/>
+            <ChapterImage key={index} image_data={images.current[item].data} layout={images.current[item].layout} zoom={zoom}/>
         )
-    }, [])
+    }, [zoom])
 
     return (<>{imagesID.length 
-        ? <View
-            style={{
-                width:"100%",
-                height:"100%",
-                backgroundColor:Theme[themeTypeContext].background_color,
-            }}
-        >
-            <FlashList 
-                data={imagesID}
-                renderItem={renderItem}
-                estimatedItemSize={StaticDimensions.height}
+        ? <>
+            <Pressable
+                onPress={()=>{setShowOptions(!showOptions)}}
+                style={{
+                    width:"100%",
+                    height:"100%",
+                    backgroundColor:Theme[themeTypeContext].background_color,
+                    
+                }}
+            >   
+                <FlashList 
+                    data={imagesID}
+                    renderItem={({item,index}:any) => <ChapterImage key={index} image_data={images.current[item].data} layout={images.current[item].layout} zoom={zoom}/>}
+                    estimatedItemSize={StaticDimensions.height}
+                    extraData={{zoom:zoom}}
+                />
                 
-            />
 
-        </View>
+            </Pressable>
+            <AnimatePresence exitBeforeEnter>
+                {showOptions &&
+                    <View  
+                        id='reading-options'
+                        style={{
+                            position:"absolute",
+                            width:"100%",
+                            height:"100%",
+                            display:"flex",
+                            flexDirection:"column",
+                            alignItems:"flex-start",
+                            backgroundColor:"transparent",
+                            pointerEvents:"none",
+
+                        }}
+                        from={{
+                            opacity: 0,
+                        }}
+                        animate={{
+                            opacity: 1,
+
+                        }}
+                        exit={{
+                            opacity: 0,
+                        }}
+                        transition={{
+                            type: 'timing',
+                            duration: 500,
+                        }}
+                        exitTransition={{
+                            type: 'timing',
+                            duration: 250,
+                        }}
+                    >
+                        <View style={{
+                            width:"100%",
+                            height:"auto",
+                            display:"flex",
+                            flexDirection:"row",
+                            justifyContent:"space-between",
+                            alignItems:"center",
+                            padding:16,
+                            gap:8,
+                            backgroundColor:Theme[themeTypeContext].background_color,
+                            borderBottomWidth:2,
+                            borderColor:Theme[themeTypeContext].border_color,
+                        }}>
+                            <TouchableRipple
+                                rippleColor={Theme[themeTypeContext].ripple_color_outlined}
+                                style={{
+                                    borderRadius:5,
+                                    borderWidth:0,
+                                    backgroundColor: "transparent",
+                                    padding:5,
+                                    pointerEvents:"auto",
+                                }}
+                                
+                                onPress={()=>{
+                                    router.push(`/view/${SOURCE}/${COMIC_ID}/`)
+                                }}
+                            >
+                                <Icon source={"arrow-left-thin"} size={((Dimensions.width+Dimensions.height)/2)*0.05} color={Theme[themeTypeContext].icon_color}/>
+                            </TouchableRipple>
+                            <Marquee spacing={20} speed={0.35}
+                                style={{
+                                    flex:1,
+                                }}
+                            >
+                                <Text selectable={false}
+                                    numberOfLines={1}
+                                    style={{
+                                        color:Theme[themeTypeContext].text_color,
+                                        fontSize:((Dimensions.width+Dimensions.height)/2)*0.05,
+                                        fontFamily:"roboto-bold",
+                                    }}
+                                >Chapter 2: the god of land and metasfklsagjlksgj;osagjosagjd;aohgdohgdofjgds
+                                </Text>
+                            </Marquee>
+                            <TouchableRipple
+                                rippleColor={Theme[themeTypeContext].ripple_color_outlined}
+                                style={{
+                                    borderRadius:5,
+                                    borderWidth:0,
+                                    backgroundColor: "transparent",
+                                    padding:5,
+                                    pointerEvents:"auto",
+                                }}
+                                
+                                onPress={()=>{
+                                    console.log("HO2h2")
+                                }}
+                            >
+                                <Icon source={"cloud-refresh"} size={((Dimensions.width+Dimensions.height)/2)*0.05} color={Theme[themeTypeContext].icon_color}/>
+                            </TouchableRipple>
+                        </View>
+                        <View 
+                            style={{
+                                display:"flex",
+                                flexDirection:"column",
+                                width:"auto",
+                                height:Dimensions.height*0.65,
+                                padding:16,
+                                alignSelf:"flex-end",
+                                alignItems:"center",
+                                pointerEvents:"auto",
+                                gap:12,
+                                
+                            }}
+                        >
+                            <View style={{
+                                width:"auto",
+                                height:"100%",
+                                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                paddingHorizontal:12,
+                                paddingVertical:12,
+                                borderRadius:12,
+                            }}>
+                                <Slider
+                                    style={{ 
+                                        width: ((Dimensions.width+Dimensions.height)/2)*0.06,
+                                        height: "100%",
+                                        pointerEvents:"auto",
+                                    }}
+                                    value={zoom}
+                                    onValueChange={setZoom}
+                                    maximumValue={80}
+                                    minimumValue={-80}
+                                    step={1}
+                                    orientation="vertical"
+                                    
+                                    minimumTrackTintColor={Theme[themeTypeContext].text_color}
+                                    maximumTrackTintColor={Theme[themeTypeContext].border_color}
+
+                                    thumbStyle={{ 
+                                        height: "auto", 
+                                        width: "auto", 
+                                        backgroundColor: Theme[themeTypeContext].background_color,
+                                        padding:5,
+                                        
+                                    }}
+                                    thumbProps={{children: (<>
+                                        <>{zoom < 0
+                                            && <Icon source={"magnify-plus-outline"} size={((Dimensions.width+Dimensions.height)/2)*0.05} color={Theme[themeTypeContext].icon_color}/>
+                                        }</>
+                                        <>{zoom === 0
+                                            && <Icon source={"magnify"} size={((Dimensions.width+Dimensions.height)/2)*0.05} color={Theme[themeTypeContext].icon_color}/>
+                                        }</>
+                                        <>{zoom > 0
+                                            && <Icon source={"magnify-minus-outline"} size={((Dimensions.width+Dimensions.height)/2)*0.05} color={Theme[themeTypeContext].icon_color}/>
+                                        }</>
+                                    </>)}}
+                                />
+                                
+                            </View>
+                            <TouchableRipple
+                                rippleColor={Theme[themeTypeContext].ripple_color_outlined}
+                                style={{
+                                    borderRadius:5,
+                                    borderWidth:0,
+                                    backgroundColor: "transparent",
+                                    padding:5,
+                                    pointerEvents:"auto",
+                                }}
+                                
+                                onPress={()=>{
+                                    setZoom(0)
+                                }}
+                            >
+                                <Icon source={"magnify-remove-cursor"} size={((Dimensions.width+Dimensions.height)/2)*0.05} color={Theme[themeTypeContext].icon_color}/>
+                            </TouchableRipple>
+                        </View>
+                    </View>
+                }
+            </AnimatePresence>
+        </>
         
 
         :<View style={{zIndex:5,width:"100%",height:"100%",display:"flex",justifyContent:"center",alignItems:"center",backgroundColor:Theme[themeTypeContext].background_color}}>

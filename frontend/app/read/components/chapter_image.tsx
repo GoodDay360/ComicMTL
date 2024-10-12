@@ -20,7 +20,7 @@ import {CONTEXT} from '@/constants/module/context';
 import {blobToBase64, base64ToBlob} from "@/constants/module/file_manager";
 import Theme from '@/constants/theme';
 
-const ChapterImage = ({image_data, layout}:any)=>{
+const ChapterImage = ({image_data, layout, zoom}:any)=>{
     const SOURCE = useLocalSearchParams().source;
     const COMIC_ID = useLocalSearchParams().comic_id;
     const CHAPTER_IDX = Number(useLocalSearchParams().chapter_idx as string);
@@ -30,26 +30,23 @@ const ChapterImage = ({image_data, layout}:any)=>{
     const {themeTypeContext, setThemeTypeContext}:any = useContext(CONTEXT)
     const {showCloudflareTurnstileContext, setShowCloudflareTurnstileContext}:any = useContext(CONTEXT)
 
-
-
     
 
-    return <>{Object.keys(layout).length 
-        ? <View
+    return (
+        <View
             style={{
+                display:"flex",
                 width:"100%",
                 height:"auto",
-                display:"flex",
                 alignItems:"center",
-                padding:0,
-                margin:0,
-                borderWidth:0,
             }}
         >
             <Image source={{type:"base64",data:image_data}} 
                 contentFit="contain"
                 style={{
-                    width:Dimensions.width > 720 ? Dimensions.width * 0.8 : "100%",
+                    width:Dimensions.width > 720 
+                    ? (Dimensions.width * 0.8) - (zoom*(Dimensions.width * 0.8))/100
+                    : `${100 - zoom}%`,
                     aspectRatio: layout.width / layout.height,
                 }}
                 onLoadEnd={()=>{
@@ -57,20 +54,7 @@ const ChapterImage = ({image_data, layout}:any)=>{
                     // delete images.current[image_key]
                 }}
             />
-        </View>
-        : <View
-            style={{
-                width:"100%",
-                height:"auto",
-                display:"flex",
-                alignItems:"center",
-                justifyContent:"center",
-                backgroundColor:Theme[themeTypeContext].background_color,
-            }}
-        >
-            <ActivityIndicator animating={true}/>
-        </View>
-    }</>
+    </View>)
 }
 
 export default ChapterImage

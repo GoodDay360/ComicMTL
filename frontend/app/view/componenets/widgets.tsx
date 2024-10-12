@@ -166,14 +166,14 @@ interface RequestChapterWidgetProps {
   }
 
 export const RequestChapterWidget: React.FC<RequestChapterWidgetProps> = ({
-SOURCE,
-ID,
-CHAPTER,
-chapterQueue,
-setChapterQueue,
-chapterRequested,
-setChapterRequested,
-get_requested_info
+    SOURCE,
+    ID,
+    CHAPTER,
+    chapterQueue,
+    setChapterQueue,
+    chapterRequested,
+    setChapterRequested,
+    get_requested_info
 }) => {
     const Dimensions = useWindowDimensions();
 

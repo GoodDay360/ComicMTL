@@ -293,7 +293,7 @@ const Index = ({}:any) => {
                             else router.navigate("/explore")
                         }}
                     >
-                        <Icon source={"chevron-left"} size={((Dimensions.width+Dimensions.height)/2)*0.045} color={Theme[themeTypeContext].icon_color}/>
+                        <Icon source={"arrow-left-thin"} size={((Dimensions.width+Dimensions.height)/2)*0.045} color={Theme[themeTypeContext].icon_color}/>
                     </TouchableRipple>
 
                 </View>
