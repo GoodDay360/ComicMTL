@@ -237,7 +237,7 @@ get_requested_info
                 theme_type={themeTypeContext}
                 Dimensions={Dimensions}
 
-                label='colorize' 
+                label='Colorize' 
                 data={[
                     { 
                         label: "Enable", 
