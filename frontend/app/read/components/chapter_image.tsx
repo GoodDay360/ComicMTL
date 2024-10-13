@@ -20,7 +20,7 @@ import {CONTEXT} from '@/constants/module/context';
 import {blobToBase64, base64ToBlob} from "@/constants/module/file_manager";
 import Theme from '@/constants/theme';
 
-const ChapterImage = ({image_data, layout, zoom}:any)=>{
+const ChapterImage = ({image_data, layout, zoom, showOptions,setShowOptions}:any)=>{
     const SOURCE = useLocalSearchParams().source;
     const COMIC_ID = useLocalSearchParams().comic_id;
     const CHAPTER_IDX = Number(useLocalSearchParams().chapter_idx as string);
@@ -33,7 +33,8 @@ const ChapterImage = ({image_data, layout, zoom}:any)=>{
     
 
     return (
-        <View
+        <Pressable
+            onPress={()=>{setShowOptions(!showOptions)}}
             style={{
                 display:"flex",
                 width:"100%",
@@ -54,7 +55,7 @@ const ChapterImage = ({image_data, layout, zoom}:any)=>{
                     // delete images.current[image_key]
                 }}
             />
-    </View>)
+    </Pressable>)
 }
 
 export default ChapterImage

@@ -25,6 +25,7 @@
     "@shopify/flash-list": "1.6.4",
     "axios": "^1.7.7",
     "dayjs": "^1.11.13",
+    "disqus-react": "^1.1.5",
     "expo": "~51.0.20",
     "expo-clipboard": "~6.0.3",
     "expo-constants": "~16.0.2",
