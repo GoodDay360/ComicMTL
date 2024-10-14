@@ -141,6 +141,11 @@ const Index = ({}:any) => {
                     renderItem={({item,index}:any) => <ChapterImage key={index} image_data={images.current[item].data} layout={images.current[item].layout} zoom={zoom} showOptions={showOptions} setShowOptions={setShowOptions}/>}
                     estimatedItemSize={StaticDimensions.height}
                     extraData={{zoom:zoom,showOptions:showOptions,setShowOptions:setShowOptions}}
+                    onEndReachedThreshold={0.5}
+                    onEndReached={()=>{
+
+                        setImagesID(imagesID.slice(5));
+                    }}
                 />
                 
             </View>
@@ -232,7 +237,7 @@ const Index = ({}:any) => {
                                                     numberOfLines={1}
                                                     style={{
                                                         color:Theme[themeTypeContext].text_color,
-                                                        fontSize:((Dimensions.width+Dimensions.height)/2)*0.05,
+                                                        fontSize:((Dimensions.width+Dimensions.height)/2)*0.045,
                                                         fontFamily:"roboto-bold",
                                                     }}
                                                 >
@@ -267,9 +272,8 @@ const Index = ({}:any) => {
                                                 justifyContent:"center",
                                             }}
                                         >
-                                            <View style={{width:"auto",height:"auto",display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
+                                            <View style={{width:"auto",height:"auto",display:"flex",flexDirection:"column",alignItems:"center",gap:8, pointerEvents:"auto"}}>
                                                 <View style={{
-                                                    pointerEvents:"auto",
                                                     width:"auto",
                                                     height:"auto",
                                                     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -354,7 +358,7 @@ const Index = ({}:any) => {
                                     numberOfLines={1}
                                     style={{
                                         color:Theme[themeTypeContext].text_color,
-                                        fontSize:((Dimensions.width+Dimensions.height)/2)*0.05,
+                                        fontSize:((Dimensions.width+Dimensions.height)/2)*0.045,
                                         fontFamily:"roboto-bold",
                                     }}
                                 >
@@ -367,7 +371,7 @@ const Index = ({}:any) => {
                                     backgroundColor:Theme[themeTypeContext].background_color,
                                 }}
                             >   
-                                <Disqus title={chapterInfo.title} identifier={`${SOURCE}-${COMIC_ID}`} url={`${apiBaseContext}/read/${SOURCE}/${COMIC_ID}/`}
+                                <Disqus title={chapterInfo.title} identifier={`${SOURCE}-${COMIC_ID}-${CHAPTER_IDX}`} url={`${apiBaseContext}/read/${SOURCE}/${COMIC_ID}/`}
                                     paddingVertical={16} paddingHorizontal={25}
                                 />
                             </View>

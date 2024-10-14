@@ -33,7 +33,7 @@ const connectWebSocket = (socketBaseContext: string, socket_id: string | number[
 
 export const createSocket = async (
     socketBaseContext: string,
-    setSocket: Function,
+    socket: any,
     onOpen: (event: any) => void,
     onMessage: (event: any) => void
 ) => {
@@ -48,7 +48,7 @@ export const createSocket = async (
     }
 
     const _socket = await connectWebSocket(socketBaseContext, socket_id, onOpen, onMessage);
-    setSocket(_socket);
+    socket.current = _socket;
 
     return _socket;
 };
@@ -56,22 +56,20 @@ export const createSocket = async (
 export const setupSocketNetworkListener = (
     socketBaseContext: string,
     socket:any,
-    setSocket: Function,
     onOpen: (event: any) => void,
     onMessage: (event: any) => void
 ) => {
-    var isActivated = false
+    var previousIsConnected:any = null;
     return NetInfo.addEventListener(state => {
-        if (!isActivated) isActivated = true
-        else{
-            if (state.isConnected) {
-                
-                if(!socket) {
-                    console.log('Internet connected. Reconnecting WebSocket...');
-                    createSocket(socketBaseContext, setSocket, onOpen, onMessage)
-                };
-            }
-        }
         
+        if (previousIsConnected === state.isConnected){
+            previousIsConnected = state.isConnected;
+
+        }else if (state.isConnected) {
+            previousIsConnected = state.isConnected;
+            console.log("Socket Network listener started.")
+            console.log('Internet connected. Connecting WebSocket...');
+            createSocket(socketBaseContext, socket, onOpen, onMessage)
+        }
     });
 };

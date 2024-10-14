@@ -53,9 +53,8 @@ const Index = ({}:any) => {
     const [styles, setStyles]:any = useState("")
     const [translate, setTranslate]:any = useState({});
 
-    const [socket, setSocket]:any = useState(null)
+
     const [socketInfo,setSocketInfo]:any = useState({})
-    const [socketNetworkListener,setSocketNetworkListener]:any = useState(null)
     
 
     const [CONTENT, SET_CONTENT]:any = useState({})
@@ -71,6 +70,8 @@ const Index = ({}:any) => {
     const [page, setPage]:any = useState(1)
     const [bookmarked, setBookmarked]:any = useState(false)
     
+    const socketNetWorkListener:any = useRef(null)
+    const socket:any = useRef(null)
     
     const controller = new AbortController();
     const signal = controller.signal;
@@ -98,9 +99,8 @@ const Index = ({}:any) => {
     },[chapterToDownload])
 
     useFocusEffect(useCallback(() => {
-        var unsubscribe:any = null
         const handleOpen = (event: any) => {
-            
+            console.log("SOCKET CONNECTED!")
         }
         const handleMessage = async (event: any) => {
             
@@ -122,29 +122,25 @@ const Index = ({}:any) => {
                 }
             }
         }
-        if (!socket){
-            NetInfo.fetch().then((state) => {
-                if (!state.isConnected) return
-                createSocket(socketBaseContext, setSocket, handleOpen, handleMessage);
-            })
-            
-        }else{
-            unsubscribe = setupSocketNetworkListener(socketBaseContext, socket, setSocket, handleOpen, handleMessage);
-        }
+        
+        NetInfo.fetch().then((state) => {
+            if (!state.isConnected) return
+            socketNetWorkListener.current = setupSocketNetworkListener(socketBaseContext, socket, handleOpen, handleMessage);
+        })
+        
         return () => {
-            if (socket){
-                socket.close()
-                setSocket(null)
+            if (socket.current && socketNetWorkListener.current){
+                socket.current.close()
+                socket.current = null
                 console.log("SOCKET DISCONNECTED")
-            }
-            if (unsubscribe) {
-                unsubscribe()
-                unsubscribe = null
+            
+                socketNetWorkListener.current()
+                socketNetWorkListener.current = null
                 console.log("SOCKET NETWORK LISTENER DISCONNECTED")
             }
             
         }
-    },[socket,socketNetworkListener]))
+    },[]))
 
     useFocusEffect(useCallback(() => {
         return () => {

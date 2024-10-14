@@ -52,7 +52,7 @@ const Disqus = ({url,identifier,title, paddingVertical=0, paddingHorizontal=0}:a
         useEffect(() => {
             if (navigate_state) {
                 set_navigate_state(false)
-                set_show_navigation(true)
+                set_show_navigation(false)
             }
         }, [navigate_state])
 

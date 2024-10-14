@@ -3,11 +3,15 @@ import ReactNativeTurnstile, { resetTurnstile } from "react-native-turnstile";
 import Turnstile, { useTurnstile } from "react-turnstile";
 import { Platform, View, Text } from 'react-native';
 import axios from 'axios';
-import Storage from '@/constants/module/storage';
 import { Button } from 'react-native-paper';
+
+import Storage from '@/constants/module/storage';
+
 import Theme from '@/constants/theme';
 
 const CloudflareTurnstile = ({callback}:any) => {
+
+
     const site_key:string = `${process.env.EXPO_PUBLIC_CLOUDFLARE_TURNSTILE_SITE}`
 
     const [isError,setIsError] = useState(false)
