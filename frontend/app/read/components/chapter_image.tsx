@@ -34,7 +34,7 @@ const ChapterImage = ({image_data, layout, zoom, showOptions,setShowOptions}:any
 
     return (
         <Pressable
-            onPress={()=>{setShowOptions(!showOptions)}}
+            onPress={()=>{setShowOptions({...showOptions,state:!showOptions.state})}}
             style={{
                 display:"flex",
                 width:"100%",

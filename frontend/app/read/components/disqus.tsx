@@ -13,7 +13,7 @@ import { View } from 'moti';
 import { CONTEXT } from '@/constants/module/context';
 import Theme from '@/constants/theme';
 
-const Disqus = ({url,identifier,title}:any) => {
+const Disqus = ({url,identifier,title, paddingVertical=0, paddingHorizontal=0}:any) => {
     const Dimensions = useWindowDimensions();
     const shortname = 'comicmtl';
 
@@ -28,9 +28,9 @@ const Disqus = ({url,identifier,title}:any) => {
         return (
             <ScrollView 
                 style={{
-                    width: "100%",
-                    height:"100%",
-                    padding:12,
+                    flex:1,
+                    paddingVertical:paddingVertical,
+                    paddingHorizontal:paddingHorizontal,
                 }}
             >
                 <DiscussionEmbed
@@ -52,6 +52,7 @@ const Disqus = ({url,identifier,title}:any) => {
         useEffect(() => {
             if (navigate_state) {
                 set_navigate_state(false)
+                set_show_navigation(true)
             }
         }, [navigate_state])
 
@@ -117,7 +118,6 @@ const Disqus = ({url,identifier,title}:any) => {
                                 borderWidth:0,
                                 backgroundColor: "transparent",
                                 padding:5,
-                                
                             }}
                             
                             onPress={()=>{
@@ -129,21 +129,27 @@ const Disqus = ({url,identifier,title}:any) => {
                         </TouchableRipple>
                     </View>
                 }</>
-                <WebView
-                    style={{ 
-                        width: "100%",
-                        height:"100%",
-                        backgroundColor:"transparent",
-                        padding:16,
+                <View 
+                    style={{
+                        flex:1,
+                        paddingVertical:paddingVertical,
+                        paddingHorizontal:paddingHorizontal,
                     }}
-                    originWhitelist={['*']}
-                    source={{ html: disqusHTML }}
-                    sharedCookiesEnabled={true}
-                    setSupportMultipleWindows={false} 
-                    
-                    onNavigationStateChange={handleNavigation}
-                    userAgent="Mozilla/5.0 (Linux; Android 4.1.1; Galaxy Nexus Build/JRO03C) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.166 Mobile Safari/535.19"
-                />
+                >
+                    <WebView
+                        style={{ 
+                            flex:1,
+                            backgroundColor:"transparent",
+                        }}
+                        originWhitelist={['*']}
+                        source={{ html: disqusHTML }}
+                        sharedCookiesEnabled={true}
+                        setSupportMultipleWindows={false} 
+                        
+                        onNavigationStateChange={handleNavigation}
+                        userAgent="Mozilla/5.0 (Linux; Android 4.1.1; Galaxy Nexus Build/JRO03C) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.166 Mobile Safari/535.19"
+                    />
+                </View>
             </>
             :<></>
         }</>)
