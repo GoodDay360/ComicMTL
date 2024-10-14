@@ -36,7 +36,7 @@ export const __styles:any = (theme_type:string,Dimensions:any) => {
         
         menu_button_text: {
             color: Theme[theme_type].text_color,
-            fontSize: Dimensions.width*0.028,
+            fontSize: ((Dimensions.width+Dimensions.height)/2)*0.028,
             height:"auto",
         }
     })}

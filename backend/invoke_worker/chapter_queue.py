@@ -20,6 +20,8 @@ env = environ.Env()
 # os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 STORAGE_DIR = os.path.join(BASE_DIR,"storage")
+LOG_DIR = os.path.join(BASE_DIR, "log")
+if not os.path.exists(LOG_DIR): os.makedirs(LOG_DIR)
 
 MAX_STORAGE_SIZE = 20 * 1024**3
 
@@ -82,7 +84,7 @@ class Job(Thread):
                         elif (options.get("colorize") and not options.get("translate").get("state")):
                             
                             managed_output_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),"colorized")
-                            script = ["python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--ocr=mocr", "--no-text-lang-skip", "--det-auto-rotate", "--det-gamma-correct", "--colorize=mc2", "-i", f"{input_dir}", "-o", f"{managed_output_dir}"]
+                            script = ["python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--detector=none", "--translator=original", "--colorize=mc2", "--colorization-size=-1", "-i", f"{input_dir}", "-o", f"{managed_output_dir}"]
 
                         if target_lang == "ENG": script.append("--manga2eng")
                             
@@ -94,14 +96,17 @@ class Job(Thread):
                             
                             job = web_scrap.source_control[source].get_chapter.scrap(comic_id=comic_id,chapter_id=chapter_id,output_dir=input_dir)
                             if job.get("status") == "success":
-                                subprocess.run(
-                                    script,
-                                    cwd=os.path.join(BASE_DIR,"backend","module","utils","image_translator"), 
-                                    shell=True, 
-                                    check=True,
-                                    capture_output=True,
-                                    text=True,
-                                )
+                                with open(os.path.join(LOG_DIR,"image_translator_output.log"), "w") as file:
+                                    result = subprocess.run(
+                                        script,
+                                        cwd=os.path.join(BASE_DIR, "backend", "module", "utils", "image_translator"),
+                                        shell=True,
+                                        check=True,
+                                        stdout=file,
+                                        stderr=file,
+                                        text=True,
+                                    )
+                                if result.returncode != 0: raise Exception("Image Translator Execution error!")
                                 os.makedirs(managed_output_dir,exist_ok=True)
                                 shutil.rmtree(input_dir)
                                 
@@ -184,10 +189,11 @@ class Job(Thread):
                                 }
                             })
                             SocketRequestChapterQueueCache.objects.filter(id=query_result.id).delete() 
-                              
+                        
                         connections['cache'].close()
                 else:
                     connections['cache'].close()
+                    sleep(5)
             except Exception as e: 
                 print("[Error] Chapter Queue Socket:", e) 
                 if (input_dir): 

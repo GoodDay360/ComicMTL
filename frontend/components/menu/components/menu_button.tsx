@@ -56,7 +56,7 @@ const MenuButton = ({pathname, label, icon}:any) => {
                     style={style.selected_menu_button}
                 >
 
-                    <Icon source={icon} size={Dimensions.width*0.045} color={Theme[themeTypeContext].icon_color}/>
+                    <Icon source={icon} size={((Dimensions.width+Dimensions.height)/2)*0.045} color={Theme[themeTypeContext].icon_color}/>
                 
                 </TouchableRipple>
                 : <><TouchableRipple
@@ -69,7 +69,7 @@ const MenuButton = ({pathname, label, icon}:any) => {
                     style={style.menu_button}
                     
                 >
-                    <Icon source={icon} size={Dimensions.width*0.045} color={Theme[themeTypeContext].icon_color}/>
+                    <Icon source={icon} size={((Dimensions.width+Dimensions.height)/2)*0.045} color={Theme[themeTypeContext].icon_color}/>
                     
                 </TouchableRipple><Text style={style.menu_button_text}>{label}</Text></>
             }

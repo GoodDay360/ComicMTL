@@ -8,6 +8,7 @@ frontend/.git
 *.sqlite3
 
 frontend/android/
+log/
 temp/
 media/
 storage/

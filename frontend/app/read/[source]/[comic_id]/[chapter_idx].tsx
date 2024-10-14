@@ -15,7 +15,7 @@ import * as FileSystem from 'expo-file-system';
 import NetInfo from "@react-native-community/netinfo";
 import JSZip from 'jszip';
 import { Marquee } from '@animatereactnative/marquee';
-import { Slider } from '@rneui/themed';
+import { Slider } from '@rneui/themed-edge';
 
 import ChapterStorage from '@/constants/module/chapter_storage';
 import Image from '@/components/Image';
@@ -29,7 +29,6 @@ import Disqus from '../../components/disqus';
 const Index = ({}:any) => {
     const SOURCE = useLocalSearchParams().source;
     const COMIC_ID = useLocalSearchParams().comic_id;
-    const CHAPTER_IDX = Number(useLocalSearchParams().chapter_idx as string);
     const Dimensions = useWindowDimensions();
     const StaticDimensions = useMemo(() => Dimensions, [])
     
@@ -39,6 +38,7 @@ const Index = ({}:any) => {
     const {showCloudflareTurnstileContext, setShowCloudflareTurnstileContext}:any = useContext(CONTEXT)
     const {apiBaseContext, setApiBaseContext}:any = useContext(CONTEXT)
 
+    const [CHAPTER_IDX, SET_CHAPTER_IDX]:any = useState(Number(useLocalSearchParams().chapter_idx as string));
     const [chapterInfo, setChapterInfo]:any = useState({})
     const [showOptions, setShowOptions]:any = useState({type:"general",state:false})
     const [imagesID, setImagesID]:any = useState([])
@@ -50,7 +50,7 @@ const Index = ({}:any) => {
     },[])
 
     useEffect(()=>{(async () => {
-        return
+        // return
         console.log(SOURCE,COMIC_ID,CHAPTER_IDX)
         const stored_chapter = await ChapterStorage.getByIdx(`${SOURCE}-${COMIC_ID}`,CHAPTER_IDX)   
         console.log(stored_chapter)
@@ -125,7 +125,7 @@ const Index = ({}:any) => {
         )
     }, [zoom])
 
-    return (<>{!imagesID.length 
+    return (<>{imagesID.length 
         ? <>
             <View
                 
@@ -145,7 +145,7 @@ const Index = ({}:any) => {
                 
             </View>
             <AnimatePresence exitBeforeEnter>
-                {!showOptions.state && 
+                {showOptions.state && 
                     <View
                         style={{
                             position:"absolute",
@@ -339,18 +339,39 @@ const Index = ({}:any) => {
                                 
                             </Pressable>
                         </>}</>
-                        <>{showOptions.type === "comments"&&
+                        <>{showOptions.type === "comments"&& <>
+                            <View
+                                style={{
+                                    width:"100%",
+                                    height:"auto",
+                                    padding:16,
+                                    backgroundColor:Theme[themeTypeContext].background_color,
+                                    borderBottomWidth:2,
+                                    borderColor:Theme[themeTypeContext].border_color,
+                                }}
+                            >
+                                <Text selectable={false}
+                                    numberOfLines={1}
+                                    style={{
+                                        color:Theme[themeTypeContext].text_color,
+                                        fontSize:((Dimensions.width+Dimensions.height)/2)*0.05,
+                                        fontFamily:"roboto-bold",
+                                    }}
+                                >
+                                    {chapterInfo.title}
+                                </Text>
+                            </View>
                             <View
                                 style={{
                                     flex:1,
-                                    backgroundColor:"transparent",
+                                    backgroundColor:Theme[themeTypeContext].background_color,
                                 }}
-                        >
-                            <Disqus title="TEST" identifier={`${SOURCE}-${COMIC_ID}`} url={`${apiBaseContext}/read/${SOURCE}/${COMIC_ID}/`}
-                                padding={25}
-                            />
-                        </View>
-                        }</>
+                            >   
+                                <Disqus title={chapterInfo.title} identifier={`${SOURCE}-${COMIC_ID}`} url={`${apiBaseContext}/read/${SOURCE}/${COMIC_ID}/`}
+                                    paddingVertical={16} paddingHorizontal={25}
+                                />
+                            </View>
+                        </>}</>
                         <Menu showOptions={showOptions} setShowOptions={setShowOptions}/>
                     </View>
                 }

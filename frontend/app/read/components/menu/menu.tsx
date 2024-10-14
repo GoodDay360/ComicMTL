@@ -24,24 +24,22 @@ const Menu = ({showOptions,setShowOptions}:any) => {
     
 
     return (<>{style && themeType && <>
-        {Dimensions.width <= 720
-            ? <View
-                style={style.menu_container}
-            >
-                <MenuButton showOptions={showOptions} identifier="comments" label="Comments" icon="chat" 
-                    onPress={()=>{
-                        setShowOptions({...showOptions,type:"comments"})
-                    }}
-                />
-                <MenuButton showOptions={showOptions} identifier="general" label="General" icon="cog" 
-                    onPress={()=>{
-                        setShowOptions({...showOptions,type:"general"})
-                    }}
-                />
-            </View>
-            : <></>
-        }
-        
+        <View
+            style={style.menu_container}
+        >
+            <MenuButton showOptions={showOptions} identifier="comments" label="Comments" icon="chat" 
+                onPress={()=>{
+                    if (showOptions.type === "comments") setShowOptions({...showOptions,state:false})
+                    else setShowOptions({...showOptions,type:"comments"})
+                }}
+            />
+            <MenuButton showOptions={showOptions} identifier="general" label="General" icon="cog" 
+                onPress={()=>{
+                    if (showOptions.type === "general") setShowOptions({...showOptions,state:false})
+                    else setShowOptions({...showOptions,type:"general"})
+                }}
+            />
+        </View>
     </>}</>);
 }
 

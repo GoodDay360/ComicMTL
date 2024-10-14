@@ -129,7 +129,7 @@ const Index = ({}:any) => {
             })
             
         }else{
-           unsubscribe = setupSocketNetworkListener(socketBaseContext, socket, setSocket, handleOpen, handleMessage);
+            unsubscribe = setupSocketNetworkListener(socketBaseContext, socket, setSocket, handleOpen, handleMessage);
         }
         return () => {
             if (socket){
