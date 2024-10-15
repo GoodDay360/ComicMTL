@@ -16,6 +16,7 @@ import Theme from '@/constants/theme';
 const Disqus = ({url,identifier,title, paddingVertical=0, paddingHorizontal=0}:any) => {
     const Dimensions = useWindowDimensions();
     const shortname = 'comicmtl';
+    
 
     const {showMenuContext, setShowMenuContext}:any = useContext(CONTEXT)
     const {themeTypeContext, setThemeTypeContext}:any = useContext(CONTEXT)

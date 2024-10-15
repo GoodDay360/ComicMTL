@@ -20,7 +20,7 @@ import {CONTEXT} from '@/constants/module/context';
 import {blobToBase64, base64ToBlob} from "@/constants/module/file_manager";
 import Theme from '@/constants/theme';
 
-const ChapterImage = ({image_data, layout, zoom, showOptions,setShowOptions}:any)=>{
+const ChapterImage = ({item, images, zoom, showOptions,setShowOptions}:any)=>{
     const SOURCE = useLocalSearchParams().source;
     const COMIC_ID = useLocalSearchParams().comic_id;
     const CHAPTER_IDX = Number(useLocalSearchParams().chapter_idx as string);
@@ -30,7 +30,6 @@ const ChapterImage = ({image_data, layout, zoom, showOptions,setShowOptions}:any
     const {themeTypeContext, setThemeTypeContext}:any = useContext(CONTEXT)
     const {showCloudflareTurnstileContext, setShowCloudflareTurnstileContext}:any = useContext(CONTEXT)
 
-    
 
     return (
         <Pressable
@@ -42,19 +41,98 @@ const ChapterImage = ({image_data, layout, zoom, showOptions,setShowOptions}:any
                 alignItems:"center",
             }}
         >
-            <Image source={{type:"base64",data:image_data}} 
-                contentFit="contain"
-                style={{
-                    width:Dimensions.width > 720 
-                    ? (Dimensions.width * 0.8) - (zoom*(Dimensions.width * 0.8))/100
-                    : `${100 - zoom}%`,
-                    aspectRatio: layout.width / layout.height,
-                }}
-                onLoadEnd={()=>{
-                    // console.log("CLEANED")
-                    // delete images.current[image_key]
-                }}
-            />
+            {item.type === "image" && (
+
+                <Image source={{type:"base64",data:images.current[item.value].data}} 
+                    contentFit="contain"
+                    style={{
+                        width:Dimensions.width > 720 
+                            ? 0.8 * Dimensions.width * (1 - zoom / 100)
+                            : `${100 - zoom}%`,
+                        aspectRatio: images.current[item.value].layout.width / images.current[item.value].layout.height,
+                    }}
+                    onLoadEnd={()=>{
+                        // console.log("CLEANED")
+                        // delete images.current[image_key]
+                    }}
+                />
+            )}
+            {item.type === "chapter-info-banner" && (
+                <View
+                    style={{
+                        display:"flex",
+                        flexDirection:"column",
+                        alignItems:"center",
+                        gap:12,
+                        width:Dimensions.width > 720 
+                            ? 0.8 * Dimensions.width * (1 - zoom / 100)
+                            : `${100 - zoom}%`,
+                        height:"auto",
+                        backgroundColor:"black",
+                        padding:16,
+                    }}
+                >
+                    <Text selectable={false}
+                        numberOfLines={1}
+                        style={{
+                            color:Theme[themeTypeContext].text_color,
+                            fontSize:(0.03 * ((Dimensions.width+Dimensions.height)/2)) * (1 - zoom/100),
+                            fontFamily:"roboto-bold",
+                        }}
+                    >
+                        End: {item.value.last}
+                    </Text>
+
+                    <Text selectable={false}
+                        numberOfLines={1}
+                        style={{
+                            color:Theme[themeTypeContext].text_color,
+                            fontSize:(0.03 * ((Dimensions.width+Dimensions.height)/2)) * (1 - zoom/100),
+                            fontFamily:"roboto-bold",
+                        }}
+                    >
+                        Next: {item.value.next}
+                    </Text>
+
+                </View>
+            )}
+            {item.type === "no-chapter-banner" && (
+                <View
+                    style={{
+                        display:"flex",
+                        flexDirection:"column",
+                        alignItems:"center",
+                        gap:12,
+                        width:Dimensions.width > 720 
+                            ? 0.8 * Dimensions.width * (1 - zoom / 100)
+                            : `${100 - zoom}%`,
+                        height:"auto",
+                        backgroundColor:"black",
+                        padding:16,
+                    }}
+                >
+                    <Text selectable={false}
+                        numberOfLines={1}
+                        style={{
+                            color:Theme[themeTypeContext].text_color,
+                            fontSize:(0.03 * ((Dimensions.width+Dimensions.height)/2)) * (1 - zoom/100),
+                            fontFamily:"roboto-bold",
+                        }}
+                    >
+                        No more chapters available.
+                    </Text>
+                    <Text selectable={false}
+                        numberOfLines={1}
+                        style={{
+                            color:Theme[themeTypeContext].text_color,
+                            fontSize:(0.03 * ((Dimensions.width+Dimensions.height)/2)) * (1 - zoom/100),
+                            fontFamily:"roboto-bold",
+                        }}
+                    >
+                        You can go back and download more.
+                    </Text>
+                </View>
+            )}
     </Pressable>)
 }
 

@@ -120,7 +120,7 @@ class Chapter_Storage_Web  {
                             }
                         });
                     }
-                    console.log(cursor)
+                    
                     resolve(record);
                     return;
                 }

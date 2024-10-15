@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useContext, useRef, useMemo } from 'react';
-import { Link, router, useLocalSearchParams, useNavigation, useFocusEffect } from 'expo-router';
+import { Link, router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Image as RNImage, StyleSheet, useWindowDimensions, ScrollView, Pressable, RefreshControl, Platform, FlatList, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Icon, MD3Colors, Button, Text, TextInput, TouchableRipple } from 'react-native-paper';
@@ -7,16 +7,17 @@ import CircularProgress from 'react-native-circular-progress-indicator';
 import { ActivityIndicator } from 'react-native-paper';
 import { FlashList } from "@shopify/flash-list";
 
+
 import uuid from 'react-native-uuid';
 import Toast from 'react-native-toast-message';
 import { View, AnimatePresence } from 'moti';
 import * as Clipboard from 'expo-clipboard';
 import * as FileSystem from 'expo-file-system';
 import NetInfo from "@react-native-community/netinfo";
-import JSZip from 'jszip';
 import { Marquee } from '@animatereactnative/marquee';
 import { Slider } from '@rneui/themed-edge';
 
+import Storage from '@/constants/module/storage';
 import ChapterStorage from '@/constants/module/chapter_storage';
 import Image from '@/components/Image';
 import {CONTEXT} from '@/constants/module/context';
@@ -25,6 +26,7 @@ import Theme from '@/constants/theme';
 import ChapterImage from '../../components/chapter_image';
 import Menu from '../../components/menu/menu';
 import Disqus from '../../components/disqus';
+import { get_chapter } from '../../modules/get_chapter';
 
 const Index = ({}:any) => {
     const SOURCE = useLocalSearchParams().source;
@@ -38,83 +40,55 @@ const Index = ({}:any) => {
     const {showCloudflareTurnstileContext, setShowCloudflareTurnstileContext}:any = useContext(CONTEXT)
     const {apiBaseContext, setApiBaseContext}:any = useContext(CONTEXT)
 
-    const [CHAPTER_IDX, SET_CHAPTER_IDX]:any = useState(Number(useLocalSearchParams().chapter_idx as string));
+    
     const [chapterInfo, setChapterInfo]:any = useState({})
     const [showOptions, setShowOptions]:any = useState({type:"general",state:false})
-    const [imagesID, setImagesID]:any = useState([])
+    const [imageKeys, setImageKeys]:any = useState([])
     const [zoom, setZoom]:any = useState(0)
 
+    const temp_image_keys:any = useRef({})
     const images:any = useRef({})
+    const CHAPTER_IDX = useRef(Number(useLocalSearchParams().idx as string));
+
+
     useEffect(()=>{
         setShowMenuContext(false)
     },[])
 
     useEffect(()=>{(async () => {
-        // return
-        console.log(SOURCE,COMIC_ID,CHAPTER_IDX)
-        const stored_chapter = await ChapterStorage.getByIdx(`${SOURCE}-${COMIC_ID}`,CHAPTER_IDX)   
-        console.log(stored_chapter)
-        if (stored_chapter?.data_state === "completed"){
-            setChapterInfo({
-                chapter_id: stored_chapter?.id,
-                chapter_idx: stored_chapter?.id,
-                title: stored_chapter?.title,
-            })
-            const zip = new JSZip();
-            const file_keys:Array<string> = []
-            const files: { [key: string]: any } = {};
-
-            if (stored_chapter?.data.type === "blob"){
-                const zipContent = await zip.loadAsync(stored_chapter?.data.value);
-                for (const fileName in zipContent.files) {
-                    if (zipContent.files[fileName].dir) {
-                        continue; // Skip directories
-                    }
-                    const fileData = await zipContent.files[fileName].async('base64');
-                    file_keys.push(fileName)
-                    files[fileName] = {
-                        layout: await getImageLayout("data:image/png;base64," + fileData),
-                        data: "data:image/png;base64," + fileData
-                    };
-                    
-                }
-
-            }else if (stored_chapter?.data.type === "file_path"){
-           
-                const base64String = await FileSystem.readAsStringAsync(stored_chapter?.data.value, {
-                    encoding: FileSystem.EncodingType.Base64,
-                });
-
-                const zipContent = await zip.loadAsync(base64String, {base64: true});
-
-                for (const fileName in zipContent.files) {
-                    if (zipContent.files[fileName].dir) {
-                        continue; // Skip directories
-                    }
-                    const fileData = await zipContent.files[fileName].async('base64');
-                    file_keys.push(fileName)
-                    files[fileName] = {
-                        layout: await getImageLayout("data:image/png;base64," + fileData),
-                        data: "data:image/png;base64," + fileData
-                    };
-                }
-                console.log("Done")
-            }
-            images.current = files
-            file_keys.sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-            setImagesID(file_keys)
+        const stored_chapter = await ChapterStorage.getByIdx(`${SOURCE}-${COMIC_ID}`,CHAPTER_IDX.current, {exclude_fields:["data"]})   
+        setChapterInfo({
+            chapter_id: stored_chapter?.id,
+            chapter_idx: stored_chapter?.id,
+            title: stored_chapter?.title,
+        })
+        const stored_chapter_zoom = await Storage.get("CHAPTER_ZOOM") || 0
+        setZoom(stored_chapter_zoom)
+        
+        const chapter_current = await get_chapter(SOURCE,COMIC_ID,CHAPTER_IDX.current)
+        if (chapter_current){
+            images.current = {...images.current,...chapter_current?.files}
+            setImageKeys(chapter_current?.file_keys)
         }
+
+        const chapter_next = await get_chapter(SOURCE,COMIC_ID,CHAPTER_IDX.current+1)
+        if (chapter_next){
+            temp_image_keys.current[`${CHAPTER_IDX.current+1}`] = chapter_next?.file_keys
+            images.current = {...images.current,...chapter_next?.files}
+        }
+        
+        
     })()},[])
 
     useEffect(()=>{
-        if (!imagesID.length){
+        if (!imageKeys.length){
             images.current = {}
         }
-    },[imagesID])
+    },[imageKeys])
 
     useFocusEffect(useCallback(() => {
         return () => {
-            setImagesID([])
+            setImageKeys([])
             
         }
     },[]))
@@ -125,7 +99,7 @@ const Index = ({}:any) => {
         )
     }, [zoom])
 
-    return (<>{imagesID.length 
+    return (<>{imageKeys.length 
         ? <>
             <View
                 
@@ -137,14 +111,69 @@ const Index = ({}:any) => {
                 }}
             >   
                 <FlashList 
-                    data={imagesID}
-                    renderItem={({item,index}:any) => <ChapterImage key={index} image_data={images.current[item].data} layout={images.current[item].layout} zoom={zoom} showOptions={showOptions} setShowOptions={setShowOptions}/>}
+                    data={imageKeys}
+                    renderItem={({item,index}:any) => <ChapterImage key={index} item={item} images={images} zoom={zoom} showOptions={showOptions} setShowOptions={setShowOptions}/>}
                     estimatedItemSize={StaticDimensions.height}
                     extraData={{zoom:zoom,showOptions:showOptions,setShowOptions:setShowOptions}}
                     onEndReachedThreshold={0.5}
-                    onEndReached={()=>{
+                    onEndReached={async ()=>{
+                        const new_chapter_idx = CHAPTER_IDX.current+1
+                        if (temp_image_keys.current.hasOwnProperty(new_chapter_idx) && imageKeys.slice(-1)[0]?.type !== "no-chapter-banner"){
+                            
+                            const next_stored_chapter = await ChapterStorage.getByIdx(`${SOURCE}-${COMIC_ID}`,new_chapter_idx, {exclude_fields:["data"]})   
+                            if (next_stored_chapter.data_state === "completed"){
+                                delete temp_image_keys.current[new_chapter_idx-2]
+                                const pre_image_keys = imageKeys.filter((data:any) => {
+                                    if (data.type === "image"){
+                                        const idx = Number(data.value.split("-")[0])
+                                        if (idx < new_chapter_idx-2) return false
+                                        else return true
+                                    }else if (data.type === "chapter-info-banner"){
+                                        if (data.idx < new_chapter_idx-2) return false
+                                    }else return true
+                                })
+                                
 
-                        setImagesID(imagesID.slice(5));
+                                setImageKeys([...pre_image_keys,{type:"chapter-info-banner", idx:CHAPTER_IDX.current, value:{last:chapterInfo.title, next:next_stored_chapter?.title}},...temp_image_keys.current[new_chapter_idx]])
+                                
+                                for (const item of Object.keys(images.current)){
+
+                                    if (Number(item.split("-")[0]) < new_chapter_idx-2) delete images.current[item]
+                                }
+
+                                const chapter_next = await get_chapter(SOURCE,COMIC_ID,new_chapter_idx + 1)
+                                if (chapter_next){
+                                    temp_image_keys.current[`${new_chapter_idx + 1}`] = chapter_next?.file_keys
+                                    images.current = {...images.current,...chapter_next?.files}
+                                }else{
+                                    temp_image_keys.current[`${new_chapter_idx + 1}`] = [{type:"no-chapter-banner"}]
+                                }
+                            }else{
+                                setImageKeys([...imageKeys,{type:"no-chapter-banner"}])
+                            
+                            }
+
+                        }
+                        console.log(images.current)
+                    }}
+                    onViewableItemsChanged={async ({ viewableItems, changed }) => {
+                        const expect_chapter_idx = [CHAPTER_IDX.current + 1, CHAPTER_IDX.current - 1]
+                        const current_count = viewableItems.filter((data:any) => data.item.idx === CHAPTER_IDX.current).length
+                        const existed_count = viewableItems.filter((data:any) => expect_chapter_idx.includes(data.item.idx)).length
+                        
+                        if (current_count || existed_count){
+                            const chose_idx = current_count > existed_count ? CHAPTER_IDX.current : viewableItems.find((data:any) => expect_chapter_idx.includes(data.item.idx))?.item.idx
+                            const stored_chapter = await ChapterStorage.getByIdx(`${SOURCE}-${COMIC_ID}`,chose_idx, {exclude_fields:["data"]})   
+                            setChapterInfo({
+                                chapter_id: stored_chapter?.id,
+                                chapter_idx: stored_chapter?.id,
+                                title: stored_chapter?.title,
+                            })
+                            router.setParams({idx:chose_idx})
+                            CHAPTER_IDX.current = chose_idx
+                        }
+                        
+                        
                     }}
                 />
                 
@@ -289,10 +318,15 @@ const Index = ({}:any) => {
                                                             pointerEvents:"auto",
                                                         }}
                                                         value={zoom}
-                                                        onValueChange={setZoom}
+                                                        onValueChange={async (value)=>{
+                                                            await Storage.store("CHAPTER_ZOOM", value)
+                                                            setZoom(value)
+                                                        }}
+                                                        
                                                         maximumValue={80}
                                                         minimumValue={-80}
                                                         step={1}
+                                                        
                                                         orientation="vertical"
                                                         
                                                         minimumTrackTintColor={Theme[themeTypeContext].text_color}
@@ -316,6 +350,8 @@ const Index = ({}:any) => {
                                                                 && <Icon source={"magnify-minus-outline"} size={((Dimensions.width+Dimensions.height)/2)*0.05} color={Theme[themeTypeContext].icon_color}/>
                                                             }</>
                                                         </>)}}
+
+                                                        
                                                     />
                                                     
                                                 </View>
@@ -329,7 +365,8 @@ const Index = ({}:any) => {
                                                         pointerEvents:"auto",
                                                     }}
                                                     
-                                                    onPress={()=>{
+                                                    onPress={async ()=>{
+                                                        await Storage.store("CHAPTER_ZOOM", 0)
                                                         setZoom(0)
                                                     }}
                                                 >
@@ -371,7 +408,7 @@ const Index = ({}:any) => {
                                     backgroundColor:Theme[themeTypeContext].background_color,
                                 }}
                             >   
-                                <Disqus title={chapterInfo.title} identifier={`${SOURCE}-${COMIC_ID}-${CHAPTER_IDX}`} url={`${apiBaseContext}/read/${SOURCE}/${COMIC_ID}/`}
+                                <Disqus title={chapterInfo.title} identifier={`${SOURCE}-${COMIC_ID}-${CHAPTER_IDX.current}`} url={`${apiBaseContext}/read/${SOURCE}/${COMIC_ID}/`}
                                     paddingVertical={16} paddingHorizontal={25}
                                 />
                             </View>
