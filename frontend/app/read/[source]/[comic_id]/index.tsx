@@ -47,7 +47,7 @@ const Index = ({}:any) => {
     const [isLoading, setIsLoading]:any = useState("")
     const [zoom, setZoom]:any = useState(0)
 
-    const is_adding:any = useRef(false)
+    const is_adding:any = useRef({state:false,interval:null})
     const temp_loading:any = useRef(false)
     const temp_image_keys:any = useRef({})
     const images:any = useRef({})
@@ -84,16 +84,12 @@ const Index = ({}:any) => {
         temp_loading.current = false
     })()},[])
 
-    useEffect(()=>{
-        if (!imageKeys.length){
-            images.current = {}
-        }
-    },[imageKeys])
 
     useFocusEffect(useCallback(() => {
         return () => {
             setImageKeys([])
-            
+            images.current = {}
+            clearInterval(is_adding.current.interval)
         }
     },[]))
 
@@ -116,28 +112,31 @@ const Index = ({}:any) => {
                     extraData={{zoom:zoom,showOptions:showOptions,setShowOptions:setShowOptions}}
                     onEndReachedThreshold={0.5}
                     onEndReached={async ()=>{
-                        if (is_adding.current) return
-                        is_adding.current = true
+                        if (is_adding.current.state) return
+                        is_adding.current.state = true
                         setIsLoading(true)
-                        while (true) {
+
+                        clearInterval(is_adding.current.interval)
+                        is_adding.current.interval = setInterval(async ()=>{
                             if (!temp_loading.current) {
-                                console.log(temp_loading.current)
                                 temp_loading.current = true
                                 const new_chapter_idx = CHAPTER_IDX.current+1
                                 if (imageKeys.slice(-1)[0]?.type !== "no-chapter-banner"){
-                                    if (temp_image_keys.current.hasOwnProperty(new_chapter_idx)){
-                                        const next_stored_chapter = await ChapterStorage.getByIdx(`${SOURCE}-${COMIC_ID}`,new_chapter_idx, {exclude_fields:["data"]})   
-                                        if (next_stored_chapter.data_state === "completed"){
-                                            delete temp_image_keys.current[new_chapter_idx-2]
-                                            const pre_image_keys = imageKeys.filter((data:any) => {
-                                                if (data.type === "image"){
-                                                    const idx = Number(data.value.split("-")[0])
-                                                    if (idx < new_chapter_idx-2) return false
-                                                    else return true
-                                                }else if (data.type === "chapter-info-banner"){
-                                                    if (data.idx < new_chapter_idx-2) return false
-                                                }else return true
-                                            })
+                                    const next_stored_chapter = await ChapterStorage.getByIdx(`${SOURCE}-${COMIC_ID}`,new_chapter_idx, {exclude_fields:["data"]})   
+                                    if (next_stored_chapter.data_state === "completed"){
+                                        delete temp_image_keys.current[new_chapter_idx-2]
+                                        const pre_image_keys = imageKeys.filter((data:any) => {
+                                            if (data.type === "image"){
+                                                const idx = Number(data.value.split("-")[0])
+                                                if (idx < new_chapter_idx-2) return false
+                                                else return true
+                                            }else if (data.type === "chapter-info-banner"){
+                                                if (data.idx < new_chapter_idx-2) return false
+                                            }else return true
+                                        })
+
+                                        if (temp_image_keys.current.hasOwnProperty(new_chapter_idx)){
+                                            
                                             
 
                                             setImageKeys([...pre_image_keys,{type:"chapter-info-banner", idx:CHAPTER_IDX.current, value:{last:chapterInfo.title, next:next_stored_chapter?.title}},...temp_image_keys.current[new_chapter_idx]])
@@ -146,26 +145,24 @@ const Index = ({}:any) => {
 
                                                 if (Number(item.split("-")[0]) < new_chapter_idx-2) delete images.current[item]
                                             }
-
-                                            const chapter_next = await get_chapter(SOURCE,COMIC_ID,new_chapter_idx + 1)
-                                            if (chapter_next){
-                                                temp_image_keys.current[`${new_chapter_idx + 1}`] = chapter_next?.file_keys
-                                                images.current = {...images.current,...chapter_next?.files}
-                                            }else{
-                                                temp_image_keys.current[`${new_chapter_idx + 1}`] = [{type:"no-chapter-banner"}]
-                                            }
-                                        }else setImageKeys([...imageKeys,{type:"no-chapter-banner"}])
+                                        }
                                         
-
+                                        const chapter_next = await get_chapter(SOURCE,COMIC_ID,new_chapter_idx + 1)
+                                        if (chapter_next){
+                                            temp_image_keys.current[`${new_chapter_idx + 1}`] = chapter_next?.file_keys
+                                            images.current = {...images.current,...chapter_next?.files}
+                                        }else{
+                                            temp_image_keys.current[`${new_chapter_idx + 1}`] = [{type:"no-chapter-banner"}]
+                                        }
                                     }else setImageKeys([...imageKeys,{type:"no-chapter-banner"}])
                                 }
-                                break
+                                clearInterval(is_adding.current.interval)
+                                temp_loading.current = false
+                                is_adding.current.state = false
+                                setIsLoading(false)
                             }
-                        }
-                        temp_loading.current = false
-                        is_adding.current = false
-                        setIsLoading(false)
-                        console.log(images.current)
+                        })
+                        
                     }}
                     onViewableItemsChanged={async ({ viewableItems, changed }) => {
                         const expect_chapter_idx = [CHAPTER_IDX.current + 1, CHAPTER_IDX.current - 1]
