@@ -11,7 +11,7 @@ import axios from 'axios';
 import Theme from '@/constants/theme';
 import Dropdown from '@/components/dropdown';
 import { CONTEXT } from '@/constants/module/context';
-import { store_comic_cover } from '../module/content';
+import { store_comic_cover } from '../modules/content';
 import Storage from '@/constants/module/storage';
 import ComicStorage from '@/constants/module/comic_storage';
 import ImageCacheStorage from '@/constants/module/image_cache_storage';

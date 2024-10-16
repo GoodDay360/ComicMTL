@@ -8,7 +8,7 @@ from PIL import Image
 
 from backend.module.utils import date_utils
 
-import json,time, threading,os, uuid, sqlite3, io, base64
+import json,time, threading,os, uuid, sqlite3, io, base64, sys
 MAX_TIMEOUT = 10
 
 scraper = None
@@ -118,6 +118,11 @@ def scrap(comic_id:str="",chapter_id:str="",output_dir:str=""):
                 
                 
         return {"status":"success"}
+    except Exception as e: 
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        line_number = exc_tb.tb_lineno
+        print(f"Error on line {line_number}: {e}")
+        raise Exception(e) 
     finally: pass
 
 if __name__ == "__main__":

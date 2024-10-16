@@ -25,8 +25,8 @@ import Dropdown from '@/components/dropdown';
 import { RequestChapterWidget, BookmarkWidget } from './widgets';
 
 
-import { get, store_comic_cover, get_requested_info } from '../module/content'
-import { createSocket, setupSocketNetworkListener } from '../module/socket';
+import { get, store_comic_cover, get_requested_info } from '../modules/content'
+import { createSocket, setupSocketNetworkListener } from '../modules/socket';
 
 const ChapterComponent = ({
     SOURCE,
@@ -56,7 +56,6 @@ const ChapterComponent = ({
     const [styles, setStyles]:any = useState("")
     const [is_saved, set_is_saved] = useState(false)
     const [is_net_connected, set_is_net_connected]:any = useState(false)
-    const [is_working_on_queue, set_is_working_on_queue]:any = useState(false)
 
     useEffect(() => {(async () => {
         const net_info = await NetInfo.fetch()
@@ -110,6 +109,7 @@ const ChapterComponent = ({
         }
     }
 
+
     return <>{styles && <View
         style={{
             display:"flex",
@@ -131,7 +131,7 @@ const ChapterComponent = ({
                 const stored_chapter = await ChapterStorage.get(`${SOURCE}-${ID}`,chapter.id, {exclude_fields:["data"]})
                 if (stored_chapter?.data_state === "completed") {
                     
-                    router.push(`/read/${SOURCE}/${ID}/${chapter.idx}`)
+                    router.push(`/read/${SOURCE}/${ID}/?idx=${chapter.idx}`)
                 }else{
                     Toast.show({
                         type: 'info',
@@ -162,34 +162,7 @@ const ChapterComponent = ({
                     <>{chapterRequested[chapter.id]?.state === "queue" && !chapterQueue?.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`) 
                         && <ActivityIndicator animating={true} color={Theme[themeTypeContext].icon_color} />
                     }</>
-                    <>{chapterRequested[chapter.id]?.state === "ready" && !chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`) 
-                        && <>{chapterToDownload[chapter.id]?.progress
-                            ? <CircularProgress 
-                                value={chapterToDownload[chapter.id]?.progress.current} 
-                                maxValue={chapterToDownload[chapter.id]?.progress.total}
-                                radius={((Dimensions.width+Dimensions.height)/2)*0.0225}
-                                inActiveStrokeColor={Theme[themeTypeContext].border_color}
-                                
-                                showProgressValue={false}
-                                title={"📥"}
-                                titleStyle={{
-                                    pointerEvents:"none",
-                                    color:Theme[themeTypeContext].text_color,
-                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
-                                    fontFamily:"roboto-medium",
-                                    textAlign:"center",
-                                }}
-                                onAnimationComplete={()=>{
-                                    const chapter_to_download = chapterToDownload
-                                    delete chapter_to_download[chapter.id]
-                                    setChapterToDownload(chapter_to_download)
-                                    set_is_saved(true)
-                                    isDownloading.current = false
-                                }}
-                            />
-                            : <ActivityIndicator animating={true} color={"green"} />
-                        }</>
-                    }</>
+                    
 
                     <>{chapterRequested[chapter.id]?.state === "unkown" && !chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`) 
                         && <TouchableRipple
@@ -225,8 +198,45 @@ const ChapterComponent = ({
 
                         </TouchableRipple>
                     }</>
+
+                    <>{chapterRequested[chapter.id]?.state === "ready"
+                        && <>{chapterToDownload[chapter.id]?.progress
+                            ? <CircularProgress 
+                                value={chapterToDownload[chapter.id]?.progress.current} 
+                                maxValue={chapterToDownload[chapter.id]?.progress.total}
+                                radius={((Dimensions.width+Dimensions.height)/2)*0.0225}
+                                inActiveStrokeColor={Theme[themeTypeContext].border_color}
+                                
+                                showProgressValue={false}
+                                title={"📥"}
+                                titleStyle={{
+                                    pointerEvents:"none",
+                                    color:Theme[themeTypeContext].text_color,
+                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
+                                    fontFamily:"roboto-medium",
+                                    textAlign:"center",
+                                }}
+                                onAnimationComplete={async ()=>{
+                                    const chapter_to_download = chapterToDownload
+                                    delete chapter_to_download[chapter.id]
+                                    setChapterToDownload(chapter_to_download)
+
+                                    const stored_chapter_requested = (await ComicStorage.getByID(SOURCE,ID)).chapter_requested
+                                    const new_chapter_requested = stored_chapter_requested.filter((item:any) => item.chapter_id !== chapter.id);
+                                    await ComicStorage.updateChapterQueue(SOURCE,ID,new_chapter_requested)
+
+                                    delete chapterRequested[chapter.id]
+                                    setChapterRequested(chapterRequested)
+
+                                    set_is_saved(true)
+                                    isDownloading.current = false
+                                }}
+                            />
+                            : <ActivityIndicator animating={true} color={"green"} />
+                        }</>
+                    }</>
                     
-                    <>{chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`)
+                    <>{chapterQueue.queue?.hasOwnProperty(`${SOURCE}-${ID}-${chapter.idx}`) && !(chapterRequested[chapter.id]?.state === "ready")
                         && <>{chapterQueue.queue[`${SOURCE}-${ID}-${chapter.idx}`]
                             ? <CircularProgress 
                                 value={100 - (((chapterQueue.queue[`${SOURCE}-${ID}-${chapter.idx}`])*100)/chapterQueue.max_queue)} 
@@ -245,7 +255,7 @@ const ChapterComponent = ({
                                     textAlign:"center",
                                 }}
                                 onAnimationComplete={()=>{
-                                    
+                                    console.log("HAHA",chapterQueue)
                                     get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, setChapterToDownload, signal, SOURCE, ID)
                                 }}
                             />

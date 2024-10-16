@@ -9,7 +9,7 @@ const Index = () => {
     const pathname = usePathname()
 
     if (pathname === "/" || pathname === "") return (
-        <Redirect href="/read/colamanga/manga-id90484/?idx=176" />
+        <Redirect href="/view/colamanga/manga-id90484/" />
     )
 
 }

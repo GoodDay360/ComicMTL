@@ -119,7 +119,7 @@ const ChapterImage = ({item, images, zoom, showOptions,setShowOptions}:any)=>{
                             fontFamily:"roboto-bold",
                         }}
                     >
-                        No more chapters available.
+                        No more available chapters on local.
                     </Text>
                     <Text selectable={false}
                         numberOfLines={1}

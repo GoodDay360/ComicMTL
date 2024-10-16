@@ -152,6 +152,7 @@ export const get_requested_info = async (
                 }
             }
         }
+        console.log(new_obj)
         setChapterToDownload(new_obj)
         
     }).catch((error) => {
@@ -176,6 +177,8 @@ export const download_chapter = async (
 
     const [chapter_id, request_info]:any = Object.entries(chapterToDownload)[0];
     
+    var progress_lenth:number = 0
+    var total_length:number = 0
     await axios({
         method: 'post',
         url: `${API_BASE}/api/stream_file/download_chapter/`,
@@ -191,10 +194,11 @@ export const download_chapter = async (
             options:request_info.options,
         },
         onDownloadProgress: (progressEvent) => {
-            const totalLength = progressEvent.total;
-            if (totalLength !== undefined) {
-                const progress = progressEvent.loaded;
-                setChapterToDownload({...chapterToDownload,[chapter_id]:{...chapterToDownload[chapter_id],progress:{current:progress,total:totalLength}}})
+            const _total_length = progressEvent.total
+            if (total_length !== undefined) {
+                total_length = _total_length as number + 5
+                progress_lenth = progressEvent.loaded;
+                setChapterToDownload({...chapterToDownload,[chapter_id]:{...chapterToDownload[chapter_id],progress:{current:progress_lenth,total:total_length}}})
             }
         },
         timeout: 600000,
@@ -213,15 +217,7 @@ export const download_chapter = async (
             console.log(JSON.stringify({type:"file_path", value:chapter_dir + `${request_info.chapter_idx}.zip`}))
             await ChapterStorage.update(`${source}-${comic_id}`,chapter_id,{type:"file_path", value:chapter_dir + `${request_info.chapter_idx}.zip`}, "completed")
         }
-        
-
-        const stored_chapter_requested = (await ComicStorage.getByID(source,comic_id)).chapter_requested
-        const new_chapter_requested = stored_chapter_requested.filter((item:any) => item.chapter_id !== chapter_id);
-        await ComicStorage.updateChapterQueue(source,comic_id,new_chapter_requested)
-
-        delete chapterRequested[chapter_id]
-        setChapterRequested(chapterRequested)
-
+        setChapterToDownload({...chapterToDownload,[chapter_id]:{...chapterToDownload[chapter_id],progress:{current:progress_lenth+5,total:total_length}}})
         
     }).catch(async (error) => {
         console.log(error)

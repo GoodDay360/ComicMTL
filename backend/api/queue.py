@@ -34,6 +34,7 @@ def request_chapter(request):
         channel_name = payload.get("channel_name")
         options = payload.get("options") or {}
         
+        options["translate"]["target"] = options.get("translate").get("target") if options.get("translate").get("state") else ""
         query_count = ComicStorageCache.objects.filter(
             source=source, 
             comic_id=comic_id, 
@@ -41,7 +42,7 @@ def request_chapter(request):
             chapter_idx=chapter_idx,
             colorize=options.get("colorize"),
             translate=options.get("translate").get("state"),
-            target_lang = options.get("translate").get("target") if options.get("translate").get("state") else ""
+            target_lang = options.get("translate").get("target")
         ).count()
         
         if query_count: return JsonResponse({"status":"ready"})

@@ -26,8 +26,8 @@ import { PageNavigationWidget, RequestChapterWidget, BookmarkWidget } from '../c
 import ChapterComponent from '../componenets/chapter';
 
 
-import { get, store_comic_cover, get_requested_info, download_chapter } from '../module/content'
-import { createSocket, setupSocketNetworkListener } from '../module/socket';
+import { get, store_comic_cover, get_requested_info, download_chapter } from '../modules/content'
+import { createSocket, setupSocketNetworkListener } from '../modules/socket';
 
 
 
@@ -91,6 +91,7 @@ const Index = ({}:any) => {
         download_chapter_interval.current = setInterval(() => {
             if (!isDownloading.current && Object.keys(chapterToDownload).length){
                 isDownloading.current = true
+                console.log("Downloading HERE")
                 download_chapter(setShowCloudflareTurnstileContext, isDownloading, SOURCE, ID, chapterRequested, setChapterRequested, chapterToDownload, setChapterToDownload, signal)
             }
         },1000)

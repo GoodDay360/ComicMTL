@@ -44,8 +44,11 @@ const Index = ({}:any) => {
     const [chapterInfo, setChapterInfo]:any = useState({})
     const [showOptions, setShowOptions]:any = useState({type:"general",state:false})
     const [imageKeys, setImageKeys]:any = useState([])
+    const [isLoading, setIsLoading]:any = useState("")
     const [zoom, setZoom]:any = useState(0)
 
+    const is_adding:any = useRef(false)
+    const temp_loading:any = useRef(false)
     const temp_image_keys:any = useRef({})
     const images:any = useRef({})
     const CHAPTER_IDX = useRef(Number(useLocalSearchParams().idx as string));
@@ -56,6 +59,7 @@ const Index = ({}:any) => {
     },[])
 
     useEffect(()=>{(async () => {
+        temp_loading.current = true
         const stored_chapter = await ChapterStorage.getByIdx(`${SOURCE}-${COMIC_ID}`,CHAPTER_IDX.current, {exclude_fields:["data"]})   
         setChapterInfo({
             chapter_id: stored_chapter?.id,
@@ -77,7 +81,7 @@ const Index = ({}:any) => {
             images.current = {...images.current,...chapter_next?.files}
         }
         
-        
+        temp_loading.current = false
     })()},[])
 
     useEffect(()=>{
@@ -93,11 +97,6 @@ const Index = ({}:any) => {
         }
     },[]))
 
-    const renderItem = useCallback(({ item, index }:any) => {
-        return (
-            <ChapterImage key={index} image_data={images.current[item].data} layout={images.current[item].layout} zoom={zoom}/>
-        )
-    }, [zoom])
 
     return (<>{imageKeys.length 
         ? <>
@@ -117,43 +116,55 @@ const Index = ({}:any) => {
                     extraData={{zoom:zoom,showOptions:showOptions,setShowOptions:setShowOptions}}
                     onEndReachedThreshold={0.5}
                     onEndReached={async ()=>{
-                        const new_chapter_idx = CHAPTER_IDX.current+1
-                        if (temp_image_keys.current.hasOwnProperty(new_chapter_idx) && imageKeys.slice(-1)[0]?.type !== "no-chapter-banner"){
-                            
-                            const next_stored_chapter = await ChapterStorage.getByIdx(`${SOURCE}-${COMIC_ID}`,new_chapter_idx, {exclude_fields:["data"]})   
-                            if (next_stored_chapter.data_state === "completed"){
-                                delete temp_image_keys.current[new_chapter_idx-2]
-                                const pre_image_keys = imageKeys.filter((data:any) => {
-                                    if (data.type === "image"){
-                                        const idx = Number(data.value.split("-")[0])
-                                        if (idx < new_chapter_idx-2) return false
-                                        else return true
-                                    }else if (data.type === "chapter-info-banner"){
-                                        if (data.idx < new_chapter_idx-2) return false
-                                    }else return true
-                                })
-                                
+                        if (is_adding.current) return
+                        is_adding.current = true
+                        setIsLoading(true)
+                        while (true) {
+                            if (!temp_loading.current) {
+                                console.log(temp_loading.current)
+                                temp_loading.current = true
+                                const new_chapter_idx = CHAPTER_IDX.current+1
+                                if (imageKeys.slice(-1)[0]?.type !== "no-chapter-banner"){
+                                    if (temp_image_keys.current.hasOwnProperty(new_chapter_idx)){
+                                        const next_stored_chapter = await ChapterStorage.getByIdx(`${SOURCE}-${COMIC_ID}`,new_chapter_idx, {exclude_fields:["data"]})   
+                                        if (next_stored_chapter.data_state === "completed"){
+                                            delete temp_image_keys.current[new_chapter_idx-2]
+                                            const pre_image_keys = imageKeys.filter((data:any) => {
+                                                if (data.type === "image"){
+                                                    const idx = Number(data.value.split("-")[0])
+                                                    if (idx < new_chapter_idx-2) return false
+                                                    else return true
+                                                }else if (data.type === "chapter-info-banner"){
+                                                    if (data.idx < new_chapter_idx-2) return false
+                                                }else return true
+                                            })
+                                            
 
-                                setImageKeys([...pre_image_keys,{type:"chapter-info-banner", idx:CHAPTER_IDX.current, value:{last:chapterInfo.title, next:next_stored_chapter?.title}},...temp_image_keys.current[new_chapter_idx]])
-                                
-                                for (const item of Object.keys(images.current)){
+                                            setImageKeys([...pre_image_keys,{type:"chapter-info-banner", idx:CHAPTER_IDX.current, value:{last:chapterInfo.title, next:next_stored_chapter?.title}},...temp_image_keys.current[new_chapter_idx]])
+                                            
+                                            for (const item of Object.keys(images.current)){
 
-                                    if (Number(item.split("-")[0]) < new_chapter_idx-2) delete images.current[item]
+                                                if (Number(item.split("-")[0]) < new_chapter_idx-2) delete images.current[item]
+                                            }
+
+                                            const chapter_next = await get_chapter(SOURCE,COMIC_ID,new_chapter_idx + 1)
+                                            if (chapter_next){
+                                                temp_image_keys.current[`${new_chapter_idx + 1}`] = chapter_next?.file_keys
+                                                images.current = {...images.current,...chapter_next?.files}
+                                            }else{
+                                                temp_image_keys.current[`${new_chapter_idx + 1}`] = [{type:"no-chapter-banner"}]
+                                            }
+                                        }else setImageKeys([...imageKeys,{type:"no-chapter-banner"}])
+                                        
+
+                                    }else setImageKeys([...imageKeys,{type:"no-chapter-banner"}])
                                 }
-
-                                const chapter_next = await get_chapter(SOURCE,COMIC_ID,new_chapter_idx + 1)
-                                if (chapter_next){
-                                    temp_image_keys.current[`${new_chapter_idx + 1}`] = chapter_next?.file_keys
-                                    images.current = {...images.current,...chapter_next?.files}
-                                }else{
-                                    temp_image_keys.current[`${new_chapter_idx + 1}`] = [{type:"no-chapter-banner"}]
-                                }
-                            }else{
-                                setImageKeys([...imageKeys,{type:"no-chapter-banner"}])
-                            
+                                break
                             }
-
                         }
+                        temp_loading.current = false
+                        is_adding.current = false
+                        setIsLoading(false)
                         console.log(images.current)
                     }}
                     onViewableItemsChanged={async ({ viewableItems, changed }) => {
@@ -176,6 +187,19 @@ const Index = ({}:any) => {
                         
                     }}
                 />
+                {isLoading && (
+                    <View
+                        style={{
+                            display:"flex",
+                            width:"100%",
+                            height:"auto",
+                            justifyContent:"center",
+                            padding:16,
+                        }}
+                    >
+                        <ActivityIndicator animating={true}  size={(0.03 * ((Dimensions.width+Dimensions.height)/2)) * (1 - zoom/100)}/>
+                    </View>
+                )}
                 
             </View>
             <AnimatePresence exitBeforeEnter>
