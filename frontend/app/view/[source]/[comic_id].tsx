@@ -60,6 +60,7 @@ const Index = ({}:any) => {
     const [CONTENT, SET_CONTENT]:any = useState({})
     const [chapterRequested, setChapterRequested]:any = useState({})
     const [chapterToDownload, setChapterToDownload]:any = useState({})
+    const [downloadProgress, setDownloadProgress]:any = useState(0)
     const [chapterQueue, setChapterQueue]:any = useState({})
     const [isLoading, setIsLoading]:any = useState(true);
     const [feedBack, setFeedBack]:any = useState("");
@@ -68,7 +69,7 @@ const Index = ({}:any) => {
     const [refreshing, setRefreshing]:any = useState(false);
     const [sort, setSort]:any = useState("descending")
     const [page, setPage]:any = useState(1)
-    const [bookmarked, setBookmarked]:any = useState(false)
+    const [bookmarked, setBookmarked]:any = useState({state:false,tag:""})
     
     const socketNetWorkListener:any = useRef(null)
     const socket:any = useRef(null)
@@ -91,8 +92,15 @@ const Index = ({}:any) => {
         download_chapter_interval.current = setInterval(() => {
             if (!isDownloading.current && Object.keys(chapterToDownload).length){
                 isDownloading.current = true
+                console.log(isDownloading.current,chapterToDownload)
                 console.log("Downloading HERE")
-                download_chapter(setShowCloudflareTurnstileContext, isDownloading, SOURCE, ID, chapterRequested, setChapterRequested, chapterToDownload, setChapterToDownload, signal)
+                download_chapter(
+                    setShowCloudflareTurnstileContext, isDownloading, SOURCE, ID, 
+                    chapterRequested, setChapterRequested,
+                    chapterToDownload, setChapterToDownload,
+                    downloadProgress, setDownloadProgress,
+                    signal,
+                )
             }
         },1000)
 
@@ -230,9 +238,9 @@ const Index = ({}:any) => {
             if (stored_comic) {
                 await get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, setChapterToDownload, signal, SOURCE, ID)
                 
-                setBookmarked(true)
+                setBookmarked({state:true,tag:stored_comic.tag})
             }
-            else setBookmarked(false)
+            else setBookmarked({state:false,tag:""})
 
             const net_info = await NetInfo.fetch()
             if (net_info.isConnected){
@@ -252,8 +260,8 @@ const Index = ({}:any) => {
         SET_CONTENT([])
 
         const stored_comic = await ComicStorage.getByID(SOURCE,ID)
-        if (stored_comic) setBookmarked(true)
-        else setBookmarked(false)
+        if (stored_comic) setBookmarked({state:true,tag:stored_comic.tag})
+        else setBookmarked({state:false,tag:""})
 
         if (net_info.isConnected){
             get(setShowCloudflareTurnstileContext, setIsLoading, signal, translate, setFeedBack, SOURCE, ID, SET_CONTENT)
@@ -540,24 +548,54 @@ const Index = ({}:any) => {
                         <TouchableRipple
                             rippleColor={Theme[themeTypeContext].ripple_color_outlined}
                             style={{
+                                display:"flex",
+                                flexDirection:"row",
+                                paddingRight:10,
+                                alignItems:"center",
                                 alignSelf:"flex-start",
                                 borderWidth:2,
                                 borderRadius:5,
                                 borderColor:Theme[themeTypeContext].border_color,
                             }}
                             onPress={()=>{
-                                setWidgetContext({state:true,component:<BookmarkWidget
-                                    onRefresh={onRefresh}
-                                    SOURCE={SOURCE}
-                                    ID={ID}
-                                    CONTENT={CONTENT}
-                                  />
+                                setWidgetContext({state:true,component:
+                                    <BookmarkWidget
+                                        onRefresh={onRefresh}
+                                        SOURCE={SOURCE}
+                                        ID={ID}
+                                        CONTENT={CONTENT}
+                                    />
                                 })
                             }}
                         >   
-                            <>{bookmarked 
-                                ? <Icon source={"bookmark"} size={((Dimensions.width+Dimensions.height)/2)*0.05} color={Theme[themeTypeContext].icon_color}/>
-                                : <Icon source={"bookmark-outline"} size={((Dimensions.width+Dimensions.height)/2)*0.05} color={Theme[themeTypeContext].icon_color}/>
+                            <>{bookmarked.state
+                                ?   <>
+                                        <Icon source={"bookmark"} size={((Dimensions.width+Dimensions.height)/2)*0.05} color={Theme[themeTypeContext].icon_color}/>
+                                        <Text selectable={false}
+                                            numberOfLines={1}
+                                            style={{
+                                                color:Theme[themeTypeContext].text_color,
+                                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.035,
+                                                fontFamily:"roboto-bold",
+                                            }}
+                                        >
+                                            {bookmarked.tag}
+                                        </Text>
+                                    </>
+                                : <>
+                                    <Icon source={"bookmark-outline"} size={((Dimensions.width+Dimensions.height)/2)*0.05} color={Theme[themeTypeContext].icon_color}/>
+                                    <Text selectable={false}
+                                        numberOfLines={1}
+                                        style={{
+                                            color:Theme[themeTypeContext].text_color,
+                                            fontSize:((Dimensions.width+Dimensions.height)/2)*0.035,
+                                            fontFamily:"roboto-bold",
+                                        }}
+                                    >
+                                        Bookmark
+                                    </Text>
+                                    
+                                </>
                             }</>
                             
 
@@ -691,6 +729,8 @@ const Index = ({}:any) => {
                                         setChapterRequested={setChapterRequested}
                                         chapterToDownload={chapterToDownload}
                                         setChapterToDownload={setChapterToDownload}
+                                        downloadProgress={downloadProgress}
+                                        setDownloadProgress={setDownloadProgress}
                                         setChapterQueue={setChapterQueue}
                                         chapterQueue={chapterQueue}
                                     />

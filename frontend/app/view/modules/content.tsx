@@ -171,6 +171,8 @@ export const download_chapter = async (
     setChapterRequested:any,
     chapterToDownload:any, 
     setChapterToDownload:any, 
+    downloadProgress:any,
+    setDownloadProgress:any,
     signal:any
 ) => {
     const API_BASE = await Storage.get("IN_USE_API_BASE")
@@ -178,7 +180,10 @@ export const download_chapter = async (
     const [chapter_id, request_info]:any = Object.entries(chapterToDownload)[0];
     
     var progress_lenth:number = 0
-    var total_length:number = 0
+    var total_length:number = 100
+    setDownloadProgress({...downloadProgress, [chapter_id]:{progress:progress_lenth, total:total_length}})
+    setChapterToDownload({...chapterToDownload,[chapter_id]:{...chapterToDownload[chapter_id],state:"downloading"}})
+    
     await axios({
         method: 'post',
         url: `${API_BASE}/api/stream_file/download_chapter/`,
@@ -195,10 +200,10 @@ export const download_chapter = async (
         },
         onDownloadProgress: (progressEvent) => {
             const _total_length = progressEvent.total
-            if (total_length !== undefined) {
+            if (total_length !== undefined && progressEvent.loaded !== progress_lenth) {
                 total_length = _total_length as number + 5
                 progress_lenth = progressEvent.loaded;
-                setChapterToDownload({...chapterToDownload,[chapter_id]:{...chapterToDownload[chapter_id],progress:{current:progress_lenth,total:total_length}}})
+                setDownloadProgress({...downloadProgress, [chapter_id]:{progress:progress_lenth, total:total_length}})
             }
         },
         timeout: 600000,
@@ -214,17 +219,24 @@ export const download_chapter = async (
             await FileSystem.writeAsStringAsync(chapter_dir + `${request_info.chapter_idx}.zip`, (await blobToBase64(DATA)).split(',')[1], {
                 encoding: FileSystem.EncodingType.Base64,
             });
-            console.log(JSON.stringify({type:"file_path", value:chapter_dir + `${request_info.chapter_idx}.zip`}))
+            
             await ChapterStorage.update(`${source}-${comic_id}`,chapter_id,{type:"file_path", value:chapter_dir + `${request_info.chapter_idx}.zip`}, "completed")
         }
-        setChapterToDownload({...chapterToDownload,[chapter_id]:{...chapterToDownload[chapter_id],progress:{current:progress_lenth+5,total:total_length}}})
+        
+        
+
+        
+
+        setDownloadProgress({...downloadProgress, [chapter_id]:{progress:progress_lenth+5, total:total_length}})
+        
+
         
     }).catch(async (error) => {
         console.log(error)
         
-            if (error.status === 511) setShowCloudflareTurnstile(true)
-            else {
-                const chapter_to_download = chapterToDownload
+        if (error.status === 511) setShowCloudflareTurnstile(true)
+        else {
+            const chapter_to_download = chapterToDownload
             delete chapter_to_download[chapter_id]
             setChapterToDownload(chapter_to_download)
             

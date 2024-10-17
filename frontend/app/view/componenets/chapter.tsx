@@ -38,6 +38,8 @@ const ChapterComponent = ({
     isDownloading,
     chapterRequested,
     setChapterRequested,
+    downloadProgress,
+    setDownloadProgress,
     chapterToDownload,
     setChapterToDownload,
     setChapterQueue,
@@ -200,10 +202,10 @@ const ChapterComponent = ({
                     }</>
 
                     <>{chapterRequested[chapter.id]?.state === "ready"
-                        && <>{chapterToDownload[chapter.id]?.progress
+                        && <>{chapterToDownload[chapter.id]?.state === "downloading"
                             ? <CircularProgress 
-                                value={chapterToDownload[chapter.id]?.progress.current} 
-                                maxValue={chapterToDownload[chapter.id]?.progress.total}
+                                value={downloadProgress[chapter.id]?.current} 
+                                maxValue={downloadProgress[chapter.id]?.total}
                                 radius={((Dimensions.width+Dimensions.height)/2)*0.0225}
                                 inActiveStrokeColor={Theme[themeTypeContext].border_color}
                                 
@@ -217,16 +219,20 @@ const ChapterComponent = ({
                                     textAlign:"center",
                                 }}
                                 onAnimationComplete={async ()=>{
-                                    const chapter_to_download = chapterToDownload
-                                    delete chapter_to_download[chapter.id]
-                                    setChapterToDownload(chapter_to_download)
-
                                     const stored_chapter_requested = (await ComicStorage.getByID(SOURCE,ID)).chapter_requested
                                     const new_chapter_requested = stored_chapter_requested.filter((item:any) => item.chapter_id !== chapter.id);
                                     await ComicStorage.updateChapterQueue(SOURCE,ID,new_chapter_requested)
 
                                     delete chapterRequested[chapter.id]
                                     setChapterRequested(chapterRequested)
+
+                                    const chapter_to_download = chapterToDownload
+                                    delete chapter_to_download[chapter.id]
+                                    setChapterToDownload(chapter_to_download)
+
+                                    const download_progress = downloadProgress
+                                    delete download_progress[chapter.id]
+                                    setDownloadProgress(download_progress)
 
                                     set_is_saved(true)
                                     isDownloading.current = false
