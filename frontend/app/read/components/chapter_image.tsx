@@ -20,7 +20,7 @@ import {CONTEXT} from '@/constants/module/context';
 import {blobToBase64, base64ToBlob} from "@/constants/module/file_manager";
 import Theme from '@/constants/theme';
 
-const ChapterImage = ({item, images, zoom, showOptions,setShowOptions}:any)=>{
+const ChapterImage = ({item, zoom, showOptions,setShowOptions}:any)=>{
     const SOURCE = useLocalSearchParams().source;
     const COMIC_ID = useLocalSearchParams().comic_id;
     const CHAPTER_IDX = Number(useLocalSearchParams().chapter_idx as string);
@@ -43,13 +43,13 @@ const ChapterImage = ({item, images, zoom, showOptions,setShowOptions}:any)=>{
         >
             {item.type === "image" && (
 
-                <Image source={{type:"base64",data:images.current[item.value].data}} 
+                <Image source={{type:"base64",data:item.image_data}} 
                     contentFit="contain"
                     style={{
                         width:Dimensions.width > 720 
                             ? 0.8 * Dimensions.width * (1 - zoom / 100)
                             : `${100 - zoom}%`,
-                        aspectRatio: images.current[item.value].layout.width / images.current[item.value].layout.height,
+                        aspectRatio: item.layout.width / item.layout.height,
                     }}
                     onLoadEnd={()=>{
                         // console.log("CLEANED")

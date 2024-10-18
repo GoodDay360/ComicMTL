@@ -150,16 +150,6 @@ const Index = ({}:any) => {
         },100)
     },[imageKeys, addChapter])
 
-    const renderItem = React.memo(({ item, index }:any) => (
-        <ChapterImage
-            key={index}
-            item={item}
-            images={images}
-            zoom={zoom}
-            showOptions={showOptions}
-            setShowOptions={setShowOptions}
-        />
-    ));
 
     return (<>{!firstLoading
         ? <>
@@ -174,7 +164,13 @@ const Index = ({}:any) => {
             >   
                 <FlashList 
                     data={imageKeys}
-                    renderItem={({item,index}:any) => <ChapterImage key={index} item={item} images={images} zoom={zoom} showOptions={showOptions} setShowOptions={setShowOptions}/>}
+                    renderItem={({item,index}:any) => {
+                        if (item.type === "image"){
+                            item.image_data = images.current[item.value].data
+                            item.layout = images.current[item.value].layout
+                        }
+                        return <ChapterImage key={index} item={item} zoom={zoom} showOptions={showOptions} setShowOptions={setShowOptions}/>
+                    }}
                     estimatedItemSize={StaticDimensions.height}
                     extraData={{zoom:zoom,showOptions:showOptions,setShowOptions:setShowOptions}}
                     onEndReachedThreshold={0.5}
