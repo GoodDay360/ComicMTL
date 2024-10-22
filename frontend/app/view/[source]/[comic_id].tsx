@@ -70,6 +70,7 @@ const Index = ({}:any) => {
     const [sort, setSort]:any = useState("descending")
     const [page, setPage]:any = useState(1)
     const [bookmarked, setBookmarked]:any = useState({state:false,tag:""})
+    const [history, setHistory]:any = useState({})
     
     const socketNetWorkListener:any = useRef(null)
     const socket:any = useRef(null)
@@ -79,8 +80,8 @@ const Index = ({}:any) => {
 
     // Test Section
     useEffect(() => {
-        
-    },[chapterRequested])
+        console.log(CONTENT)
+    },[CONTENT])
 
 
     // Worker for downloading chapter
@@ -107,6 +108,7 @@ const Index = ({}:any) => {
         return () => clearInterval(download_chapter_interval.current)
     },[chapterToDownload])
 
+    // Setting up socket listener
     useFocusEffect(useCallback(() => {
         const handleOpen = (event: any) => {
             console.log("SOCKET CONNECTED!")
@@ -151,6 +153,7 @@ const Index = ({}:any) => {
         }
     },[]))
 
+    // Clean up on unmount
     useFocusEffect(useCallback(() => {
         return () => {
             controller.abort();
@@ -220,6 +223,7 @@ const Index = ({}:any) => {
         }
     }
 
+    // First load managing
     useEffect(() => { 
         (async ()=>{
             setShowMenuContext(false)
@@ -239,6 +243,7 @@ const Index = ({}:any) => {
                 await get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, setChapterToDownload, signal, SOURCE, ID)
                 
                 setBookmarked({state:true,tag:stored_comic.tag})
+                setHistory(stored_comic.history)
             }
             else setBookmarked({state:false,tag:""})
 
@@ -253,6 +258,8 @@ const Index = ({}:any) => {
 
     },[])
 
+    
+    // Refrest managing
     const onRefresh = async () => {
         if (!(styles && themeTypeContext && apiBaseContext)) return
         const net_info = await NetInfo.fetch()
@@ -260,12 +267,18 @@ const Index = ({}:any) => {
         SET_CONTENT([])
 
         const stored_comic = await ComicStorage.getByID(SOURCE,ID)
-        if (stored_comic) setBookmarked({state:true,tag:stored_comic.tag})
+        if (stored_comic) {
+            setBookmarked({state:true,tag:stored_comic.tag})
+            setHistory(stored_comic.history)
+        }
         else setBookmarked({state:false,tag:""})
 
         if (net_info.isConnected){
             get(setShowCloudflareTurnstileContext, setIsLoading, signal, translate, setFeedBack, SOURCE, ID, SET_CONTENT)
-            if (stored_comic) get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, setChapterToDownload, signal, SOURCE, ID)
+            if (stored_comic) {
+                setHistory(stored_comic.history)
+                get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, setChapterToDownload, signal, SOURCE, ID)
+            }
         }else{
             Load_Offline()
         }
@@ -556,6 +569,12 @@ const Index = ({}:any) => {
                                 borderWidth:2,
                                 borderRadius:5,
                                 borderColor:Theme[themeTypeContext].border_color,
+                                
+                                shadowColor: Theme[themeTypeContext].shadow_color,
+                                shadowOffset: { width: 0, height: 2 },
+                                shadowOpacity: 0.25,
+                                shadowRadius: 3.84,
+                                elevation: 5,
                             }}
                             onPress={()=>{
                                 setWidgetContext({state:true,component:
@@ -600,28 +619,159 @@ const Index = ({}:any) => {
                             
 
                         </TouchableRipple>
-                        <Button mode='contained'
-                            style={{
-                                alignSelf:"center",
-                                width:"65%",
-                                height: "auto",
-                                
-                                // Notice I use border_color instead. It just look good to me :)
-                                backgroundColor:Theme[themeTypeContext].border_color,
-                                borderWidth:3,
-                            }}
-                            labelStyle={{
-                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.038,
-                                fontFamily:"roboto-bold",
-                                color:Theme[themeTypeContext].text_color,
-                                paddingVertical:8,
-                                marginBottom:Platform.OS === "web" ? 8 : 0,
-                                
-                            }}
-                            onPress={()=>{}}
-                        >
-                            Read
-                        </Button>
+                        
+                            {Object.keys(history).length
+                                ? <TouchableRipple
+                                    rippleColor={Theme[themeTypeContext].ripple_color_outlined}
+                                    style={{
+                                        width:Dimensions.width*0.60,
+                                        display:"flex",
+                                        flexDirection:"column",
+                                        justifyContent:"center",
+                                        alignSelf:"center",
+                                        padding:8,
+                                        borderRadius:Dimensions.width*0.60/2,
+                                        backgroundColor:Theme[themeTypeContext].border_color,
+
+                                        shadowColor: Theme[themeTypeContext].shadow_color,
+                                        shadowOffset: { width: 0, height: 2 },
+                                        shadowOpacity: 0.25,
+                                        shadowRadius: 3.84,
+                                        elevation: 5,
+                                        
+                                    }}
+                                    onPress={()=>{
+                                        router.push(`/read/${SOURCE}/${ID}/?idx=${history.idx}`)
+                                    }}
+                                >
+                                    <View
+                                        style={{
+                                            display:"flex",
+                                            flexDirection:"column",  
+                                            gap:12,
+                                            alignItems:"center",
+                                        }}
+                                    >
+                                        <Text selectable={false}
+                                            numberOfLines={1}
+                                            style={{
+                                                color:Theme[themeTypeContext].text_color,
+                                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.0325,
+                                                fontFamily:"roboto-bold",
+                                            }}
+                                        >
+                                            Continue
+                                        </Text>
+                                        <Text selectable={false}
+                                            numberOfLines={1}
+                                            style={{
+                                                color:Theme[themeTypeContext].text_color,
+                                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
+                                                fontFamily:"roboto-bold",
+                                            }}
+                                        >
+                                            {history.title}
+                                        </Text>
+                                    </View>
+                                </TouchableRipple>
+                                : <TouchableRipple
+                                rippleColor={Theme[themeTypeContext].ripple_color_outlined}
+                                style={{
+                                    width:Dimensions.width*0.60,
+                                    display:"flex",
+                                    flexDirection:"column",
+                                    justifyContent:"center",
+                                    alignSelf:"center",
+                                    padding:8,
+                                    paddingVertical:12,
+                                    borderRadius:Dimensions.width*0.60/2,
+                                    backgroundColor:Theme[themeTypeContext].border_color,
+
+                                    shadowColor: Theme[themeTypeContext].shadow_color,
+                                    shadowOffset: { width: 0, height: 2 },
+                                    shadowOpacity: 0.25,
+                                    shadowRadius: 3.84,
+                                    elevation: 5,
+                                    
+                                }}
+                                onPress={async ()=>{
+                                    
+                                    if (bookmarked.state){
+                                        let chapter
+                                        if (sort === "descending"){
+                                            chapter = CONTENT?.chapters[CONTENT.chapters.length - 1]
+                                        }else{
+                                            chapter = CONTENT?.chapters[0]
+                                        }
+                                        const stored_chapter = await ChapterStorage.get(`${SOURCE}-${ID}`,chapter.id)
+                                        console.log(stored_chapter)
+                                        if (stored_chapter.data_state === "completed"){
+                                            await ComicStorage.updateHistory(SOURCE,ID,{idx:chapter.idx, id:chapter.id, title:chapter.title})
+                                            router.push(`/read/${SOURCE}/${ID}/?idx=${stored_chapter.idx}`)
+                                        }else{
+                                            Toast.show({
+                                                type: 'error',
+                                                text1: 'Chapter not download yet.',
+                                                text2: "Press the button next to chapter title to download.",
+                                                
+                                                position: "bottom",
+                                                visibilityTime: 4000,
+                                                text1Style:{
+                                                    fontFamily:"roboto-bold",
+                                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
+                                                },
+                                                text2Style:{
+                                                    fontFamily:"roboto-medium",
+                                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
+                                                    
+                                                },
+                                            });
+                                        }
+                                    }else{
+                                        Toast.show({
+                                            type: 'error',
+                                            text1: '🔖 Bookmark required.',
+                                            text2: `Add this comic to your bookmark to start reading.`,
+                                            
+                                            position: "bottom",
+                                            visibilityTime: 4000,
+                                            text1Style:{
+                                                fontFamily:"roboto-bold",
+                                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
+                                            },
+                                            text2Style:{
+                                                fontFamily:"roboto-medium",
+                                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
+                                                
+                                            },
+                                        });
+                                    
+                                        
+                                    }
+                                }}
+                            >
+                                <View
+                                    style={{
+                                        display:"flex",
+                                        flexDirection:"column",  
+                                        gap:12,
+                                        alignItems:"center",
+                                    }}
+                                >
+                                    <Text selectable={false}
+                                        numberOfLines={1}
+                                        style={{
+                                            color:Theme[themeTypeContext].text_color,
+                                            fontSize:((Dimensions.width+Dimensions.height)/2)*0.0325,
+                                            fontFamily:"roboto-bold",
+                                        }}
+                                    >
+                                        Read now
+                                    </Text>
+                                </View>
+                            </TouchableRipple>
+                            }
+                        
                     </View>
                     <View style={styles.body_box_3}>
                         <View

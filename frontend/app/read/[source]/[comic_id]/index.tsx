@@ -27,6 +27,7 @@ import ChapterImage from '../../components/chapter_image';
 import Menu from '../../components/menu/menu';
 import Disqus from '../../components/disqus';
 import { get_chapter } from '../../modules/get_chapter';
+import ComicStorage from '@/constants/module/comic_storage';
 
 const Index = ({}:any) => {
     const SOURCE = useLocalSearchParams().source;
@@ -183,15 +184,20 @@ const Index = ({}:any) => {
                         const existed_count = viewableItems.filter((data:any) => expect_chapter_idx.includes(data.item.idx)).length
                         
                         if (current_count || existed_count){
-                            const chose_idx = current_count > existed_count ? CHAPTER_IDX.current : viewableItems.find((data:any) => expect_chapter_idx.includes(data.item.idx))?.item.idx
-                            const stored_chapter = await ChapterStorage.getByIdx(`${SOURCE}-${COMIC_ID}`,chose_idx, {exclude_fields:["data"]})   
+                            const choose_idx = current_count > existed_count ? CHAPTER_IDX.current : viewableItems.find((data:any) => expect_chapter_idx.includes(data.item.idx))?.item.idx
+                            if (choose_idx === CHAPTER_IDX.current) return
+                            const stored_chapter = await ChapterStorage.getByIdx(`${SOURCE}-${COMIC_ID}`,choose_idx, {exclude_fields:["data"]})   
                             setChapterInfo({
                                 chapter_id: stored_chapter?.id,
                                 chapter_idx: stored_chapter?.id,
                                 title: stored_chapter?.title,
                             })
-                            router.setParams({idx:chose_idx})
-                            CHAPTER_IDX.current = chose_idx
+                            const stored_comic = await ComicStorage.getByID(SOURCE, COMIC_ID)
+                            if (stored_comic.history.idx && choose_idx > stored_comic.history.idx) {
+                                await ComicStorage.updateHistory(SOURCE, COMIC_ID, {idx:stored_chapter?.idx,id:stored_chapter?.id,title:stored_chapter?.title})
+                            }
+                            router.setParams({idx:choose_idx})
+                            CHAPTER_IDX.current = choose_idx
                         }
                         
                         

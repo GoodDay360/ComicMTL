@@ -132,16 +132,17 @@ const ChapterComponent = ({
             onPress={async () => {
                 const stored_chapter = await ChapterStorage.get(`${SOURCE}-${ID}`,chapter.id, {exclude_fields:["data"]})
                 if (stored_chapter?.data_state === "completed") {
-                    
+                    const stored_comic = await ComicStorage.getByID(SOURCE,ID)
+                    if (!stored_comic.history.idx || chapter.idx > stored_comic.history.idx) await ComicStorage.updateHistory(SOURCE,ID,{idx:chapter.idx, id:chapter.id, title:chapter.title})
                     router.push(`/read/${SOURCE}/${ID}/?idx=${chapter.idx}`)
                 }else{
                     Toast.show({
-                        type: 'info',
+                        type: 'error',
                         text1: 'Chapter not download yet.',
-                        text2: "Press the download button to download the chapter.",
+                        text2: "Press the button next to chapter title to download.",
                         
                         position: "bottom",
-                        visibilityTime: 3000,
+                        visibilityTime: 4000,
                         text1Style:{
                             fontFamily:"roboto-bold",
                             fontSize:((Dimensions.width+Dimensions.height)/2)*0.025

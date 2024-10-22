@@ -12,7 +12,8 @@ const Theme:any = {
         dropbox_container_border: "white",
         button_selected_color: "#23272E",
 
-        ripple_color_outlined: `rgba(22, 35, 50, ${Platform.OS === "web" ? 0.5 : 1})`
+        ripple_color_outlined: `rgba(22, 35, 50, ${Platform.OS === "web" ? 0.5 : 1})`,
+        shadow_color: '0px 4px 6px rgba(4, 25, 26, 0.1)',
     }
 }
 

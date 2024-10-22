@@ -35,7 +35,7 @@ class Comic_Storage_Web {
         return new Promise((resolve, reject) => {
             const transaction = db.transaction('dataStore', 'readwrite');
             const store = transaction.objectStore('dataStore');
-            const request = store.put({ source, id, tag, info, chapter_requested: [] });
+            const request = store.put({ source, id, tag, info, chapter_requested: [], history:{} });
 
             request.onsuccess = () => {
                 resolve();
@@ -131,6 +131,37 @@ class Comic_Storage_Web {
                 const data = request.result;
                 if (data && data.source === source) { // Check if source matches
                     data.info = new_info;
+                    const updateRequest = store.put(data);
+
+                    updateRequest.onsuccess = () => {
+                        resolve();
+                    };
+
+                    updateRequest.onerror = () => {
+                        reject(updateRequest.error);
+                    };
+                } else {
+                    reject(new Error('Item not found'));
+                }
+            };
+
+            request.onerror = () => {
+                reject(request.error);
+            };
+        });
+    }
+
+    static async updateHistory(source:string, id: string, history: any): Promise<void> {
+        const db = await this.getDB();
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction('dataStore', 'readwrite');
+            const store = transaction.objectStore('dataStore');
+            const request = store.get(id); // Query by id
+
+            request.onsuccess = () => {
+                const data = request.result;
+                if (data && data.source === source) { // Check if source matches
+                    data.history = history;
                     const updateRequest = store.put(data);
 
                     updateRequest.onsuccess = () => {
@@ -253,9 +284,9 @@ class Comic_Storage_Native {
     public async store(source: string, id: string, tag: string, info: any) {
         try {
             const db = await this.DATABASE;
-            await db.runAsync('CREATE TABLE IF NOT EXISTS ComicStorage (id TEXT PRIMARY KEY NOT NULL, source TEXT, tag TEXT, info TEXT, chapter_requested TEXT);');
+            await db.runAsync('CREATE TABLE IF NOT EXISTS ComicStorage (id TEXT PRIMARY KEY NOT NULL, source TEXT, tag TEXT, info TEXT, chapter_requested TEXT, history TEXT);');
             await db.runAsync(
-                'INSERT OR REPLACE INTO ComicStorage (source, id, tag, info, chapter_requested) VALUES (?, ?, ?, ?, ?);', source, id, tag, JSON.stringify(info), JSON.stringify([])
+                'INSERT OR REPLACE INTO ComicStorage (source, id, tag, info, chapter_requested, history) VALUES (?, ?, ?, ?, ?, ?);', source, id, tag, JSON.stringify(info), JSON.stringify([]), JSON.stringify({})
             );
         } catch (error) {
             console.log(error);
@@ -265,27 +296,27 @@ class Comic_Storage_Native {
     public async getByID(source: string, id: string) {
         try {
             const db = await this.DATABASE;
-            await db.runAsync('CREATE TABLE IF NOT EXISTS ComicStorage (id TEXT PRIMARY KEY NOT NULL, source TEXT, tag TEXT, info TEXT, chapter_requested TEXT);');
+            // await db.runAsync("DROP TABLE IF EXISTS ComicStorage;");
+            await db.runAsync('CREATE TABLE IF NOT EXISTS ComicStorage (id TEXT PRIMARY KEY NOT NULL, source TEXT, tag TEXT, info TEXT, chapter_requested TEXT, history TEXT);');
             const DATA: any = await db.getFirstAsync(
-                'SELECT id, source, tag, info, chapter_requested FROM ComicStorage WHERE source = ? AND id = ?;', source, id
+                'SELECT * FROM ComicStorage WHERE source = ? AND id = ?;', source, id
             );
-
-            if (DATA) return { id: DATA.id, source: DATA.source, tag: DATA.tag, info: JSON.parse(DATA.info), chapter_requested: JSON.parse(DATA.chapter_requested) };
+            if (DATA) return { id: DATA.id, source: DATA.source, tag: DATA.tag, info: JSON.parse(DATA.info), chapter_requested: JSON.parse(DATA.chapter_requested), history: JSON.parse(DATA.history) };
             else return DATA;
         } catch (error) {
-            console.log(error);
+            console.log("[Comic Storage - getByID] error:", error);
         }
     }
 
     public async getByTag(tag: string) {
         try {
             const db = await this.DATABASE;
-            await db.runAsync('CREATE TABLE IF NOT EXISTS ComicStorage (id TEXT PRIMARY KEY NOT NULL, source TEXT, tag TEXT, info TEXT, chapter_requested TEXT);');
+            await db.runAsync('CREATE TABLE IF NOT EXISTS ComicStorage (id TEXT PRIMARY KEY NOT NULL, source TEXT, tag TEXT, info TEXT, chapter_requested TEXT, history TEXT);');
             const DATA: any = await db.allAsync(
-                'SELECT id, source, tag, info, chapter_requested FROM ComicStorage WHERE tag = ?;', tag
+                'SELECT * FROM ComicStorage WHERE tag = ?;', tag
             );
 
-            return DATA.map((row: any) => ({ id: row.id, source: row.source, tag: row.tag, info: JSON.parse(row.info), chapter_requested: JSON.parse(DATA.chapter_requested) }));
+            return DATA.map((row: any) => ({ id: row.id, source: row.source, tag: row.tag, info: JSON.parse(row.info), chapter_requested: JSON.parse(row.chapter_requested), history: JSON.parse(row.history) }));
         } catch (error) {
             console.log(error);
         }
@@ -294,7 +325,7 @@ class Comic_Storage_Native {
     public async updateChapterQueue(source: string, id: string, chapter_requested: any) {
         try {
             const db = await this.DATABASE;
-            await db.runAsync('CREATE TABLE IF NOT EXISTS ComicStorage (id TEXT PRIMARY KEY NOT NULL, source TEXT, tag TEXT, info TEXT, chapter_requested TEXT);');
+            await db.runAsync('CREATE TABLE IF NOT EXISTS ComicStorage (id TEXT PRIMARY KEY NOT NULL, source TEXT, tag TEXT, info TEXT, chapter_requested TEXT, history TEXT);');
             await db.runAsync(
                 'UPDATE ComicStorage SET chapter_requested = ? WHERE source = ? AND id = ?;', JSON.stringify(chapter_requested), source, id
             );
@@ -306,9 +337,21 @@ class Comic_Storage_Native {
     public async updateInfo(source: string, id: string, info: any) {
         try {
             const db = await this.DATABASE;
-            await db.runAsync('CREATE TABLE IF NOT EXISTS ComicStorage (id TEXT PRIMARY KEY NOT NULL, source TEXT, tag TEXT, info TEXT, chapter_requested TEXT);');
+            await db.runAsync('CREATE TABLE IF NOT EXISTS ComicStorage (id TEXT PRIMARY KEY NOT NULL, source TEXT, tag TEXT, info TEXT, chapter_requested TEXT, history TEXT);');
             await db.runAsync(
                 'UPDATE ComicStorage SET info = ? WHERE source = ? AND id = ?;', JSON.stringify(info), source, id
+            );
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    public async updateHistory(source:string, id: string, history: any): Promise<void> {
+        try {
+            const db = await this.DATABASE;
+            await db.runAsync('CREATE TABLE IF NOT EXISTS ComicStorage (id TEXT PRIMARY KEY NOT NULL, source TEXT, tag TEXT, info TEXT, chapter_requested TEXT, history TEXT);');
+            await db.runAsync(
+                'UPDATE ComicStorage SET history = ? WHERE source = ? AND id = ?;', JSON.stringify(history), source, id
             );
         } catch (error) {
             console.log(error);
@@ -318,7 +361,7 @@ class Comic_Storage_Native {
     public async replaceTag(source: string, id: string, new_tag: string) {
         try {
             const db = await this.DATABASE;
-            await db.runAsync('CREATE TABLE IF NOT EXISTS ComicStorage (id TEXT PRIMARY KEY NOT NULL, source TEXT, tag TEXT, info TEXT, chapter_requested TEXT);');
+            await db.runAsync('CREATE TABLE IF NOT EXISTS ComicStorage (id TEXT PRIMARY KEY NOT NULL, source TEXT, tag TEXT, info TEXT, chapter_requested TEXT, history TEXT);');
             await db.runAsync(
                 'UPDATE ComicStorage SET tag = ? WHERE source = ? AND id = ?;', new_tag, source, id
             );
@@ -330,7 +373,7 @@ class Comic_Storage_Native {
     public async removeByID(source: string, id: string) {
         try {
             const db = await this.DATABASE;
-            await db.runAsync('CREATE TABLE IF NOT EXISTS ComicStorage (id TEXT PRIMARY KEY NOT NULL, source TEXT, tag TEXT, info TEXT, chapter_requested TEXT);');
+            await db.runAsync('CREATE TABLE IF NOT EXISTS ComicStorage (id TEXT PRIMARY KEY NOT NULL, source TEXT, tag TEXT, info TEXT, chapter_requested TEXT, history TEXT);');
             await db.runAsync(
                 'DELETE FROM ComicStorage WHERE source = ? AND id = ?;', source, id
             );
@@ -342,7 +385,7 @@ class Comic_Storage_Native {
     public async removeByTag(tag: string) {
         try {
             const db = await this.DATABASE;
-            await db.runAsync('CREATE TABLE IF NOT EXISTS ComicStorage (id TEXT PRIMARY KEY NOT NULL, source TEXT, tag TEXT, info TEXT, chapter_requested TEXT);');
+            await db.runAsync('CREATE TABLE IF NOT EXISTS ComicStorage (id TEXT PRIMARY KEY NOT NULL, source TEXT, tag TEXT, info TEXT, chapter_requested TEXT, history TEXT);');
             await db.runAsync(
                 'DELETE FROM ComicStorage WHERE tag = ?;', tag
             );
