@@ -20,6 +20,8 @@ env = environ.Env()
 # os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 STORAGE_DIR = os.path.join(BASE_DIR,"storage")
+if not os.path.exists(STORAGE_DIR): os.makedirs(STORAGE_DIR)
+
 LOG_DIR = os.path.join(BASE_DIR, "log")
 if not os.path.exists(LOG_DIR): os.makedirs(LOG_DIR)
 

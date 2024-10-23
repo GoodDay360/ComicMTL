@@ -1,5 +1,5 @@
 from pathlib import Path
-import environ, dj_database_url
+import environ, dj_database_url,os
 
 import pymysql
 pymysql.install_as_MySQLdb()
@@ -11,6 +11,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env()
 environ.Env.read_env(Path.joinpath(BASE_DIR, '.env'))
+for key, value in os.environ.items():
+    env.ENVIRON[key] = value
+    
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
