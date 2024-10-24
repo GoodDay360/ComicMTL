@@ -69,8 +69,8 @@ WORKDIR /code
 
 RUN cat /etc/profile.d/secrets.sh
 
-RUN . /etc/profile.d/secrets.sh && \
-    bash -c 'python manage.py makemigrations && \
+RUN bash -c '. /etc/profile.d/secrets.sh && \
+             python manage.py makemigrations && \
              python manage.py migrate --database=default && \
              python manage.py migrate --database=cache && \
              python manage.py migrate --database=DB1 && \
