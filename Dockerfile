@@ -6,6 +6,26 @@ FROM python:${PYTHON_VERSION}
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
+RUN useradd -m -u 1000 user
+
+RUN --mount=type=secret,id=HOST,required=true \
+    --mount=type=secret,id=DJANGO_SECRET,required=true \
+    --mount=type=secret,id=SECURE_TOKEN,required=true \
+    --mount=type=secret,id=WORKER_TOKEN,required=true \
+    --mount=type=secret,id=CLOUDFLARE_TURNSTILE_SECRET,required=true \
+    --mount=type=secret,id=REDIS_URL,required=true \
+    bash -c "printf 'HOST=\"%s\"\n' \"$(cat /run/secrets/HOST)\" >> /etc/profile.d/secrets.sh && \
+             printf 'DJANGO_SECRET=\"%s\"\n' \"$(cat /run/secrets/DJANGO_SECRET)\" >> /etc/profile.d/secrets.sh && \
+             printf 'SECURE_TOKEN=\"%s\"\n' \"$(cat /run/secrets/SECURE_TOKEN)\" >> /etc/profile.d/secrets.sh && \
+             printf 'WORKER_TOKEN=\"%s\"\n' \"$(cat /run/secrets/WORKER_TOKEN)\" >> /etc/profile.d/secrets.sh && \
+             printf 'CLOUDFLARE_TURNSTILE_SECRET=\"%s\"\n' \"$(cat /run/secrets/CLOUDFLARE_TURNSTILE_SECRET)\" >> /etc/profile.d/secrets.sh && \
+             printf 'REDIS_URL=\"%s\"\n' \"$(cat /run/secrets/REDIS_URL)\" >> /etc/profile.d/secrets.sh"
+
+
+RUN chown user:user /etc/profile.d/secrets.sh
+
+
+
 # Install dependencies
 RUN apt-get update && apt-get install -y \
     libpq-dev \
@@ -31,9 +51,12 @@ RUN CHROMEDRIVER_VERSION=$(curl -sS chromedriver.storage.googleapis.com/LATEST_R
     && wget -O /tmp/chromedriver.zip http://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip \
     && unzip /tmp/chromedriver.zip chromedriver -d /usr/local/bin/
 
-RUN useradd -m -u 1000 user
+
+
 USER user
 ENV PATH="/home/user/.local/bin:$PATH"
+
+RUN . /etc/profile.d/secrets.sh
 
 # Install Python dependencies
 COPY --chown=user requirements.txt /tmp/requirements.txt
@@ -44,20 +67,10 @@ RUN pip install --no-cache-dir --upgrade pip \
 COPY --chown=user . /code
 WORKDIR /code
 
-# Use secrets during build
-RUN --mount=type=secret,id=HOST,required=true \
-    --mount=type=secret,id=DJANGO_SECRET,required=true \
-    --mount=type=secret,id=SECURE_TOKEN,required=true \
-    --mount=type=secret,id=WORKER_TOKEN,required=true \
-    --mount=type=secret,id=CLOUDFLARE_TURNSTILE_SECRET,required=true \
-    --mount=type=secret,id=REDIS_URL,required=true \
-    bash -c 'export HOST=$(cat /run/secrets/HOST) && \
-             export DJANGO_SECRET=$(cat /run/secrets/DJANGO_SECRET) && \
-             export SECURE_TOKEN=$(cat /run/secrets/SECURE_TOKEN) && \
-             export WORKER_TOKEN=$(cat /run/secrets/WORKER_TOKEN) && \
-             export CLOUDFLARE_TURNSTILE_SECRET=$(cat /run/secrets/CLOUDFLARE_TURNSTILE_SECRET) && \
-             export REDIS_URL=$(cat /run/secrets/REDIS_URL) && \
-             python manage.py makemigrations && \
+RUN cat /etc/profile.d/secrets.sh
+
+RUN . /etc/profile.d/secrets.sh && \
+    bash -c 'python manage.py makemigrations && \
              python manage.py migrate --database=default && \
              python manage.py migrate --database=cache && \
              python manage.py migrate --database=DB1 && \
