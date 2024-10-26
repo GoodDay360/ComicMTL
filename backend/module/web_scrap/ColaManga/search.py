@@ -40,7 +40,7 @@ def scrap(search:str="",page:int=1):
             
             cover_link_split = a.get("data-original").split("/")
             cover_id = cover_link_split[len(cover_link_split)-2]
-            object["cover"] = f"/api/web_scrap/colamanga/get_cover/{id}/{cover_id}/"
+            object["cover"] = f"/api/web_scrap/get_cover/colamanga/{id}/{cover_id}/"
             
             dd = dl.find("dd",{"class": "fed-deta-content"})
 

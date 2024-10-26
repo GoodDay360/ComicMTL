@@ -38,6 +38,7 @@ const ChapterImage = ({item, zoom, showOptions,setShowOptions}:any)=>{
                 display:"flex",
                 width:"100%",
                 height:"auto",
+                borderWidth:0,
                 alignItems:"center",
             }}
         >

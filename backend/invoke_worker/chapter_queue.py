@@ -13,7 +13,8 @@ from asgiref.sync import async_to_sync
 
 from django.db.models import Count
 
-import requests, environ, os, subprocess, shutil, zipfile, uuid
+
+import requests, environ, os, subprocess, shutil, zipfile, uuid, sys
 
 env = environ.Env()
 
@@ -45,6 +46,7 @@ class Job(Thread):
                     else: break
                 
                 if (query_result):
+                    
                     socket_id = query_result.socket_id
                     channel_name = query_result.channel_name
                     source = query_result.source
@@ -55,7 +57,7 @@ class Job(Thread):
                     if (options.get("translate").get("state")): 
                         target_lang = options.get("translate").get("target")
                     else: target_lang = ""
-                            
+                    
                     stored = ComicStorageCache.objects.filter(
                         source=source,
                         comic_id=comic_id,
@@ -98,12 +100,13 @@ class Job(Thread):
                             
                             job = web_scrap.source_control[source].get_chapter.scrap(comic_id=comic_id,chapter_id=chapter_id,output_dir=input_dir)
                             if job.get("status") == "success":
+                                
                                 with open(os.path.join(LOG_DIR,"image_translator_output.log"), "w") as file:
                                     result = subprocess.run(
                                         script,
                                         cwd=os.path.join(BASE_DIR, "backend", "module", "utils", "image_translator"),
-                                        shell=True,
                                         check=True,
+                                        shell=False if sys.platform.startswith('linux') else True,
                                         stdout=file,
                                         stderr=file,
                                         text=True,
@@ -150,6 +153,7 @@ class Job(Thread):
                                     }
                                 })
                                 SocketRequestChapterQueueCache.objects.filter(id=query_result.id).delete()
+                            else: raise Exception("Dowload chapter error!")
                         else:
                             input_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),"original")
                             if os.path.exists(input_dir): shutil.rmtree(input_dir)
@@ -229,10 +233,10 @@ class UpdateSocketQueue(Thread):
                 MAX_QUEUE = SocketRequestChapterQueueCache.objects.count()
                 
                 if (MAX_QUEUE):
-                    query_result = list(set(SocketRequestChapterQueueCache.objects.order_by("datetime").values_list('socket_id', flat=True).distinct()))
+                    query_result = list(set(SocketRequestChapterQueueCache.objects.order_by("-datetime").values_list('socket_id', flat=True).distinct()))
                     for socket_id in query_result:
                         object = {}
-                        query_result_2 = SocketRequestChapterQueueCache.objects.filter(socket_id=socket_id).order_by("datetime").values("source","comic_id","chapter_idx")
+                        query_result_2 = SocketRequestChapterQueueCache.objects.filter(socket_id=socket_id).order_by("-datetime").values("source","comic_id","chapter_idx")
                         
                         for item in query_result_2:
                             source = item.get("source")

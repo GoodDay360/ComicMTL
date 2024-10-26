@@ -26,7 +26,7 @@ class RequestChapter(WebsocketConsumer):
         
         SocketRequestChapterQueueCache.objects.filter(socket_id=user_socket_id).update(channel_name = self.channel_name)
         
-        print(f"User: ({user_socket_id}) connected to socket room: ({self.room_id})")
+
         self.accept()
         
         self.send(text_data=json.dumps({
@@ -46,6 +46,5 @@ class RequestChapter(WebsocketConsumer):
     def disconnect(self, close_code):
         user_socket_id = self.scope['url_route']['kwargs']['socket_id']
         
-        print(f"User: ({user_socket_id}) disconnected from socket room: ({self.room_id})")
         
 

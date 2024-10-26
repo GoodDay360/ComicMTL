@@ -40,7 +40,7 @@ def scrap(orderBy:str="monthlyCount",page:int=1):
             object["id"] = id
             cover_link_split = li.find("a", {"class": "fed-list-pics"}).get("data-original").split("/")
             cover_id = cover_link_split[len(cover_link_split)-2]
-            object["cover"] = f"/api/web_scrap/colamanga/get_cover/{id}/{cover_id}/"
+            object["cover"] = f"/api/web_scrap/get_cover/colamanga/{id}/{cover_id}/"
             
             DATA.append(object)
             

@@ -17,7 +17,7 @@ urlpatterns = [
     path('web_scrap/get_list/', web_scrap.get_list),
     path('web_scrap/search/', web_scrap.search),
     path('web_scrap/get/', web_scrap.get),
-    path('web_scrap/<str:source>/get_cover/<str:id>/<str:cover_id>/', web_scrap.get_cover),
+    path('web_scrap/get_cover/<str:source>/<str:id>/<str:cover_id>/', web_scrap.get_cover),
     path('web_scrap/get_chapter/', web_scrap.get_chapter),
     
     

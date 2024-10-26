@@ -110,7 +110,7 @@ const Index = ({}:any) => {
                     const new_chapter_idx = CHAPTER_IDX.current+1
                     if (imageKeys.slice(-1)[0]?.type !== "no-chapter-banner"){
                         const next_stored_chapter = await ChapterStorage.getByIdx(`${SOURCE}-${COMIC_ID}`,new_chapter_idx, {exclude_fields:["data"]})   
-                        if (next_stored_chapter.data_state === "completed"){
+                        if (next_stored_chapter?.data_state === "completed"){
                             if (temp_image_keys.current.hasOwnProperty(new_chapter_idx)){
                                 delete temp_image_keys.current[new_chapter_idx-2]
                                 const pre_image_keys = imageKeys.filter((data:any) => {

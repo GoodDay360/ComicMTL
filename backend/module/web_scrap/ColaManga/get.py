@@ -33,7 +33,7 @@ def scrap(id:int=1):
         cover_url = driver.find_element(By.CLASS_NAME, "fed-list-pics").get_attribute("data-original")
         cover_url_split = cover_url.split("/")
         cover_id = cover_url_split[len(cover_url_split)-2]
-        DATA["cover"] = f"/api/web_scrap/colamanga/get_cover/{id}/{cover_id}/"
+        DATA["cover"] = f"/api/web_scrap/get_cover/colamanga/{id}/{cover_id}/"
         
         
         content_info_element = driver.find_element(By.CLASS_NAME, "fed-deta-content")

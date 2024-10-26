@@ -25,7 +25,7 @@ export const get_chapter = async (
                     continue; // Skip directories
                 }
                 const fileData = await zipContent.files[fileName].async('base64');
-                file_keys.push({type:"image", idx:CHAPTER_IDX, value: `${CHAPTER_IDX}-${fileName}`})
+                file_keys.push({type:"image", idx:CHAPTER_IDX, id:Number(fileName.split(".")[0]), value: `${CHAPTER_IDX}-${fileName}`})
                 files[`${CHAPTER_IDX}-${fileName}`] = {
                     layout: await getImageLayout("data:image/png;base64," + fileData),
                     data: "data:image/png;base64," + fileData
@@ -46,7 +46,7 @@ export const get_chapter = async (
                     continue; // Skip directories
                 }
                 const fileData = await zipContent.files[fileName].async('base64');
-                file_keys.push({type:"image", idx:CHAPTER_IDX, value: `${CHAPTER_IDX}-${fileName}`})
+                file_keys.push({type:"image", idx:CHAPTER_IDX, id:Number(fileName.split(".")[0]), value: `${CHAPTER_IDX}-${fileName}`})
                 files[`${CHAPTER_IDX}-${fileName}`] = {
                     layout: await getImageLayout("data:image/png;base64," + fileData),
                     data: "data:image/png;base64," + fileData
@@ -54,7 +54,8 @@ export const get_chapter = async (
             }
         }
 
-        file_keys.sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
+        file_keys.sort((a, b) => Number(a.id - b.id))
+        console.log("HUH?",file_keys)
         return {file_keys: file_keys,files:files}
     }
 }

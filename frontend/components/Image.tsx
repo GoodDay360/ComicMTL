@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, useCallback } from "react"
+import { useState, useEffect, useContext, useCallback, useRef } from "react"
 import { Image as _Image } from 'expo-image';
 import { View } from "react-native"
 import ImageCacheStorage from "@/constants/module/image_cache_storage";
@@ -11,7 +11,8 @@ import { useFocusEffect } from "expo-router";
 
 
 const Image = ({source, style, onError, contentFit, transition, onLoad, onLoadEnd}:any) => {
-    const [imageData, setImageData]:any = useState(null)
+    const [imageLoaded, setImageLoaded]:any = useState(false)
+    const imageData:any = useRef(null)
     const [isError, setIsError]:any = useState(false)
     const {showCloudflareTurnstileContext, setShowCloudflareTurnstileContext}:any = useContext(CONTEXT)
     const controller = new AbortController();
@@ -20,28 +21,37 @@ const Image = ({source, style, onError, contentFit, transition, onLoad, onLoadEn
         (async ()=>{
             if(source.hasOwnProperty("type")){
                 if (source.type === "blob"){
-                    setImageData({uri:await blobToBase64(source.data)})
+                    imageData.current = {uri:await blobToBase64(source.data)}
+                    setImageLoaded(true)
                 }else if (source.type === "base64"){
-                    setImageData({uri:source.data})
+                    imageData.current = {uri:source.data}
+                    setImageLoaded(true)
                 }else if (source.type === "file_path"){
-                    setImageData({uri:source.data})
+                    imageData.current = {uri:source.data}
+                    setImageLoaded(true)
                 }else{
                     setIsError(true)
+                    setImageLoaded(false)
                 }
             } else if (source.hasOwnProperty("uri")){
                 const result:any = await ImageCacheStorage.get(setShowCloudflareTurnstileContext,source.uri,signal);
                 if (result.type === "blob"){
-                    setImageData({uri:await blobToBase64(result.data)})
+                    imageData.current = {uri:await blobToBase64(result.data)}
+                    setImageLoaded(true)
                 }else if (result.type === "base64"){
-                    setImageData({uri:result.data})
+                    imageData.current = {uri:result.data}
+                    setImageLoaded(true)
                 }else if (result.type === "file_path"){
-                    setImageData({uri:result.data})
+                    imageData.current = {uri:result.data}
+                    setImageLoaded(true)
                 }else{
                     setIsError(true)
+                    setImageLoaded(false)
                 }
                 
             }else{
-                setImageData(source)
+                imageData.current = source
+                setImageLoaded(true)
             }
 
             
@@ -73,12 +83,12 @@ const Image = ({source, style, onError, contentFit, transition, onLoad, onLoadEn
                         <Icon source={"refresh-circle"} size={25} color={"yellow"}/>
                     </Button>
                 </View>
-                : <>{imageData
+                : <>{imageLoaded
                     
                 
                     ? <_Image 
                         onError={onError} 
-                        source={imageData} 
+                        source={imageData.current} 
                         style={style}
                         contentFit={contentFit}
                         transition={transition}

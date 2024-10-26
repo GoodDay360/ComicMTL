@@ -17,36 +17,24 @@ scraper = None
 
 def __scrollToBottom(driver:object=None):
     if not driver: raise ValueError("The 'driver' argument is required.")
-    timeout = 10
-    interval = [0]
-
-    def timer(interval,timeout):
-        while True:
-            time.sleep(1)
-            interval[0] = interval[0]+1
-            if interval[0] >= timeout: break
-    t = threading.Thread(target=timer, args=[interval,timeout])
-    t.daemon = True
-    t.start()
+    
+    timeout = date_utils.utc_time().add(60,'second').get()
     
     previous_height = 0
     scrolledY = 0
     while True:
+        if date_utils.utc_time().get() >= timeout: raise Exception("[Get Chapter] Finding lastest element Timed out!")
         # Scroll to the bottom of the page
         driver.execute_script(f"window.scrollBy(0, {scrolledY});")
-        time.sleep(0.25)
         
         current_height = driver.execute_script("return document.documentElement.scrollHeight")
         
         if current_height > previous_height: 
             previous_height = current_height
-            interval[0] = 0
         else:
             parent_div = driver.find_element(By.CLASS_NAME, "mh_mangalist")
             child_elements = parent_div.find_elements(By.XPATH, "./*")
-            if child_elements[-1].tag_name != 'script' and child_elements[-1].get_attribute('text') != '__cad.read_periodical();':
-                if interval[0] >= timeout: break
-            else: interval[0] = 0
+            if child_elements[-1].get_attribute('text') != '__cad.read_periodical();': break
         scrolledY += 50
         
 
@@ -71,24 +59,28 @@ def scrap(comic_id:str="",chapter_id:str="",output_dir:str=""):
         child_list = parent_element.find_elements(By.CLASS_NAME, "mh_comicpic")
         
         blob_list = []
-        
+        is_no_more = False
         for child in child_list:
-            image_element = child.find_element(By.TAG_NAME, "img")
-            url = image_element.get_attribute("src")
-            if not url: continue
-            if url.split(":")[0] == "blob":
-                timeout = 0
-                while True:
-                    if timeout >= MAX_TIMEOUT: raise Exception('#1 Timed out!')
+            if is_no_more: break
+            timeout = date_utils.utc_time().add(10,'second').get()
+            while True:
+                if date_utils.utc_time().get() >= timeout: 
+                    is_no_more = True
+                    break
+                image_element = child.find_element(By.TAG_NAME, "img")
+                driver.execute_script("arguments[0].scrollIntoView({ behavior: 'smooth', block: 'center' });", image_element)
+                
+                url = image_element.get_attribute("src")
+                if url: 
                     is_image_loaded = driver.execute_script(
                         "return arguments[0].complete", 
                         image_element
                     )
-                    if is_image_loaded: break
+                    if is_image_loaded: 
+                        blob_list.append(url)
+                        break
                     
-                    timeout += 1
-                    time.sleep(1)
-                blob_list.append(url)
+                    
         
         
         def process_browser_log_entry(entry):
