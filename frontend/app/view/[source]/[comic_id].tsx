@@ -308,7 +308,7 @@ const Index = ({}:any) => {
                         
                         onPress={()=>{
                             if (router.canGoBack()) router.back()
-                            else router.navigate("/explore")
+                            else router.replace("/explore")
                         }}
                     >
                         <Icon source={"arrow-left-thin"} size={((Dimensions.width+Dimensions.height)/2)*0.045} color={Theme[themeTypeContext].icon_color}/>
