@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { Link, router, usePathname } from 'expo-router';
 import { StyleSheet} from 'react-native';
 import { __styles } from '../stylesheet/styles';
-import storage from '@/constants/module/storage';
+import storage from '@/constants/module/storages/storage';
 import { Icon, MD3Colors, Button, Text, TouchableRipple } from 'react-native-paper';
 import Theme from '@/constants/theme';
 import {useWindowDimensions} from 'react-native';

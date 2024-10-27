@@ -12,10 +12,10 @@ import Theme from '@/constants/theme';
 import Dropdown from '@/components/dropdown';
 import { CONTEXT } from '@/constants/module/context';
 import { store_comic_cover } from '../modules/content';
-import Storage from '@/constants/module/storage';
-import ComicStorage from '@/constants/module/comic_storage';
-import ImageCacheStorage from '@/constants/module/image_cache_storage';
-import ChapterStorage from '@/constants/module/chapter_storage';
+import Storage from '@/constants/module/storages/storage';
+import ComicStorage from '@/constants/module/storages/comic_storage';
+import ImageCacheStorage from '@/constants/module/storages/image_cache_storage';
+import ChapterStorage from '@/constants/module/storages/chapter_storage';
 
 
 export const PageNavigationWidget = ({MAX_OFFSET,setPage,CONTENT}:any) =>{

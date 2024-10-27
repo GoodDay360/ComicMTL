@@ -5,7 +5,7 @@ import { Platform, View, Text } from 'react-native';
 import axios from 'axios';
 import { Button } from 'react-native-paper';
 
-import Storage from '@/constants/module/storage';
+import Storage from '@/constants/module/storages/storage';
 
 import Theme from '@/constants/theme';
 

@@ -3,7 +3,7 @@
 
 import { Platform } from "react-native";
 import * as SQLite from 'expo-sqlite';
-import { ensure_safe_table_name } from "./ensure_safe_table_name";
+import { ensure_safe_table_name } from "../ensure_safe_table_name";
 
 const DATABASE_NAME = 'ChapterDB';
 

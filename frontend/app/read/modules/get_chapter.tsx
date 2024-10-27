@@ -1,5 +1,5 @@
-import Storage from '@/constants/module/storage';
-import ChapterStorage from '@/constants/module/chapter_storage';
+import Storage from '@/constants/module/storages/storage';
+import ChapterStorage from '@/constants/module/storages/chapter_storage';
 import JSZip from 'jszip';
 import {blobToBase64, base64ToBlob, getImageLayout} from "@/constants/module/file_manager";
 import * as FileSystem from 'expo-file-system';

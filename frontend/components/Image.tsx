@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext, useCallback, useRef } from "react"
 import { Image as _Image } from 'expo-image';
 import { View } from "react-native"
-import ImageCacheStorage from "@/constants/module/image_cache_storage";
+import ImageCacheStorage from "@/constants/module/storages/image_cache_storage";
 import {blobToBase64} from "@/constants/module/file_manager";
 import { Icon, Button } from 'react-native-paper';
 import { ActivityIndicator } from 'react-native-paper';

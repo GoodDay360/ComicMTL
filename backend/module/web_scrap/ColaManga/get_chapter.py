@@ -59,14 +59,10 @@ def scrap(comic_id:str="",chapter_id:str="",output_dir:str=""):
         child_list = parent_element.find_elements(By.CLASS_NAME, "mh_comicpic")
         
         blob_list = []
-        is_no_more = False
         for child in child_list:
-            if is_no_more: break
-            timeout = date_utils.utc_time().add(10,'second').get()
+            timeout = date_utils.utc_time().add(5,'second').get()
             while True:
-                if date_utils.utc_time().get() >= timeout: 
-                    is_no_more = True
-                    break
+                if date_utils.utc_time().get() > timeout: break
                 image_element = child.find_element(By.TAG_NAME, "img")
                 driver.execute_script("arguments[0].scrollIntoView({ behavior: 'smooth', block: 'center' });", image_element)
                 

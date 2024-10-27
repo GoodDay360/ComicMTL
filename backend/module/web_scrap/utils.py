@@ -13,7 +13,7 @@ import time, threading
 class SeleniumScraper:
     def __init__(self):
         options = Options()
-        # options.add_argument("--headless")
+        options.add_argument("--headless")
         options.add_argument('--no-sandbox')
         options.add_argument("--no-quit")
         options.add_argument('--disable-extensions')

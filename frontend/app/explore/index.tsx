@@ -10,8 +10,8 @@ import Dropdown from '@/components/dropdown';
 
 import Theme from '@/constants/theme';
 import { __styles } from './stylesheet/show_list_styles';
-import Storage from '@/constants/module/storage';
-import ImageStorage from '@/constants/module/image_cache_storage';
+import Storage from '@/constants/module/storages/storage';
+import ImageStorage from '@/constants/module/storages/image_cache_storage';
 import { CONTEXT } from '@/constants/module/context';
 import { get_list } from '@/app/explore/module/content'
 import { transformAsync } from '@babel/core';

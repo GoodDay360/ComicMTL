@@ -1,4 +1,4 @@
-import Storage from '@/constants/module/storage'; // Adjust the import path as needed
+import Storage from '@/constants/module/storages/storage'; // Adjust the import path as needed
 import uuid from 'react-native-uuid';
 import NetInfo from '@react-native-community/netinfo';
 

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import translator from '@/constants/module/translator';
-import Storage from '@/constants/module/storage';
+import Storage from '@/constants/module/storages/storage';
 
 export const get_list = async (setShowCloudflareTurnstile:any,setFeedBack:any,signal:AbortSignal,setIsLoading:any,translate:any,SET_CONTENT:any,search:any,page:number) => {
     const API_BASE = await Storage.get("IN_USE_API_BASE")

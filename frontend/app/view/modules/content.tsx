@@ -4,10 +4,10 @@ import * as FileSystem from 'expo-file-system';
 import { Platform } from 'react-native';
 
 import translator from '@/constants/module/translator';
-import Storage from '@/constants/module/storage';
-import ComicStorage from '@/constants/module/comic_storage';
-import ImageCacheStorage from '@/constants/module/image_cache_storage';
-import ChapterStorage from '@/constants/module/chapter_storage';
+import Storage from '@/constants/module/storages/storage';
+import ComicStorage from '@/constants/module/storages/comic_storage';
+import ImageCacheStorage from '@/constants/module/storages/image_cache_storage';
+import ChapterStorage from '@/constants/module/storages/chapter_storage';
 import {blobToBase64} from '@/constants/module/file_manager';
 
 

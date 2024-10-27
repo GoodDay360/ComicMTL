@@ -16,10 +16,10 @@ import NetInfo from "@react-native-community/netinfo";
 
 import Theme from '@/constants/theme';
 import { __styles } from '../stylesheet/show_styles';
-import Storage from '@/constants/module/storage';
-import ImageCacheStorage from '@/constants/module/image_cache_storage';
-import ChapterStorage from '@/constants/module/chapter_storage';
-import ComicStorage from '@/constants/module/comic_storage';
+import Storage from '@/constants/module/storages/storage';
+import ImageCacheStorage from '@/constants/module/storages/image_cache_storage';
+import ChapterStorage from '@/constants/module/storages/chapter_storage';
+import ComicStorage from '@/constants/module/storages/comic_storage';
 import { CONTEXT } from '@/constants/module/context';
 import Dropdown from '@/components/dropdown';
 import { PageNavigationWidget, RequestChapterWidget, BookmarkWidget } from '../componenets/widgets';
@@ -80,7 +80,7 @@ const Index = ({}:any) => {
 
     // Test Section
     useEffect(() => {
-        console.log(CONTENT)
+        // console.log(CONTENT)
     },[CONTENT])
 
 

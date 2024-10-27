@@ -14,7 +14,7 @@ import * as FileSystem from 'expo-file-system';
 import NetInfo from "@react-native-community/netinfo";
 import JSZip from 'jszip';
 
-import ChapterStorage from '@/constants/module/chapter_storage';
+import ChapterStorage from '@/constants/module/storages/chapter_storage';
 import Image from '@/components/Image';
 import {CONTEXT} from '@/constants/module/context';
 import {blobToBase64, base64ToBlob} from "@/constants/module/file_manager";

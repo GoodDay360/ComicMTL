@@ -7,7 +7,7 @@ import { useWindowDimensions, View, Text, Pressable } from 'react-native';
 import 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Menu from '@/components/menu/menu';
-import Storage from '@/constants/module/storage';
+import Storage from '@/constants/module/storages/storage';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import Toast, { SuccessToast } from 'react-native-toast-message';
 import type { BaseToastProps } from 'react-native-toast-message';
