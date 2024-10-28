@@ -190,7 +190,7 @@ const Index = ({}:any) => {
                 for (const [key, value] of Object.entries(stored_comic.info)) {
                     DATA[key] = value
                 }
-                DATA["chapters"] = await ChapterStorage.getAll(`${SOURCE}-${ID}`,{exclude_field:["data","item"]})
+                DATA["chapters"] = await ChapterStorage.getAll(`${SOURCE}-${ID}`,{exclude_field:["item"]})
                 
                 SET_CONTENT(DATA)
                 setIsLoading(false)

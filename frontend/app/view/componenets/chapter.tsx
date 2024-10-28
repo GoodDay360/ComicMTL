@@ -64,13 +64,13 @@ const ChapterComponent = ({
         set_is_net_connected(net_info.isConnected)
 
         setStyles(__styles(themeTypeContext,Dimensions))
-        const stored_chapter = await ChapterStorage.get(`${SOURCE}-${ID}`,chapter.id, {exclude_fields:["data"]})
+        const stored_chapter = await ChapterStorage.get(`${SOURCE}-${ID}`,chapter.id)
         if (stored_chapter?.data_state === "completed") set_is_saved(true)
         else set_is_saved(false)
     })()}, [])
 
     useEffect(()=>{(async () => {
-        const stored_chapter = await ChapterStorage.get(`${SOURCE}-${ID}`,chapter.id, {exclude_fields:["data"]})
+        const stored_chapter = await ChapterStorage.get(`${SOURCE}-${ID}`,chapter.id)
         if (stored_chapter?.data_state === "completed") set_is_saved(true)
         else set_is_saved(false)
     })()},[page,sort])
@@ -130,7 +130,7 @@ const ChapterComponent = ({
                 padding:5,
             }}
             onPress={async () => {
-                const stored_chapter = await ChapterStorage.get(`${SOURCE}-${ID}`,chapter.id, {exclude_fields:["data"]})
+                const stored_chapter = await ChapterStorage.get(`${SOURCE}-${ID}`,chapter.id)
                 if (stored_chapter?.data_state === "completed") {
                     const stored_comic = await ComicStorage.getByID(SOURCE,ID)
                     if (!stored_comic.history.idx || chapter.idx > stored_comic.history.idx) await ComicStorage.updateHistory(SOURCE,ID,{idx:chapter.idx, id:chapter.id, title:chapter.title})

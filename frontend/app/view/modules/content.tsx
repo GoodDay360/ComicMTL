@@ -8,6 +8,7 @@ import Storage from '@/constants/module/storages/storage';
 import ComicStorage from '@/constants/module/storages/comic_storage';
 import ImageCacheStorage from '@/constants/module/storages/image_cache_storage';
 import ChapterStorage from '@/constants/module/storages/chapter_storage';
+import ChapterDataStorage from '@/constants/module/storages/chapter_data_storage';
 import {blobToBase64} from '@/constants/module/file_manager';
 
 
@@ -201,7 +202,7 @@ export const download_chapter = async (
         onDownloadProgress: (progressEvent) => {
             const _total_length = progressEvent.total
             if (total_length !== undefined && progressEvent.loaded !== progress_lenth) {
-                total_length = _total_length as number + 5
+                total_length = (_total_length as number) + (_total_length as number)*0.25
                 progress_lenth = progressEvent.loaded;
                 setDownloadProgress({...downloadProgress, [chapter_id]:{progress:progress_lenth, total:total_length}})
             }
@@ -211,7 +212,9 @@ export const download_chapter = async (
     }).then(async (response) => {
         const DATA = response.data
         if (Platform.OS === "web"){
-            await ChapterStorage.update(`${source}-${comic_id}`,chapter_id,{type:"blob", value:DATA}, "completed")
+            
+            await ChapterDataStorage.store(`${source}-${comic_id}-${request_info.chapter_idx}`,comic_id,request_info.chapter_idx, DATA)
+            await ChapterStorage.update(`${source}-${comic_id}`,chapter_id, "completed")
         }else{
             const chapter_dir = FileSystem.documentDirectory + "ComicMTL/" + `${source}/` + `${comic_id}/` + `chapters/`;
             const dirInfo = await FileSystem.getInfoAsync(chapter_dir);
@@ -223,11 +226,7 @@ export const download_chapter = async (
             await ChapterStorage.update(`${source}-${comic_id}`,chapter_id,{type:"file_path", value:chapter_dir + `${request_info.chapter_idx}.zip`}, "completed")
         }
         
-        
-
-        
-
-        setDownloadProgress({...downloadProgress, [chapter_id]:{progress:progress_lenth+5, total:total_length}})
+        setDownloadProgress({...downloadProgress, [chapter_id]:{progress:total_length, total:total_length}})
         
 
         

@@ -137,13 +137,13 @@ class Chapter_Storage_Web  {
 }
 
 
-  public static async add(item: string, idx: number, id: string, title: string, data: any): Promise<void> {
+  public static async add(item: string, idx: number, id: string, title: string): Promise<void> {
     const db = await this.openDB();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction('dataStore', 'readwrite');
       const store = transaction.objectStore('dataStore');
 
-      const request = store.add({ id, item, idx, title, data, data_state:"empty" });
+      const request = store.add({ id, item, idx, title, data_state:"" });
 
       request.onsuccess = () => {
         resolve();
@@ -154,7 +154,7 @@ class Chapter_Storage_Web  {
       };
     });
   }
-  public static async update(item: string, id: string, newData: any, data_state: string): Promise<void> {
+  public static async update(item: string, id: string, data_state: string): Promise<void> {
     const db = await this.openDB();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction('dataStore', 'readwrite');
@@ -166,7 +166,6 @@ class Chapter_Storage_Web  {
         const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
         if (cursor) {
           if (cursor.value.id === id) {
-            cursor.value.data = newData; 
             cursor.value.data_state = data_state;
             const updateRequest = cursor.update(cursor.value);
 
