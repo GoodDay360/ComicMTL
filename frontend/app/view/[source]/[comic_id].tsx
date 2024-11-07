@@ -362,7 +362,7 @@ const Index = ({}:any) => {
                         }}
                         
                         onPress={(async ()=>{
-                            await Clipboard.setStringAsync(`${apiBaseContext}/view/${SOURCE}/${ID}/`)
+                            await Clipboard.setStringAsync(`https://comicmtl.netlify.app/view/${SOURCE}/${ID}/`)
                             Toast.show({
                                 type: 'info',
                                 text1: '📋 Copied to your clipboard.',
