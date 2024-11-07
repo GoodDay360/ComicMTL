@@ -15,6 +15,7 @@ import NetInfo from "@react-native-community/netinfo";
 import JSZip from 'jszip';
 
 import ChapterStorage from '@/constants/module/storages/chapter_storage';
+import ChapterDataStorage from '@/constants/module/storages/chapter_data_storage';
 import Image from '@/components/Image';
 import {CONTEXT} from '@/constants/module/context';
 import {blobToBase64, base64ToBlob} from "@/constants/module/file_manager";
@@ -30,111 +31,171 @@ const ChapterImage = ({item, zoom, showOptions,setShowOptions}:any)=>{
     const {themeTypeContext, setThemeTypeContext}:any = useContext(CONTEXT)
     const {showCloudflareTurnstileContext, setShowCloudflareTurnstileContext}:any = useContext(CONTEXT)
 
+    const [isReady, setIsReady] = useState(false);
+    const [isError, setIsError] = useState({state:false,text:""});
 
-    return (
-        <Pressable
-            onPress={()=>{setShowOptions({type:"general",state:!showOptions.state})}}
-            style={{
-                display:"flex",
-                width:"100%",
-                height:"auto",
-                borderWidth:0,
-                alignItems:"center",
-            }}
-        >
-            {item.type === "image" && (
+    const image = useRef<any>(null);
+    const image_layout = useRef<any>(null);
 
-                <Image source={{type:"base64",data:item.image_data}} 
-                    contentFit="contain"
-                    style={{
-                        width:Dimensions.width > 720 
-                            ? 0.8 * Dimensions.width * (1 - zoom / 100)
-                            : `${100 - zoom}%`,
-                        aspectRatio: item.layout.width / item.layout.height,
-                    }}
-                    onLoadEnd={()=>{
-                        // console.log("CLEANED")
-                        // delete images.current[image_key]
-                    }}
-                />
-            )}
-            {item.type === "chapter-info-banner" && (
-                <View
-                    style={{
-                        display:"flex",
-                        flexDirection:"column",
-                        alignItems:"center",
-                        gap:12,
-                        width:Dimensions.width > 720 
-                            ? 0.8 * Dimensions.width * (1 - zoom / 100)
-                            : `${100 - zoom}%`,
-                        height:"auto",
-                        backgroundColor:"black",
-                        padding:16,
-                    }}
-                >
-                    <Text selectable={false}
-                        numberOfLines={1}
-                        style={{
-                            color:Theme[themeTypeContext].text_color,
-                            fontSize:(0.03 * ((Dimensions.width+Dimensions.height)/2)) * (1 - zoom/100),
-                            fontFamily:"roboto-bold",
-                        }}
-                    >
-                        End: {item.value.last}
-                    </Text>
+    useEffect(()=>{(async () => {
+        if (item.type === "page"){
+            const store_chapter_image_data = await ChapterDataStorage.get(item.id)
+            if (store_chapter_image_data){
+                image.current = {type:"blob",data:store_chapter_image_data.data}
+                image_layout.current = store_chapter_image_data.layout
 
-                    <Text selectable={false}
-                        numberOfLines={1}
-                        style={{
-                            color:Theme[themeTypeContext].text_color,
-                            fontSize:(0.03 * ((Dimensions.width+Dimensions.height)/2)) * (1 - zoom/100),
-                            fontFamily:"roboto-bold",
-                        }}
-                    >
-                        Next: {item.value.next}
-                    </Text>
+                setIsReady(true)
+            }else{
+                setIsError({state:true,text:"Image not found!"})
+            }
+        }else setIsReady(true)
+        
+    })()},[])
 
-                </View>
-            )}
-            {item.type === "no-chapter-banner" && (
-                <View
-                    style={{
-                        display:"flex",
-                        flexDirection:"column",
-                        alignItems:"center",
-                        gap:12,
-                        width:Dimensions.width > 720 
-                            ? 0.8 * Dimensions.width * (1 - zoom / 100)
-                            : `${100 - zoom}%`,
-                        height:"auto",
-                        backgroundColor:"black",
-                        padding:16,
-                    }}
-                >
-                    <Text selectable={false}
-                        numberOfLines={1}
-                        style={{
-                            color:Theme[themeTypeContext].text_color,
-                            fontSize:(0.03 * ((Dimensions.width+Dimensions.height)/2)) * (1 - zoom/100),
-                            fontFamily:"roboto-bold",
-                        }}
-                    >
-                        No more available chapters on local.
-                    </Text>
-                    <Text selectable={false}
-                        numberOfLines={1}
-                        style={{
-                            color:Theme[themeTypeContext].text_color,
-                            fontSize:(0.03 * ((Dimensions.width+Dimensions.height)/2)) * (1 - zoom/100),
-                            fontFamily:"roboto-bold",
-                        }}
-                    >
-                        You can go back and download more.
-                    </Text>
-                </View>
-            )}
-    </Pressable>)
+
+    return ( <Pressable
+                onPress={()=>{setShowOptions({type:"general",state:!showOptions.state})}}
+                style={{
+                    display:"flex",
+                    width:"100%",
+                    height:"auto",
+                    borderWidth:0,
+                    alignItems:"center",
+                }}
+            >
+                <>{isReady
+                    ? (<>
+                        {item.type === "page" && (
+                            <Image source={image.current} 
+                                contentFit="contain"
+                                style={{
+                                    width:Dimensions.width > 720 
+                                        ? 0.8 * Dimensions.width * (1 - zoom / 100)
+                                        : `${100 - zoom}%`,
+                                    aspectRatio: image_layout.current.width / image_layout.current.height,
+                                }}
+                                onLoadEnd={()=>{
+                                }}
+                            />
+                        )}
+                        {item.type === "chapter-info-banner" && (
+                            <View
+                                style={{
+                                    display:"flex",
+                                    flexDirection:"column",
+                                    alignItems:"center",
+                                    gap:12,
+                                    width:Dimensions.width > 720 
+                                        ? 0.8 * Dimensions.width * (1 - zoom / 100)
+                                        : `${100 - zoom}%`,
+                                    height:"auto",
+                                    backgroundColor:"black",
+                                    padding:16,
+                                }}
+                            >
+                                <Text selectable={false}
+                                    numberOfLines={1}
+                                    style={{
+                                        color:Theme[themeTypeContext].text_color,
+                                        fontSize:(0.03 * ((Dimensions.width+Dimensions.height)/2)) * (1 - zoom/100),
+                                        fontFamily:"roboto-bold",
+                                    }}
+                                >
+                                    End: {item.value.last}
+                                </Text>
+        
+                                <Text selectable={false}
+                                    numberOfLines={1}
+                                    style={{
+                                        color:Theme[themeTypeContext].text_color,
+                                        fontSize:(0.03 * ((Dimensions.width+Dimensions.height)/2)) * (1 - zoom/100),
+                                        fontFamily:"roboto-bold",
+                                    }}
+                                >
+                                    Next: {item.value.next}
+                                </Text>
+        
+                            </View>
+                        )}
+                        {item.type === "no-chapter-banner" && (
+                            <View
+                                style={{
+                                    display:"flex",
+                                    flexDirection:"column",
+                                    alignItems:"center",
+                                    gap:12,
+                                    width:Dimensions.width > 720 
+                                        ? 0.8 * Dimensions.width * (1 - zoom / 100)
+                                        : `${100 - zoom}%`,
+                                    height:"auto",
+                                    backgroundColor:"black",
+                                    padding:16,
+                                }}
+                            >
+                                <Text selectable={false}
+                                    numberOfLines={1}
+                                    style={{
+                                        color:Theme[themeTypeContext].text_color,
+                                        fontSize:(0.03 * ((Dimensions.width+Dimensions.height)/2)) * (1 - zoom/100),
+                                        fontFamily:"roboto-bold",
+                                    }}
+                                >
+                                    No more available chapters on local.
+                                </Text>
+                                <Text selectable={false}
+                                    numberOfLines={1}
+                                    style={{
+                                        color:Theme[themeTypeContext].text_color,
+                                        fontSize:(0.03 * ((Dimensions.width+Dimensions.height)/2)) * (1 - zoom/100),
+                                        fontFamily:"roboto-bold",
+                                    }}
+                                >
+                                    You can go back and download more.
+                                </Text>
+                            </View>
+                        )}
+                    </>)
+                    : (
+                        <View
+                            style={{
+                                display:"flex",
+                                justifyContent:"center",
+                                alignItems:"center",
+                                backgroundColor:Theme[themeTypeContext].background_color,
+                                width:Dimensions.width > 720 
+                                    ? 0.8 * Dimensions.width * (1 - zoom / 100)
+                                    : `${100 - zoom}%`,
+                                height: Dimensions.height * 0.75
+                            }}
+                        >
+                            {isError.state 
+                                ? (
+                                    <View 
+                                        style={{
+                                            display:'flex',
+                                            flexDirection:"column",
+                                            justifyContent:"center",
+                                            alignItems:"center",
+                                            width:"100%",
+                                            height:"100%",
+                                            gap:12,
+                                        }}
+                                    >
+                                        
+                                        <Icon source={"alert-circle"} size={25} color={"red"}/>
+                                        <Text style={{color:"white",fontSize:12,fontFamily:"roboto-bold"}}>{isError.text}</Text>
+                                    </View>
+                                )
+                                : (<ActivityIndicator animating={true}/>)
+                            }
+                            
+                
+                        </View>
+                    )
+                }</>
+                
+        </Pressable>
+    )
 }
 
 export default ChapterImage

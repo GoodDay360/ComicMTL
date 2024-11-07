@@ -42,18 +42,13 @@ const Index = ({}:any) => {
     const {apiBaseContext, setApiBaseContext}:any = useContext(CONTEXT)
 
     const [isError,setIsError]:any = useState({state:false,text:""})
-    const [firstLoading, setFirstLoading]:any = useState(true)
+    const [isLoading, setIsLoading]:any = useState(true)
     const [chapterInfo, setChapterInfo]:any = useState({})
     const [showOptions, setShowOptions]:any = useState({type:"general",state:false})
-    const [imageKeys, setImageKeys]:any = useState([])
-    const [isLoading, setIsLoading]:any = useState("")
-    const [addChapter, setAddChapter]:any = useState(false)
+    const [DATA, SET_DATA]:any = useState([])
+    const [isAdding, setIsAdding]:any = useState(false)
     const [zoom, setZoom]:any = useState(0)
 
-    const is_adding:any = useRef({state:false,interval:null})
-    const temp_loading:any = useRef(false)
-    const temp_image_keys:any = useRef({})
-    const images:any = useRef({})
     const CHAPTER_IDX = useRef(Number(useLocalSearchParams().idx as string));
 
 
@@ -67,7 +62,7 @@ const Index = ({}:any) => {
             setIsError({state:true,text:"Invalid source, comic id or chapter idx!"})
             return
         }
-        temp_loading.current = true
+
         const stored_chapter = await ChapterStorage.getByIdx(`${SOURCE}-${COMIC_ID}`,CHAPTER_IDX.current, {exclude_fields:["data"]})   
         if (stored_chapter?.data_state !== "completed"){
             setIsError({state:true,text:"Chapter is not download yet!"})
@@ -82,88 +77,51 @@ const Index = ({}:any) => {
         const stored_chapter_zoom = await Storage.get("CHAPTER_ZOOM") || 0
         setZoom(stored_chapter_zoom)
 
-        
-        
-        const chapter_current = await get_chapter(SOURCE,COMIC_ID,CHAPTER_IDX.current)
-        if (chapter_current){
-            images.current = {...images.current,...chapter_current?.files}
-            setImageKeys(chapter_current?.file_keys)
-            setFirstLoading(false)
-        }
+        const chapter_current_data = await get_chapter(SOURCE,COMIC_ID,CHAPTER_IDX.current)
 
-        const chapter_next = await get_chapter(SOURCE,COMIC_ID,CHAPTER_IDX.current+1)
-        if (chapter_next){
-            temp_image_keys.current[`${CHAPTER_IDX.current+1}`] = chapter_next?.file_keys
-            images.current = {...images.current,...chapter_next?.files}
-        }
-        
-        temp_loading.current = false
+        SET_DATA(chapter_current_data)
+        setIsLoading(false)
     })()},[])
 
 
     useFocusEffect(useCallback(() => {
         return () => {
-            setImageKeys([])
-            images.current = {}
-            clearInterval(is_adding.current.interval)
+            SET_DATA([])
         }
     },[]))
 
-    useEffect(()=>{
-        if (!addChapter) return
-        if (is_adding.current.state) return
-        is_adding.current.state = true
-        setIsLoading(true)
-        clearInterval(is_adding.current.interval)
-        is_adding.current.interval = setInterval(()=>{
-            if (!temp_loading.current) {
-                clearInterval(is_adding.current.interval);
-                temp_loading.current = true;
-                (async ()=>{
-                    const new_chapter_idx = CHAPTER_IDX.current+1
-                    if (imageKeys.slice(-1)[0]?.type !== "no-chapter-banner"){
-                        const next_stored_chapter = await ChapterStorage.getByIdx(`${SOURCE}-${COMIC_ID}`,new_chapter_idx, {exclude_fields:["data"]})   
-                        if (next_stored_chapter?.data_state === "completed"){
-                            if (temp_image_keys.current.hasOwnProperty(new_chapter_idx)){
-                                delete temp_image_keys.current[new_chapter_idx-2]
-                                const pre_image_keys = imageKeys.filter((data:any) => {
-                                    if (data.type === "image"){
-                                        const idx = Number(data.value.split("-")[0])
-                                        if (idx < new_chapter_idx-2) return false
-                                        else return true
-                                    }else if (data.type === "chapter-info-banner"){
-                                        if (data.idx < new_chapter_idx-2) return false
-                                    }else return true
-                                })
+    const renderItem = useCallback(({item,index}:any) => {
+        return <ChapterImage key={index} item={item} zoom={zoom} showOptions={showOptions} setShowOptions={setShowOptions}/>
+    },[zoom,showOptions,setShowOptions])
 
-                                setImageKeys([...pre_image_keys,{type:"chapter-info-banner", idx:CHAPTER_IDX.current, value:{last:chapterInfo.title, next:next_stored_chapter?.title}},...temp_image_keys.current[new_chapter_idx]])
-                                setIsLoading(false)
-                                setAddChapter(false)
-                                is_adding.current.state = false
-
-                                for (const item of Object.keys(images.current)){
-
-                                    if (Number(item.split("-")[0]) < new_chapter_idx-2) delete images.current[item]
-                                }
-                                const chapter_next = await get_chapter(SOURCE,COMIC_ID,new_chapter_idx + 1)
-                                if (chapter_next){
-                                    temp_image_keys.current[`${new_chapter_idx + 1}`] = chapter_next?.file_keys
-                                    images.current = {...images.current,...chapter_next?.files}
-                                }else{
-                                    temp_image_keys.current[`${new_chapter_idx + 1}`] = [{type:"no-chapter-banner"}]
-                                }
-                            }else setImageKeys([...imageKeys,{type:"no-chapter-banner"}])
-                        }else setImageKeys([...imageKeys,{type:"no-chapter-banner"}])
-                    }
-                    setAddChapter(false)
-                    setIsLoading(false)
-                    temp_loading.current = false
-                    is_adding.current.state = false
-                })()
+    const onViewableItemsChanged = useCallback(async ({viewableItems, changed}:any) => {
+        const expect_chapter_idx = [CHAPTER_IDX.current + 1, CHAPTER_IDX.current - 1]
+        const current_count = viewableItems.filter((data:any) => data.item.chapter_idx === CHAPTER_IDX.current).length
+        const existed_count = viewableItems.filter((data:any) => expect_chapter_idx.includes(data.item.chapter_idx)).length
+        
+        if (current_count || existed_count){
+            const choose_idx = current_count > existed_count ? CHAPTER_IDX.current : viewableItems.find((data:any) => expect_chapter_idx.includes(data.item.chapter_idx))?.item.idx
+            if (choose_idx === CHAPTER_IDX.current) return
+            const stored_chapter = await ChapterStorage.getByIdx(`${SOURCE}-${COMIC_ID}`,choose_idx, {exclude_fields:["data"]})   
+            setChapterInfo({
+                chapter_id: stored_chapter?.id,
+                chapter_idx: stored_chapter?.id,
+                title: stored_chapter?.title,
+            })
+            const stored_comic = await ComicStorage.getByID(SOURCE, COMIC_ID)
+            if (stored_comic.history.idx && choose_idx > stored_comic.history.idx) {
+                await ComicStorage.updateHistory(SOURCE, COMIC_ID, {idx:stored_chapter?.idx,id:stored_chapter?.id,title:stored_chapter?.title})
             }
-        },100)
-    },[imageKeys, addChapter])
+            router.setParams({idx:choose_idx})
+            CHAPTER_IDX.current = choose_idx
+        }
+    },[])
 
+    const onEndReached = useCallback(async () => {
+        const chapter_current_data = await get_chapter(SOURCE,COMIC_ID,CHAPTER_IDX.current+1)
+        
+        SET_DATA([...DATA,...chapter_current_data])
+    },[DATA])
 
     return (<>
         {isError.state
@@ -246,7 +204,7 @@ const Index = ({}:any) => {
                     >{isError.text}</Text>
                 </View>
             </View>
-            : <>{!firstLoading
+            : <>{!isLoading
                 ? <>
                     <View
                         
@@ -257,47 +215,16 @@ const Index = ({}:any) => {
                             zIndex:0
                         }}
                     >   
-                        <FlashList 
-                            data={imageKeys}
-                            renderItem={({item,index}:any) => {
-                                if (item.type === "image"){
-                                    item.image_data = images.current[item.value].data
-                                    item.layout = images.current[item.value].layout
-                                }
-                                return <ChapterImage key={index} item={item} zoom={zoom} showOptions={showOptions} setShowOptions={setShowOptions}/>
-                            }}
-                            estimatedItemSize={StaticDimensions.height}
-                            extraData={{zoom:zoom,showOptions:showOptions,setShowOptions:setShowOptions}}
+                        <FlatList 
+                            data={DATA}
+                            renderItem={renderItem}
                             onEndReachedThreshold={0.5}
-                            onEndReached={()=>{
-                                setAddChapter(true)
-                            }}
-                            onViewableItemsChanged={async ({ viewableItems, changed }) => {
-                                const expect_chapter_idx = [CHAPTER_IDX.current + 1, CHAPTER_IDX.current - 1]
-                                const current_count = viewableItems.filter((data:any) => data.item.idx === CHAPTER_IDX.current).length
-                                const existed_count = viewableItems.filter((data:any) => expect_chapter_idx.includes(data.item.idx)).length
-                                
-                                if (current_count || existed_count){
-                                    const choose_idx = current_count > existed_count ? CHAPTER_IDX.current : viewableItems.find((data:any) => expect_chapter_idx.includes(data.item.idx))?.item.idx
-                                    if (choose_idx === CHAPTER_IDX.current) return
-                                    const stored_chapter = await ChapterStorage.getByIdx(`${SOURCE}-${COMIC_ID}`,choose_idx, {exclude_fields:["data"]})   
-                                    setChapterInfo({
-                                        chapter_id: stored_chapter?.id,
-                                        chapter_idx: stored_chapter?.id,
-                                        title: stored_chapter?.title,
-                                    })
-                                    const stored_comic = await ComicStorage.getByID(SOURCE, COMIC_ID)
-                                    if (stored_comic.history.idx && choose_idx > stored_comic.history.idx) {
-                                        await ComicStorage.updateHistory(SOURCE, COMIC_ID, {idx:stored_chapter?.idx,id:stored_chapter?.id,title:stored_chapter?.title})
-                                    }
-                                    router.setParams({idx:choose_idx})
-                                    CHAPTER_IDX.current = choose_idx
-                                }
-                                
-                                
-                            }}
+                            windowSize={21}
+                            ItemSeparatorComponent={undefined}
+                            onEndReached={onEndReached}
+                            onViewableItemsChanged={onViewableItemsChanged}
                         />
-                        {isLoading && (
+                        {isAdding && (
                             <View
                                 style={{
                                     display:"flex",

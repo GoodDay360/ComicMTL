@@ -222,28 +222,28 @@ export const download_chapter = async (
 
             const zip = new JSZip();
             const zipContent = await zip.loadAsync(DATA);
-
             let page = 0;
-            for (const fileName in zipContent.files) {
+            for (const fileName of Object.keys(zipContent.files).sort((a,b) => parseInt(a, 10) - parseInt(b, 10))) {
                 if (zipContent.files[fileName].dir) {
                     continue; // Skip directories
                 }
+                page += 1
                 const fileData = await zipContent.files[fileName].async('blob');
                 const layout = await getImageLayout(await blobToBase64(fileData, "image/png"));
                 await ChapterDataStorage.store(`${source}-${comic_id}-${request_info.chapter_idx}-${page}`,comic_id,request_info.chapter_idx, fileData, layout)
-                page += 1
+                
             }
 
             await ChapterStorage.update(`${source}-${comic_id}`,chapter_id, "completed", page)
         }else{
-            const chapter_dir = FileSystem.documentDirectory + "ComicMTL/" + `${source}/` + `${comic_id}/` + `chapters/`;
-            const dirInfo = await FileSystem.getInfoAsync(chapter_dir);
-            if (!dirInfo.exists) await FileSystem.makeDirectoryAsync(chapter_dir, { intermediates: true });
-            await FileSystem.writeAsStringAsync(chapter_dir + `${request_info.chapter_idx}.zip`, (await blobToBase64(DATA)).split(',')[1], {
-                encoding: FileSystem.EncodingType.Base64,
-            });
+            // const chapter_dir = FileSystem.documentDirectory + "ComicMTL/" + `${source}/` + `${comic_id}/` + `chapters/`;
+            // const dirInfo = await FileSystem.getInfoAsync(chapter_dir);
+            // if (!dirInfo.exists) await FileSystem.makeDirectoryAsync(chapter_dir, { intermediates: true });
+            // await FileSystem.writeAsStringAsync(chapter_dir + `${request_info.chapter_idx}.zip`, (await blobToBase64(DATA)).split(',')[1], {
+            //     encoding: FileSystem.EncodingType.Base64,
+            // });
             
-            await ChapterStorage.update(`${source}-${comic_id}`,chapter_id,{type:"file_path", value:chapter_dir + `${request_info.chapter_idx}.zip`}, "completed")
+            // await ChapterStorage.update(`${source}-${comic_id}`,chapter_id,{type:"file_path", value:chapter_dir + `${request_info.chapter_idx}.zip`}, "completed")
         }
         
         setDownloadProgress({...downloadProgress, [chapter_id]:{progress:total_length, total:total_length}})

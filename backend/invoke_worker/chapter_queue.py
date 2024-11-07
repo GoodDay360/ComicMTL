@@ -233,10 +233,10 @@ class UpdateSocketQueue(Thread):
                 MAX_QUEUE = SocketRequestChapterQueueCache.objects.count()
                 
                 if (MAX_QUEUE):
-                    query_result = list(set(SocketRequestChapterQueueCache.objects.order_by("-datetime").values_list('socket_id', flat=True).distinct()))
+                    query_result = list(set(SocketRequestChapterQueueCache.objects.order_by("datetime").values_list('socket_id', flat=True).distinct()))
                     for socket_id in query_result:
                         object = {}
-                        query_result_2 = SocketRequestChapterQueueCache.objects.filter(socket_id=socket_id).order_by("-datetime").values("source","comic_id","chapter_idx")
+                        query_result_2 = SocketRequestChapterQueueCache.objects.filter(socket_id=socket_id).order_by("datetime").values("source","comic_id","chapter_idx")
                         
                         for item in query_result_2:
                             source = item.get("source")

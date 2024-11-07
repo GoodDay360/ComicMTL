@@ -21,7 +21,7 @@ const Image = ({source, style, onError, contentFit, transition, onLoad, onLoadEn
         (async ()=>{
             if(source.hasOwnProperty("type")){
                 if (source.type === "blob"){
-                    imageData.current = {uri:await blobToBase64(source.data)}
+                    imageData.current = {uri:await blobToBase64(source.data,"image/png")}
                     setImageLoaded(true)
                 }else if (source.type === "base64"){
                     imageData.current = {uri:source.data}
