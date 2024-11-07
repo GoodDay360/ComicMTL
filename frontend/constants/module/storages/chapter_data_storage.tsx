@@ -30,12 +30,12 @@ class Chapter_Data_Storage_Web {
         return this.dbPromise;
     }
     
-    static async store(id: string, comic_id:string, chapter_idx: number, data:any ): Promise<void> {
+    static async store(id: string, comic_id:string, chapter_idx: number, data:any, layout:any ): Promise<void> {
         const db = await this.getDB();
         return new Promise((resolve, reject) => {
             const transaction = db.transaction('dataStore', 'readwrite');
             const store = transaction.objectStore('dataStore');
-            const request = store.put({ id, comic_id, chapter_idx, data });
+            const request = store.put({ id, comic_id, chapter_idx, data, layout });
 
             request.onsuccess = () => {
                 resolve();

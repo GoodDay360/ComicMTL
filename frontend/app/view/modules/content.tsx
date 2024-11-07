@@ -3,6 +3,7 @@ import JSZip from 'jszip';
 import * as FileSystem from 'expo-file-system';
 import { Platform } from 'react-native';
 
+
 import translator from '@/constants/module/translator';
 import Storage from '@/constants/module/storages/storage';
 import ComicStorage from '@/constants/module/storages/comic_storage';
@@ -10,6 +11,7 @@ import ImageCacheStorage from '@/constants/module/storages/image_cache_storage';
 import ChapterStorage from '@/constants/module/storages/chapter_storage';
 import ChapterDataStorage from '@/constants/module/storages/chapter_data_storage';
 import {blobToBase64} from '@/constants/module/file_manager';
+import { getImageLayout } from '@/constants/module/file_manager';
 
 
 
@@ -181,9 +183,7 @@ export const download_chapter = async (
     const [chapter_id, request_info]:any = Object.entries(chapterToDownload)[0];
     
     var progress_lenth:number = 0
-    var total_length:number = 100
-    setDownloadProgress({...downloadProgress, [chapter_id]:{progress:progress_lenth, total:total_length}})
-    setChapterToDownload({...chapterToDownload,[chapter_id]:{...chapterToDownload[chapter_id],state:"downloading"}})
+    var total_length:number = 0
     
     await axios({
         method: 'post',
@@ -203,8 +203,15 @@ export const download_chapter = async (
             const _total_length = progressEvent.total
             if (total_length !== undefined && progressEvent.loaded !== progress_lenth) {
                 total_length = (_total_length as number) + (_total_length as number)*0.25
-                progress_lenth = progressEvent.loaded;
-                setDownloadProgress({...downloadProgress, [chapter_id]:{progress:progress_lenth, total:total_length}})
+
+                if (progress_lenth === 0) {
+                    setDownloadProgress({...downloadProgress, [chapter_id]:{progress:progress_lenth, total:total_length}})
+                    setChapterToDownload({...chapterToDownload,[chapter_id]:{...chapterToDownload[chapter_id],state:"downloading"}})
+                    progress_lenth = progressEvent.loaded;
+                }else{
+                    progress_lenth = progressEvent.loaded;
+                    setDownloadProgress({...downloadProgress, [chapter_id]:{progress:progress_lenth, total:total_length}})
+                }
             }
         },
         timeout: 600000,
@@ -212,9 +219,22 @@ export const download_chapter = async (
     }).then(async (response) => {
         const DATA = response.data
         if (Platform.OS === "web"){
-            
-            await ChapterDataStorage.store(`${source}-${comic_id}-${request_info.chapter_idx}`,comic_id,request_info.chapter_idx, DATA)
-            await ChapterStorage.update(`${source}-${comic_id}`,chapter_id, "completed")
+
+            const zip = new JSZip();
+            const zipContent = await zip.loadAsync(DATA);
+
+            let page = 0;
+            for (const fileName in zipContent.files) {
+                if (zipContent.files[fileName].dir) {
+                    continue; // Skip directories
+                }
+                const fileData = await zipContent.files[fileName].async('blob');
+                const layout = await getImageLayout(await blobToBase64(fileData, "image/png"));
+                await ChapterDataStorage.store(`${source}-${comic_id}-${request_info.chapter_idx}-${page}`,comic_id,request_info.chapter_idx, fileData, layout)
+                page += 1
+            }
+
+            await ChapterStorage.update(`${source}-${comic_id}`,chapter_id, "completed", page)
         }else{
             const chapter_dir = FileSystem.documentDirectory + "ComicMTL/" + `${source}/` + `${comic_id}/` + `chapters/`;
             const dirInfo = await FileSystem.getInfoAsync(chapter_dir);

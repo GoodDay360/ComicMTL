@@ -143,7 +143,7 @@ class Chapter_Storage_Web  {
       const transaction = db.transaction('dataStore', 'readwrite');
       const store = transaction.objectStore('dataStore');
 
-      const request = store.add({ id, item, idx, title, data_state:"" });
+      const request = store.add({ id, item, idx, title, data_state:"", max_page:0 });
 
       request.onsuccess = () => {
         resolve();
@@ -154,7 +154,7 @@ class Chapter_Storage_Web  {
       };
     });
   }
-  public static async update(item: string, id: string, data_state: string): Promise<void> {
+  public static async update(item: string, id: string, data_state: string, max_page:number): Promise<void> {
     const db = await this.openDB();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction('dataStore', 'readwrite');
@@ -167,6 +167,7 @@ class Chapter_Storage_Web  {
         if (cursor) {
           if (cursor.value.id === id) {
             cursor.value.data_state = data_state;
+            cursor.value.max_page = max_page;
             const updateRequest = cursor.update(cursor.value);
 
             updateRequest.onsuccess = () => {

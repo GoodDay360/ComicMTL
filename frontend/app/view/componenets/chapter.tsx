@@ -205,8 +205,8 @@ const ChapterComponent = ({
                     <>{chapterRequested[chapter.id]?.state === "ready"
                         && <>{chapterToDownload[chapter.id]?.state === "downloading"
                             ? <CircularProgress 
-                                value={downloadProgress[chapter.id]?.current} 
-                                maxValue={downloadProgress[chapter.id]?.total}
+                                value={downloadProgress[chapter.id].progress} 
+                                maxValue={downloadProgress[chapter.id].total}
                                 radius={((Dimensions.width+Dimensions.height)/2)*0.0225}
                                 inActiveStrokeColor={Theme[themeTypeContext].border_color}
                                 
@@ -220,6 +220,8 @@ const ChapterComponent = ({
                                     textAlign:"center",
                                 }}
                                 onAnimationComplete={async ()=>{
+                                    if (downloadProgress[chapter.id].progress !== downloadProgress[chapter.id].total) return
+                                    
                                     const stored_chapter_requested = (await ComicStorage.getByID(SOURCE,ID)).chapter_requested
                                     const new_chapter_requested = stored_chapter_requested.filter((item:any) => item.chapter_id !== chapter.id);
                                     await ComicStorage.updateChapterQueue(SOURCE,ID,new_chapter_requested)
@@ -237,6 +239,7 @@ const ChapterComponent = ({
 
                                     set_is_saved(true)
                                     isDownloading.current = false
+                                    console.log("DONE!",downloadProgress[chapter.id])
                                 }}
                             />
                             : <ActivityIndicator animating={true} color={"green"} />
