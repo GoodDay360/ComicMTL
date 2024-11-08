@@ -641,7 +641,7 @@ const Index = ({}:any) => {
                                         
                                     }}
                                     onPress={()=>{
-                                        router.push(`/read/${SOURCE}/${ID}/?idx=${history.idx}`)
+                                        router.push(`/read/${SOURCE}/${ID}/${history.idx}/`)
                                     }}
                                 >
                                     <View
@@ -707,7 +707,7 @@ const Index = ({}:any) => {
                                         console.log(stored_chapter)
                                         if (stored_chapter.data_state === "completed"){
                                             await ComicStorage.updateHistory(SOURCE,ID,{idx:chapter.idx, id:chapter.id, title:chapter.title})
-                                            router.push(`/read/${SOURCE}/${ID}/?idx=${stored_chapter.idx}`)
+                                            router.push(`/read/${SOURCE}/${ID}/${stored_chapter.idx}/`)
                                         }else{
                                             Toast.show({
                                                 type: 'error',

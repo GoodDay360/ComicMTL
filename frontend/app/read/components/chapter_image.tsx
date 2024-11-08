@@ -20,8 +20,9 @@ import Image from '@/components/Image';
 import {CONTEXT} from '@/constants/module/context';
 import {blobToBase64, base64ToBlob} from "@/constants/module/file_manager";
 import Theme from '@/constants/theme';
+import { get_chapter } from '../modules/get_chapter';
 
-const ChapterImage = ({item, zoom, showOptions,setShowOptions}:any)=>{
+const ChapterImage = ({item, zoom, showOptions,setShowOptions, setIsLoading, SET_DATA}:any)=>{
     const SOURCE = useLocalSearchParams().source;
     const COMIC_ID = useLocalSearchParams().comic_id;
     const CHAPTER_IDX = Number(useLocalSearchParams().chapter_idx as string);
@@ -153,6 +154,131 @@ const ChapterImage = ({item, zoom, showOptions,setShowOptions}:any)=>{
                                     You can go back and download more.
                                 </Text>
                             </View>
+                        )}
+
+                        {item.type === "chapter-navigate" && (
+                            
+                            <View
+                                style={{
+                                    display:"flex",
+                                    flexDirection:"row",
+                                    justifyContent:"space-between",
+                                    alignItems:"center",
+                                    width:Dimensions.width > 720 
+                                        ? 0.8 * Dimensions.width * (1 - zoom / 100)
+                                        : `${100 - zoom}%`,
+                                    paddingHorizontal: 12,
+                                    paddingVertical: 18,
+                                }}
+                            >
+                                <TouchableRipple
+                                    rippleColor={Theme[themeTypeContext].ripple_color_outlined}
+                                    style={{
+                                        width:"auto",
+                                        display:"flex",
+                                        flexDirection:"column",
+                                        justifyContent:"center",
+                                        alignSelf:"center",
+                                        padding:8,
+                                        paddingHorizontal:18,
+                                        borderRadius:Dimensions.width*0.65/2,
+                                        backgroundColor:Theme[themeTypeContext].border_color,
+
+                                        shadowColor: Theme[themeTypeContext].shadow_color,
+                                        shadowOffset: { width: 0, height: 2 },
+                                        shadowOpacity: 0.25,
+                                        shadowRadius: 3.84,
+                                        elevation: 5,
+                                        
+                                    }}
+                                    onPress={async ()=>{
+                                        const stored_chapter_info = await ChapterStorage.getByIdx(`${SOURCE}-${COMIC_ID}`,item.chapter_idx-1)
+                                        if (stored_chapter_info?.data_state === "completed"){
+                                            router.replace(`/read/${SOURCE}/${COMIC_ID}/${stored_chapter_info.idx}/`)
+                                        }else{
+                                            Toast.show({
+                                                type: 'info',
+                                                text1: 'Chapter not download yet.',
+                                                text2: "You can go back and download more.",
+                                                
+                                                position: "bottom",
+                                                visibilityTime: 4000,
+                                                text1Style:{
+                                                    fontFamily:"roboto-bold",
+                                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
+                                                },
+                                                text2Style:{
+                                                    fontFamily:"roboto-medium",
+                                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
+                                                    
+                                                },
+                                            });
+                                        }
+                                    }}
+                                >
+                                    <Text selectable={false}
+                                        style={{
+                                            color:Theme[themeTypeContext].text_color,
+                                            fontFamily:"roboto-medium",
+                                            fontSize:(Dimensions.width+Dimensions.height)/2*0.03
+                                        }}
+                                    >Previous</Text>
+                                </TouchableRipple>
+
+                                <TouchableRipple
+                                    rippleColor={Theme[themeTypeContext].ripple_color_outlined}
+                                    style={{
+                                        width:"auto",
+                                        display:"flex",
+                                        flexDirection:"column",
+                                        justifyContent:"center",
+                                        alignSelf:"center",
+                                        padding:8,
+                                        paddingHorizontal:18,
+                                        borderRadius:Dimensions.width*0.65/2,
+                                        backgroundColor:Theme[themeTypeContext].border_color,
+
+                                        shadowColor: Theme[themeTypeContext].shadow_color,
+                                        shadowOffset: { width: 0, height: 2 },
+                                        shadowOpacity: 0.25,
+                                        shadowRadius: 3.84,
+                                        elevation: 5,
+                                    }}
+                                    onPress={async ()=>{
+                                        const stored_chapter_info = await ChapterStorage.getByIdx(`${SOURCE}-${COMIC_ID}`,item.chapter_idx+1)
+                                        if (stored_chapter_info?.data_state === "completed"){
+                                            router.replace(`/read/${SOURCE}/${COMIC_ID}/${stored_chapter_info.idx}/`)
+                                        }else{
+                                            Toast.show({
+                                                type: 'info',
+                                                text1: 'Chapter not download yet.',
+                                                text2: "You can go back and download more.",
+                                                
+                                                position: "bottom",
+                                                visibilityTime: 4000,
+                                                text1Style:{
+                                                    fontFamily:"roboto-bold",
+                                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
+                                                },
+                                                text2Style:{
+                                                    fontFamily:"roboto-medium",
+                                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
+                                                    
+                                                },
+                                            });
+                                        }
+                                    }}
+                                >
+                                    <Text selectable={false}
+                                        style={{
+                                            color:Theme[themeTypeContext].text_color,
+                                            fontFamily:"roboto-medium",
+                                            fontSize:(Dimensions.width+Dimensions.height)/2*0.03
+                                        }}
+                                    >Next</Text>
+                                </TouchableRipple>
+                            </View>
+                            
                         )}
                     </>)
                     : (

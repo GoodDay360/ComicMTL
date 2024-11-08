@@ -13,6 +13,7 @@ class Comic_Storage_Web {
     
                 request.onupgradeneeded = (event) => {
                     const db = (event.target as IDBOpenDBRequest).result;
+                    if (db.objectStoreNames.contains('dataStore')) db.deleteObjectStore('dataStore'); 
                     const store = db.createObjectStore('dataStore', { keyPath: 'id' });
                     store.createIndex('tag', 'tag', { unique: false });
                     store.createIndex('source', 'source', { unique: false });

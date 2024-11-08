@@ -16,11 +16,13 @@ class Chapter_Storage_Web  {
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
-        if (!db.objectStoreNames.contains('dataStore')) {
-          const store = db.createObjectStore('dataStore', { keyPath: 'id' });
-          store.createIndex('item', 'item', { unique: false });
-          store.createIndex('idx', 'idx', { unique: false });
-        }
+
+        if (db.objectStoreNames.contains('dataStore')) db.deleteObjectStore('dataStore'); 
+        
+        const store = db.createObjectStore('dataStore', { keyPath: 'id' });
+        store.createIndex('item', 'item', { unique: false });
+        store.createIndex('idx', 'idx', { unique: false });
+        
       };
 
       request.onsuccess = () => {

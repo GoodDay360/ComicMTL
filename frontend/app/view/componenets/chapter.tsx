@@ -134,7 +134,7 @@ const ChapterComponent = ({
                 if (stored_chapter?.data_state === "completed") {
                     const stored_comic = await ComicStorage.getByID(SOURCE,ID)
                     if (!stored_comic.history.idx || chapter.idx > stored_comic.history.idx) await ComicStorage.updateHistory(SOURCE,ID,{idx:chapter.idx, id:chapter.id, title:chapter.title})
-                    router.push(`/read/${SOURCE}/${ID}/?idx=${chapter.idx}`)
+                    router.push(`/read/${SOURCE}/${ID}/${chapter.idx}/`)
                 }else{
                     Toast.show({
                         type: 'error',

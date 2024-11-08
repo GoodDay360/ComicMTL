@@ -29,9 +29,9 @@ class ImageStorage_Web {
 
             request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
                 const db = (event.target as IDBOpenDBRequest).result;
-                if (!db.objectStoreNames.contains('images')) {
-                    db.createObjectStore('images', { keyPath: 'link' });
-                }
+                if (db.objectStoreNames.contains('images')) db.deleteObjectStore('images'); 
+                db.createObjectStore('images', { keyPath: 'link' });
+                
             };
 
             request.onsuccess = () => {

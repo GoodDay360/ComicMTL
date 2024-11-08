@@ -22,10 +22,11 @@ export const get_chapter = async (
             DATA.push({type:"page",id:`${SOURCE}-${COMIC_ID}-${CHAPTER_IDX}-${i}`, chapter_idx: CHAPTER_IDX})
         }
         if (next_stored_chapter) {
-            DATA.push({type:"chapter-info-banner", value:{last:current_stored_chapter.title, next:next_stored_chapter.title}})
+            DATA.push({type:"chapter-info-banner", value:{last:current_stored_chapter.title, next:next_stored_chapter.title}, chapter_idx: CHAPTER_IDX})
         }else{
             DATA.push({type:"no-chapter-banner"})
         }
+        DATA.push({type:"chapter-navigate", chapter_idx: CHAPTER_IDX})
         return DATA
     }else{
         return []

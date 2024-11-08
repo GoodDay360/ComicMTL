@@ -13,6 +13,7 @@ class Storage_Web {
     
             request.onupgradeneeded = (event) => {
             const db = (event.target as IDBOpenDBRequest).result;
+            if (db.objectStoreNames.contains('dataStore')) db.deleteObjectStore('dataStore'); 
             db.createObjectStore('dataStore');
             };
     

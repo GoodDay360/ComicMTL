@@ -13,6 +13,9 @@ class Chapter_Data_Storage_Web {
     
                 request.onupgradeneeded = (event) => {
                     const db = (event.target as IDBOpenDBRequest).result;
+
+                    if (db.objectStoreNames.contains('dataStore')) db.deleteObjectStore('dataStore'); 
+
                     const store = db.createObjectStore('dataStore', { keyPath: 'id' });
                     store.createIndex('comic_id', 'comic_id', { unique: false });
                     store.createIndex('chapter_idx', 'chapter_idx', { unique: false });
