@@ -134,7 +134,7 @@ return (<>{loaded && themeTypeContext && apiBaseContext && socketBaseContext && 
 		widgetContext, setWidgetContext,
 		showCloudflareTurnstileContext, setShowCloudflareTurnstileContext,
 		}}>
-		<View style={{width:"100%",height:"100%",backgroundColor: Theme[themeTypeContext].background_color}}>
+		<View style={{width:Dimensions.width,height:Dimensions.height,backgroundColor: Theme[themeTypeContext].background_color}}>
 			{showCloudflareTurnstileContext
 				? <View style={{position:"absolute",width:"100%",height:"100%",display:"flex",justifyContent:"center",alignItems:"center",backgroundColor:Theme[themeTypeContext].background_color}}>
 					<CloudflareTurnstile 
@@ -172,12 +172,12 @@ return (<>{loaded && themeTypeContext && apiBaseContext && socketBaseContext && 
 					}}>
 						
 						<Stack screenOptions={{ headerShown: false}}>
-						<Stack.Screen name="index"/>
-						
-						<Stack.Screen name="+not-found" />
+							<Stack.Screen name="index"/>
+							
+							<Stack.Screen name="+not-found" />
 						</Stack>
 						<AnimatePresence exitBeforeEnter>
-						{showMenuContext && <MemoMenu/>}
+							{showMenuContext && <MemoMenu/>}
 						</AnimatePresence>
 				</View>
 				</>

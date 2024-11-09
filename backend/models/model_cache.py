@@ -5,11 +5,8 @@ import uuid
 def get_current_utc_time(): return date_utils.utc_time().get()
 
 class RequestCache(models.Model):
-    room = models.TextField()
     client = models.UUIDField(primary_key=True)
     datetime = models.DateTimeField(default=get_current_utc_time)
-    
-
 
 class CloudflareTurnStileCache(models.Model):
     token = models.TextField(primary_key=True)

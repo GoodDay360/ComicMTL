@@ -29,7 +29,7 @@ def verify(request):
     result = req.json()
     status = result.get("success")
     if (status): 
-       
+        
         queryset = CloudflareTurnStileCache.objects.create(token=token)
         queryset.refresh_from_db()
         return JsonResponse(result)
