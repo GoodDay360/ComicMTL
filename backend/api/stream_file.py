@@ -8,7 +8,7 @@ from backend.models.model_cache import SocketRequestChapterQueueCache, ComicStor
 import os, json, sys
 
 @csrf_exempt
-@ratelimit(key='ip', rate='60/m')
+@ratelimit(key='ip', rate='30/m')
 def download_chapter(request):
     if request.method != "POST": return HttpResponseBadRequest('Allowed POST request only!', status=400)
     token = request.META.get('HTTP_X_CLOUDFLARE_TURNSTILE_TOKEN')

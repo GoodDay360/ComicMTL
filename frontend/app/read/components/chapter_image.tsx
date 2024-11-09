@@ -141,7 +141,7 @@ const ChapterImage = ({item, zoom, showOptions,setShowOptions, setIsLoading, SET
                                         fontFamily:"roboto-bold",
                                     }}
                                 >
-                                    No more available chapters on local.
+                                    No more chapters on local.
                                 </Text>
                                 <Text selectable={false}
                                     numberOfLines={1}
@@ -151,7 +151,7 @@ const ChapterImage = ({item, zoom, showOptions,setShowOptions, setIsLoading, SET
                                         fontFamily:"roboto-bold",
                                     }}
                                 >
-                                    You can go back and download more.
+                                    You can go back and download more if available.
                                 </Text>
                             </View>
                         )}

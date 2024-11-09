@@ -18,7 +18,7 @@ env = environ.Env()
 
 
 @csrf_exempt
-@ratelimit(key='ip', rate='60/m')
+@ratelimit(key='ip', rate='10/m')
 def request_chapter(request):
     try:
         if request.method != "POST": return HttpResponseBadRequest('Allowed POST request only!', status=400)

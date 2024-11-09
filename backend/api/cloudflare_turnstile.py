@@ -11,7 +11,7 @@ from ipware import get_client_ip
 env = environ.Env()
 
 @csrf_exempt
-@ratelimit(key='ip', rate='60/m')
+@ratelimit(key='ip', rate='10/m')
 def verify(request):
     if request.method != "POST": return HttpResponseBadRequest('Allowed POST request only!', status=400)
     client_ip, is_routable = get_client_ip(request)
