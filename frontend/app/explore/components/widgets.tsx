@@ -18,6 +18,7 @@ import ChapterStorage from '@/constants/module/storages/chapter_storage';
 
 export const PageNavigationWidget = ({setPage}:any) =>{
     const Dimensions = useWindowDimensions();
+    
 
     const {themeTypeContext, setThemeTypeContext}:any = useContext(CONTEXT)
     const {widgetContext, setWidgetContext}:any = useContext(CONTEXT)

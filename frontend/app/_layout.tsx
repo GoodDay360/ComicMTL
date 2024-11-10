@@ -70,7 +70,7 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
 	const pathname = usePathname()
 	const Dimensions = useWindowDimensions();
-	const [showMenuContext,setShowMenuContext]:any = useState(true)
+	const [showMenuContext, setShowMenuContext]:any = useState(false)
 	const [themeTypeContext,setThemeTypeContext]:any = useState("")
 	const [apiBaseContext, setApiBaseContext]:any = useState("")
 	const [socketBaseContext, setSocketBaseContext]:any = useState("")
@@ -167,7 +167,7 @@ return (<>{loaded && themeTypeContext && apiBaseContext && socketBaseContext && 
 						height:"100%",
 						display: 'flex', 
 						flex: 1, 
-						flexDirection: Dimensions.width <= 720 ? 'column' : 'row-reverse',                 
+						flexDirection: 'row-reverse',                 
 						
 					}}>
 						
@@ -177,7 +177,7 @@ return (<>{loaded && themeTypeContext && apiBaseContext && socketBaseContext && 
 							<Stack.Screen name="+not-found" />
 						</Stack>
 						<AnimatePresence exitBeforeEnter>
-							{showMenuContext && <MemoMenu/>}
+							{showMenuContext !== null && <MemoMenu/>}
 						</AnimatePresence>
 				</View>
 				</>

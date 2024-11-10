@@ -61,6 +61,7 @@ const Image = ({source, style, onError, contentFit, transition, onLoad, onLoadEn
 
     useFocusEffect(useCallback(() => {
         return () => {
+            imageData.current = null
             controller.abort();
         };
     },[]))
@@ -92,7 +93,10 @@ const Image = ({source, style, onError, contentFit, transition, onLoad, onLoadEn
                         style={style}
                         contentFit={contentFit}
                         transition={transition}
-                        onLoad={onLoad}
+                        onLoad={()=>{
+                            if (onLoad) onLoad()
+                            imageData.current = null
+                        }}
                         onLoadEnd={onLoadEnd}
                     />
                     : <View style={{...style,display:'flex',justifyContent:"center",alignItems:"center"}}>

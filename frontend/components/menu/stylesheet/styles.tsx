@@ -4,17 +4,31 @@ import Theme from "@/constants/theme";
 export const __styles:any = (theme_type:string,Dimensions:any) => {
     return StyleSheet.create({
         menu_container: {
-            position: "absolute",
             bottom: 0,
+            left:0,
             display: "flex",
-            flexDirection: "row",
-            justifyContent: "space-around",
-            alignItems: "center",
-            width: "100%",
-            backgroundColor: Theme[theme_type].background_color,
-            padding: 8,
-            borderTopWidth: 0.5,
+            flexDirection: "column",
+            justifyContent: "space-between",
+            height:"auto",
+            
             borderColor: Theme[theme_type].border_color,
+        },
+        menu_box:{
+            flex:1,
+            display:"flex",
+            flexDirection:"column",
+            gap: 18,
+            alignItems:"center",
+            paddingHorizontal: Dimensions.width*0.005,
+            paddingVertical: 12,
+        },
+        header_text:{
+            color: Theme[theme_type].text_color,
+            fontSize: ((Dimensions.width+Dimensions.height)/2)*0.0275,
+            fontFamily: "roboto-bold",
+            height:"auto",  
+            textDecorationLine: "underline",
+            
         },
         menu_button_box:{
             display:"flex",
@@ -36,7 +50,8 @@ export const __styles:any = (theme_type:string,Dimensions:any) => {
         
         menu_button_text: {
             color: Theme[theme_type].text_color,
-            fontSize: ((Dimensions.width+Dimensions.height)/2)*0.028,
+            fontSize: ((Dimensions.width+Dimensions.height)/2)*0.02,
+            fontFamily: "roboto-light",
             height:"auto",
         }
     })}

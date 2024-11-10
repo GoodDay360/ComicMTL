@@ -53,7 +53,7 @@ const Index = ({}:any) => {
 
 
     useEffect(()=>{
-        setShowMenuContext(false)
+        setShowMenuContext(null)
     },[])
 
     // First Load

@@ -23,28 +23,7 @@ const MenuButton = ({pathname, label, icon}:any) => {
 
 
     return (<>{style && <>
-        <View style={style.menu_button_box} key={pathname}
-            from={{
-                opacity: 0,
-                scale: 0.9,
-            }}
-            animate={{
-                opacity: 1,
-                scale: 1,
-            }}
-            exit={{
-                opacity: 0,
-                scale: 0.5,
-            }}
-            transition={{
-                type: 'timing',
-                duration: 500,
-            }}
-            exitTransition={{
-                type: 'timing',
-                duration: 250,
-            }}
-        >
+        <View style={style.menu_button_box}>
             {current_pathname === pathname 
                 ? <TouchableRipple
                     rippleColor={Theme[themeTypeContext].ripple_color_outlined}
@@ -56,22 +35,36 @@ const MenuButton = ({pathname, label, icon}:any) => {
                     style={style.selected_menu_button}
                 >
 
-                    <Icon source={icon} size={((Dimensions.width+Dimensions.height)/2)*0.045} color={Theme[themeTypeContext].icon_color}/>
+                    <Icon source={icon} size={((Dimensions.width+Dimensions.height)/2)*0.035} color={Theme[themeTypeContext].icon_color}/>
                 
                 </TouchableRipple>
-                : <><TouchableRipple
-                    rippleColor={Theme[themeTypeContext].ripple_color_outlined}
-                    onPress={() => {
+                : <>
+                    <TouchableRipple
+                        rippleColor={Theme[themeTypeContext].ripple_color_outlined}
+                        onPress={() => {
+                            
+                            router.push(pathname)
+                        }}
                         
-                        router.push(pathname)
-                    }}
+                        style={style.menu_button}
+                        
+                    >
+                        <View
+                            style={{
+                                display:"flex",
+                                alignItems:"center",
+                                justifyContent:"center",
+                                gap:8,
+                                width:"100%",
+                                height:"100%",
+                            }}
+                        >
+                            <Icon source={icon} size={((Dimensions.width+Dimensions.height)/2)*0.035} color={Theme[themeTypeContext].icon_color}/>
+                            <Text selectable={false} style={style.menu_button_text}>{label}</Text>
+                        </View>
+                    </TouchableRipple>
                     
-                    style={style.menu_button}
-                    
-                >
-                    <Icon source={icon} size={((Dimensions.width+Dimensions.height)/2)*0.045} color={Theme[themeTypeContext].icon_color}/>
-                    
-                </TouchableRipple><Text style={style.menu_button_text}>{label}</Text></>
+                </>
             }
             
         </View>

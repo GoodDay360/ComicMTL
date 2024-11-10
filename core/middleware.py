@@ -24,7 +24,10 @@ class TimeoutContext:
     def run(self, func, *args, **kwargs):
         self.future = self.executor.submit(func, *args, **kwargs)
         try: return self.future.result(timeout=self.timeout)
-        except TimeoutError: raise TimeoutError("Function call timed out")
+        except TimeoutError: 
+            self.executor.shutdown(wait=False)
+            self.executor = ThreadPoolExecutor(max_workers=1)
+            raise TimeoutError("Function call timed out")
 # Temporary Solved using hecky method    
 
 URLS_LOCK_ARRAY = [

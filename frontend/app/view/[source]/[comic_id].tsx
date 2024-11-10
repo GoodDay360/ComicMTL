@@ -153,8 +153,9 @@ const Index = ({}:any) => {
         }
     },[]))
 
-    // Clean up on unmount
+    // Clean up on mount/unmount
     useFocusEffect(useCallback(() => {
+        setShowMenuContext(null)
         return () => {
             controller.abort();
         }
@@ -226,7 +227,6 @@ const Index = ({}:any) => {
     // First load managing
     useEffect(() => { 
         (async ()=>{
-            setShowMenuContext(false)
             setStyles(__styles(themeTypeContext,Dimensions))
 
             let __translate:any = await Storage.get("explore_show_translate")

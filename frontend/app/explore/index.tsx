@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useContext, useRef } from 'react';
-import { Link, router } from 'expo-router';
+import { Link, router, useFocusEffect } from 'expo-router';
 import Image from '@/components/Image';
 import { StyleSheet, useWindowDimensions, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -45,9 +45,15 @@ const Index = ({}:any) => {
     const controller = new AbortController();
     const signal = controller.signal;
 
+    useFocusEffect(useCallback(() => {
+        setShowMenuContext(true)
+        return () => {
+            
+        };
+    }, []))
+    
     useEffect(() => { 
         (async ()=>{
-            
             setStyles(__styles(themeTypeContext,Dimensions))
 
             let __translate:any = await Storage.get("explore_translate")
@@ -69,7 +75,6 @@ const Index = ({}:any) => {
 
     const onRefresh = () => {
         if (!(styles && themeTypeContext && apiBaseContext)) return
-        setShowMenuContext(true)
         setIsLoading(true);
         SET_CONTENT([])
         get_list(setShowCloudflareTurnstileContext,setFeedBack,signal,setIsLoading,translate,SET_CONTENT,search,page)
@@ -81,29 +86,6 @@ const Index = ({}:any) => {
     },[page])
 
 
-    const onScroll = useCallback((event:any) => {
-        const nativeEvent = event.nativeEvent
-        const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
-        var currentOffset = event.nativeEvent.contentOffset.y;
-        var direction = currentOffset > scrollOffset.current ? 'down' : 'up';
-        scrollOffset.current = currentOffset;
-        if (direction === 'down') {
-            if (contentOffset.y <= contentSize.height*0.025) {
-                setShowMenuContext(true)
-            }else{
-                setShowMenuContext(false)
-            }
-        }
-        else {
-            
-            if (layoutMeasurement.height + contentOffset.y >= (contentSize.height - contentSize.height*0.025)) {
-                setShowMenuContext(false)
-            }else{
-                setShowMenuContext(true)
-            }
-        }
-        
-    },[])
 
     
 
@@ -114,8 +96,6 @@ const Index = ({}:any) => {
                     if (!isLoading) onRefresh()
                 }} />
             }
-            onScroll={(event) => {onScroll(event)}}
-            scrollEventThrottle={5}
         >
 
             <View style={styles.header_container}>
@@ -409,7 +389,7 @@ const Index = ({}:any) => {
                             {CONTENT.map((item:any,index:number)=>(
                                 <TouchableRipple 
                                     rippleColor={Theme[themeTypeContext].ripple_color_outlined}
-                                    onPress={()=>{router.push(`/view/${source}/${item.id}`)}} key={index}
+                                    onPress={()=>{router.navigate(`/view/${source}/${item.id}`)}} key={index}
                                     style={styles.item_box}
                                 >
                                     <>
