@@ -229,11 +229,11 @@ const Index = ({}:any) => {
         (async ()=>{
             setStyles(__styles(themeTypeContext,Dimensions))
 
-            let __translate:any = await Storage.get("explore_show_translate")
+            let __translate:any = await Storage.get("view_show_translate")
             
             if (!__translate) {
                 __translate = {state:false,from:"auto",to:"en"}
-                await Storage.store("explore_show_translate",__translate)
+                await Storage.store("view_show_translate",__translate)
             }else __translate = __translate
 
             setTranslate(__translate)
@@ -438,7 +438,7 @@ const Index = ({}:any) => {
                                     value={translate.from}
                                     onChange={async (item:any) => {
                                         setTranslate({...translate,from:item.value})
-                                        await Storage.store("explore_show_translate",{...translate,from:item.value})
+                                        await Storage.store("view_show_translate",{...translate,from:item.value})
                                     }}
                                 />
                             </View>
@@ -456,7 +456,7 @@ const Index = ({}:any) => {
                                     value={translate.to}
                                     onChange={async (item:any) => {
                                         setTranslate({...translate,to:item.value})
-                                        await Storage.store("explore_show_translate",{...translate,to:item.value})
+                                        await Storage.store("view_show_translate",{...translate,to:item.value})
                                     }}
                                 />
                             </View>
@@ -477,10 +477,10 @@ const Index = ({}:any) => {
                                 onPress={async () => {
                                     if (translate.state){
                                         setTranslate({...translate,state:false})
-                                        await Storage.store("explore_show_translate",{...translate,state:false})
+                                        await Storage.store("view_show_translate",{...translate,state:false})
                                     }else{
                                         setTranslate({...translate,state:true})
-                                        await Storage.store("explore_show_translate",{...translate,state:true})
+                                        await Storage.store("view_show_translate",{...translate,state:true})
                                     }
                                     
                                 }}
