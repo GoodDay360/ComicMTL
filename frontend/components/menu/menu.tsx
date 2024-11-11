@@ -66,7 +66,8 @@ const Menu = () => {
                             borderColor: Theme[themeTypeContext].border_color,
                         }}
                     >
-                        <Text style={style.header_text}>Menu</Text>
+                        
+                        <Icon source={"menu-open"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={Theme[themeTypeContext].icon_color}/>
                     </View>
                     <View
                         style={style.menu_box}

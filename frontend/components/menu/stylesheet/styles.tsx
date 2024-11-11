@@ -22,14 +22,6 @@ export const __styles:any = (theme_type:string,Dimensions:any) => {
             paddingHorizontal: Dimensions.width*0.005,
             paddingVertical: 12,
         },
-        header_text:{
-            color: Theme[theme_type].text_color,
-            fontSize: ((Dimensions.width+Dimensions.height)/2)*0.0275,
-            fontFamily: "roboto-bold",
-            height:"auto",  
-            textDecorationLine: "underline",
-            
-        },
         menu_button_box:{
             display:"flex",
             alignItems:"center",

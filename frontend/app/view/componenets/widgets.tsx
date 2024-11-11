@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useCallback, useContext, useRef } from 'react';
-import { Platform, useWindowDimensions } from 'react-native';
+import React, { useEffect, useState, useCallback, useContext, useRef, Fragment } from 'react';
+import { Platform, useWindowDimensions, ScrollView } from 'react-native';
 
 import { Icon, MD3Colors, Button, Text, TextInput, TouchableRipple, ActivityIndicator } from 'react-native-paper';
 import { View, AnimatePresence } from 'moti';
@@ -458,7 +458,7 @@ interface BookmarkWidgetProps {
     SOURCE: string | string[];
     ID: string | string[];
     CONTENT: any;
-  }
+}
 
 export const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
     onRefresh,
@@ -473,39 +473,48 @@ export const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
     const {showCloudflareTurnstileContext, setShowCloudflareTurnstileContext}:any = useContext(CONTEXT)
     const {apiBaseContext, setApiBaseContext}:any = useContext(CONTEXT)
 
-    const [BOOKMARK_DATA, SET_BOOKMARK_DATA]: any = useState(null)
+    const [BOOKMARK_DATA, SET_BOOKMARK_DATA]: any = useState([])
+
+    const [searchBookmark, setSearchBookmark]:any = useState("")
+    const [editBookmark, setEditBookmark]:any = useState("")
 
     const [defaultBookmark, setDefaultBookmark]:any = useState("")
     const [bookmark, setBookmark]:any = useState("")
+    const [manageBookmark, setManageBookmark]:any = useState({state:false,edit:"",delete:""})
     const [createBookmark, setCreateBookmark]:any = useState({state:false,title:""})
     const [removeBookmark, setRemoveBookmark]:any = useState({state:false, removing: false})
 
     const controller = new AbortController();
     const signal = controller.signal;
 
+    const load_bookmark = async ()=>{
+        const stored_comic = await ComicStorage.getByID(SOURCE,CONTENT.id)
+        
+        if (stored_comic) {
+            setDefaultBookmark(stored_comic.tag)
+            setBookmark(stored_comic.tag)
+        }
+
+        const stored_bookmark_data = await Storage.get("bookmark") || []
+        if (stored_bookmark_data.length) {
+            const bookmark_data:Array<Object> = []
+            for (const item of stored_bookmark_data) {
+                bookmark_data.push({
+                    label:item,
+                    value:item,
+                })
+            }
+            
+            SET_BOOKMARK_DATA(bookmark_data.sort())
+        }else SET_BOOKMARK_DATA([])
+    }
 
     useEffect(()=>{
-        (async ()=>{
-            const stored_comic = await ComicStorage.getByID(SOURCE,CONTENT.id)
-            
-            if (stored_comic) {
-                setDefaultBookmark(stored_comic.tag)
-                setBookmark(stored_comic.tag)
-            }
+        console.log(BOOKMARK_DATA)
+    },[BOOKMARK_DATA])
 
-            const stored_bookmark_data = await Storage.get("bookmark") || []
-            if (stored_bookmark_data.length) {
-                const bookmark_data:Array<Object> = []
-                for (const item of stored_bookmark_data) {
-                    bookmark_data.push({
-                        label:item,
-                        value:item,
-                    })
-                }
-                
-                SET_BOOKMARK_DATA(bookmark_data.sort())
-            }else SET_BOOKMARK_DATA([])
-        })()
+    useEffect(()=>{
+        load_bookmark()
         return () => controller.abort();
     },[])
 
@@ -514,8 +523,8 @@ export const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
         <View key={"BookmarkWidget"}
             style={{
                 backgroundColor:Theme[themeTypeContext].background_color,
-                maxWidth:500,
-                width:"100%",
+                width:Dimensions.width*0.35,
+                minWidth:500,
                 
                 borderColor:Theme[themeTypeContext].border_color,
                 borderWidth:2,
@@ -549,7 +558,7 @@ export const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
             }}
         >
             
-            <>{!createBookmark.state && !removeBookmark.state &&
+            <>{!manageBookmark.state && !createBookmark.state && !removeBookmark.state &&
                 <>
                     <View
                         style={{
@@ -594,6 +603,8 @@ export const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
                             </TouchableRipple>
                         }</>
                     </View>
+
+
                     <View 
                         style={{
                             display:"flex",
@@ -604,16 +615,17 @@ export const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
                         }}
                     >  
                         <Button mode='contained' 
-                    labelStyle={{
-                        color:Theme[themeTypeContext].text_color,
-                        fontFamily:"roboto-medium",
-                        fontSize:(Dimensions.width+Dimensions.height)/2*0.02
-                    }} 
-                    style={{backgroundColor:"blue",borderRadius:5}} 
-                    onPress={(()=>{
-                        setCreateBookmark({state:true,title:""})
-                    })}
-                        >+ Create Bookmark</Button>
+                            labelStyle={{
+                                color:Theme[themeTypeContext].text_color,
+                                fontFamily:"roboto-medium",
+                                fontSize:(Dimensions.width+Dimensions.height)/2*0.02,
+                                paddingVertical:4,
+                            }} 
+                            style={{backgroundColor:"blue",borderRadius:5}} 
+                            onPress={(()=>{
+                                setManageBookmark({...manageBookmark,state:true})
+                            })}
+                        >Manage Bookmark</Button>
                         <Button mode='outlined' 
                             labelStyle={{
                                 color:Theme[themeTypeContext].text_color,
@@ -654,6 +666,249 @@ export const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
                     </View>
                 </>
             }</>
+
+            <>{manageBookmark.state && !createBookmark.state && !removeBookmark.state && <>
+                <View
+                    
+                    style={{
+                        display:"flex",
+                        flexDirection:"column",
+                        gap:18,
+                    }}
+                >
+                    <View 
+                        style={{flex:1}}
+                    >
+                        <TextInput mode="outlined" label="Search" textColor={Theme[themeTypeContext].text_color} 
+                            placeholder={""}
+                            style={{
+                                
+                                backgroundColor:Theme[themeTypeContext].background_color,
+                                borderColor:Theme[themeTypeContext].border_color,
+                                
+                            }}
+                            outlineColor={Theme[themeTypeContext].text_input_border_color}
+                            value={searchBookmark}
+                            onChange={(event)=>{
+                                setSearchBookmark(event.nativeEvent.text)
+                            }}
+                        />
+                    </View>
+                    <View
+                        style={{
+                            height:Dimensions.height*0.7
+                        }}
+                    >
+                        <ScrollView
+                            style={{
+                                display:"flex",
+                                flexDirection:"column",
+                                gap:18,
+                                flex:1,
+                                height:"auto",
+                                paddingVertical:12,
+                                paddingHorizontal:8,
+                            }}
+                        >
+                            <>{BOOKMARK_DATA.map((item:any) => 
+                                <Fragment key={item.value}>
+                                    {item.value.includes(searchBookmark) &&
+                                        (
+                                            <View
+                                                style={{
+                                                    display:"flex",
+                                                    flexDirection:"row",
+                                                    alignItems:"center",
+                                                    justifyContent:"space-between",
+                                                    gap:8,
+                                                }}
+                                            >
+                                                <>{manageBookmark.edit !== item.value && manageBookmark.delete !== item.value && 
+                                                    (<View
+                                                        style={{
+                                                            width:"100%",
+                                                            display:"flex",
+                                                            flexDirection:"row",
+                                                            justifyContent:"space-between",
+                                                            height:"auto",
+                                                            gap:18,
+                                                        }}
+                                                    >
+                                                        <Text
+                                                            style={{
+                                                                color:"white",
+                                                                fontFamily:"roboto-medium",
+                                                                fontSize:(Dimensions.width+Dimensions.height)/2*0.025
+                                                            }}
+                                                        >{item.label}</Text>
+                                                        <TouchableRipple
+                                                            rippleColor={Theme[themeTypeContext].ripple_color_outlined}
+                                                            style={{
+                                                                borderRadius:5,
+                                                                borderWidth:0,
+                                                                backgroundColor: "transparent",
+                                                                padding:5,
+                                                            }}
+
+                                                            onPress={()=>{
+                                                                setManageBookmark({...manageBookmark,edit:item.value})
+                                                                setEditBookmark(item.value)
+                                                            }}
+                                                        >
+                                                            
+                                                            <Icon source={"pencil-outline"} size={((Dimensions.width+Dimensions.height)/2)*0.035} color={Theme[themeTypeContext].icon_color}/>
+                                                        </TouchableRipple>
+                                                    </View>)
+                                                }</>
+                                                <>{manageBookmark.edit &&
+                                                    (<View
+                                                        style={{
+                                                            display:"flex",
+                                                            flexDirection:"row",
+                                                            justifyContent:"space-between",
+                                                            alignItems:"center",
+                                                            width:"100%"
+                                                        }}
+                                                    >
+                                                            <View 
+                                                                style={{flex:1}}
+                                                            >
+                                                                <TextInput mode="outlined" label="Edit" textColor={Theme[themeTypeContext].text_color} 
+                                                                    placeholder={editBookmark}
+                                                                    style={{
+                                                                        
+                                                                        backgroundColor:Theme[themeTypeContext].background_color,
+                                                                        borderColor:Theme[themeTypeContext].border_color,
+                                                                        
+                                                                    }}
+                                                                    outlineColor={Theme[themeTypeContext].text_input_border_color}
+                                                                    value={editBookmark}
+                                                                    onChange={(event)=>{
+                                                                        setEditBookmark(event.nativeEvent.text)
+                                                                    }}
+                                                                />
+                                                            </View>
+                                                            <TouchableRipple
+                                                                rippleColor={Theme[themeTypeContext].ripple_color_outlined}
+                                                                style={{
+                                                                    borderRadius:5,
+                                                                    borderWidth:0,
+                                                                    backgroundColor: "transparent",
+                                                                    padding:5,
+                                                                }}
+
+                                                                onPress={()=>{
+                                                                    setManageBookmark({...manageBookmark,edit:""})
+                                                                    setEditBookmark("")
+                                                                }}
+                                                            >
+                                                                
+                                                                <Icon source={"close"} size={((Dimensions.width+Dimensions.height)/2)*0.035} color={"red"}/>
+                                                            </TouchableRipple>
+                                                            <TouchableRipple
+                                                                rippleColor={Theme[themeTypeContext].ripple_color_outlined}
+                                                                style={{
+                                                                    borderRadius:5,
+                                                                    borderWidth:0,
+                                                                    backgroundColor: "transparent",
+                                                                    padding:5,
+                                                                }}
+
+                                                                onPress={async ()=>{
+                                                                    const stored_bookmark = await Storage.get("bookmark");
+                                                                    console.log(stored_bookmark);
+                                                                    const index = stored_bookmark.findIndex((item:string) => item === manageBookmark.edit);
+                                                                    console.log(index)
+                                                                    if (index !== -1){
+                                                                        stored_bookmark[index] = editBookmark;
+                                                                        await Storage.store("bookmark", stored_bookmark)
+
+                                                                        const stored_comics:any = await ComicStorage.getByTag(manageBookmark.edit)
+                                                                        for (const item of stored_comics){
+                                                                            await ComicStorage.replaceTag(item.source, item.id, editBookmark)
+                                                                        }
+                                                                        if (manageBookmark.edit === defaultBookmark) {
+                                                                            onRefresh();
+                                                                            setWidgetContext({state:false,component:<></>});
+
+                                                                        }else{
+                                                                            
+                                                                            const index = BOOKMARK_DATA.findIndex((item:any) => item.value === manageBookmark.edit);
+                                                                            if (index !== -1){
+                                                                                BOOKMARK_DATA[index].label = editBookmark
+                                                                                BOOKMARK_DATA[index].value = editBookmark
+                                                                            }
+                                                                            SET_BOOKMARK_DATA(BOOKMARK_DATA)
+                                                                            setManageBookmark({...manageBookmark,edit:""})
+                                                                            setEditBookmark("")
+                                                                        }
+                                                                        
+                                                                    }
+                                                                }}
+                                                            >
+                                                                
+                                                                <Icon source={"check"} size={((Dimensions.width+Dimensions.height)/2)*0.035} color={"green"}/>
+                                                            </TouchableRipple>
+                                                        
+                                                        
+                                                                
+
+                                                    </View>)
+
+                                                }</>
+
+                                                
+                                                
+                                                
+                                            </View>
+                                            
+                                        )
+                                    }
+                                </Fragment>
+                            )}</>
+                        </ScrollView>
+                    </View>
+                    <View 
+                        style={{
+                            display:"flex",
+                            flexDirection:"row",
+                            width:"100%",
+                            justifyContent:"space-around",
+                            alignItems:"center",
+                        }}
+                    >  
+                        <Button mode='contained' 
+                            labelStyle={{
+                                color:Theme[themeTypeContext].text_color,
+                                fontFamily:"roboto-medium",
+                                fontSize:(Dimensions.width+Dimensions.height)/2*0.02
+                            }} 
+                            style={{backgroundColor:"green",borderRadius:5}} 
+                            onPress={(()=>{
+                                setCreateBookmark({state:true,title:""})
+                            })}
+                        >+ Create Bookmark</Button>
+                        <Button mode='outlined' 
+                            labelStyle={{
+                                color:Theme[themeTypeContext].text_color,
+                                fontFamily:"roboto-medium",
+                                fontSize:(Dimensions.width+Dimensions.height)/2*0.02,
+                                
+
+                            }} 
+                            style={{
+                                
+                                borderRadius:5,
+                                borderWidth:2,
+                                borderColor:Theme[themeTypeContext].border_color
+                            }} 
+                            onPress={(async ()=>{
+                                setManageBookmark({...manageBookmark,state:false,edit:"",delete:""})
+                            })}
+                        >Back</Button>
+                    </View>
+                </View>
+            </>}</>
             
             <>{createBookmark.state &&
                     <>

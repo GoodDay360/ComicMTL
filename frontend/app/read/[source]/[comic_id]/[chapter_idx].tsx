@@ -52,9 +52,11 @@ const Index = ({}:any) => {
     const CHAPTER_IDX = useRef(Number(useLocalSearchParams().chapter_idx as string));
 
 
-    useEffect(()=>{
+    useFocusEffect(useCallback(() => {
         setShowMenuContext(null)
-    },[])
+        return () => {
+        }
+    },[]))
 
     // First Load
     useEffect(()=>{(async () => {

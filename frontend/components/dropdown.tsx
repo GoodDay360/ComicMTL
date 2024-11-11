@@ -59,9 +59,11 @@ const __style = (Dimensions:any,theme_type:string) => StyleSheet.create({
         elevation: 5,
     },
     inputSearchStyle:{
+        borderWidth:0,
         borderRadius:8,
         color: Theme[theme_type].text_color,
         fontSize: ((Dimensions.width+Dimensions.height)/2)*0.0225,
+        padding:0,
     },
     itemContainerStyle: {
         borderColor: Theme[theme_type].border_color,
