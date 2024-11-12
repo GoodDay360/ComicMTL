@@ -25,7 +25,7 @@ class ImageStorage_Web {
     // Initialize the database
     private static async initDB(): Promise<IDBDatabase> {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open(DATABASE_NAME, 1);
+            const request = indexedDB.open(DATABASE_NAME, 3);
 
             request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
                 const db = (event.target as IDBOpenDBRequest).result;

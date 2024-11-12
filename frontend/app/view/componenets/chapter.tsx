@@ -22,7 +22,7 @@ import ChapterStorage from '@/constants/module/storages/chapter_storage';
 import ComicStorage from '@/constants/module/storages/comic_storage';
 import { CONTEXT } from '@/constants/module/context';
 import Dropdown from '@/components/dropdown';
-import { RequestChapterWidget, BookmarkWidget } from './widgets';
+import RequestChapterWidget from './widgets/request_chapter';
 
 
 import { get, store_comic_cover, get_requested_info } from '../modules/content'

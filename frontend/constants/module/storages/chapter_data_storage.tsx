@@ -9,7 +9,7 @@ class Chapter_Data_Storage_Web {
     private static getDB(): Promise<IDBDatabase> {
         if (!this.dbPromise) {
             this.dbPromise = new Promise((resolve, reject) => {
-                const request = indexedDB.open(DATABASE_NAME, 1);
+                const request = indexedDB.open(DATABASE_NAME, 3);
     
                 request.onupgradeneeded = (event) => {
                     const db = (event.target as IDBOpenDBRequest).result;
@@ -90,24 +90,24 @@ class Chapter_Data_Storage_Web {
         });
     }
     
-    static async removeByComicID(comic_id: string): Promise<void> {
+    public static async removeByComicID(comic_id:string): Promise<void> {
         const db = await this.getDB();
         return new Promise((resolve, reject) => {
             const transaction = db.transaction('dataStore', 'readwrite');
             const store = transaction.objectStore('dataStore');
             const index = store.index('comic_id');
-            const request = index.openCursor(comic_id);
-    
+            const request = index.openCursor(IDBKeyRange.only(comic_id));
+        
             request.onsuccess = (event) => {
                 const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
                 if (cursor) {
-                    cursor.delete();
-                    cursor.continue();
+                store.delete(cursor.primaryKey);
+                cursor.continue();
                 } else {
-                    resolve();
+                resolve();
                 }
             };
-    
+        
             request.onerror = () => {
                 reject(request.error);
             };

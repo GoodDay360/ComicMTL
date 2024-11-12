@@ -1,5 +1,7 @@
 import { Platform } from "react-native";
 import * as SQLite from 'expo-sqlite';
+import ChapterStorage from "./chapter_storage";
+import ChapterDataStorage from "./chapter_data_storage";
 
 const DATABASE_NAME = 'ComicStorageDB'
 
@@ -9,7 +11,7 @@ class Comic_Storage_Web {
     private static getDB(): Promise<IDBDatabase> {
         if (!this.dbPromise) {
             this.dbPromise = new Promise((resolve, reject) => {
-                const request = indexedDB.open(DATABASE_NAME, 2);
+                const request = indexedDB.open(DATABASE_NAME, 3);
     
                 request.onupgradeneeded = (event) => {
                     const db = (event.target as IDBOpenDBRequest).result;
@@ -257,8 +259,17 @@ class Comic_Storage_Web {
             request.onsuccess = (event) => {
                 const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
                 if (cursor) {
+
+                    const data = cursor.value;
+                    const source = data.source
+                    const comic_id = data.id;
+                    
+                    ChapterStorage.drop(`${source}-${comic_id}`),
+                    ChapterDataStorage.removeByComicID(comic_id)
+                    
                     cursor.delete();
                     cursor.continue();
+                    
                 } else {
                     resolve();
                 }

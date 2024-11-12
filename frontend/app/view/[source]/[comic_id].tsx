@@ -22,7 +22,10 @@ import ChapterStorage from '@/constants/module/storages/chapter_storage';
 import ComicStorage from '@/constants/module/storages/comic_storage';
 import { CONTEXT } from '@/constants/module/context';
 import Dropdown from '@/components/dropdown';
-import { PageNavigationWidget, RequestChapterWidget, BookmarkWidget } from '../componenets/widgets';
+import PageNavigationWidget from '../componenets/widgets/page_navigation';
+import RequestChapterWidget from '../componenets/widgets/request_chapter';
+import BookmarkWidget from '../componenets/widgets/bookmark';
+
 import ChapterComponent from '../componenets/chapter';
 
 

@@ -9,7 +9,7 @@ class Storage_Web {
     private static getDB(): Promise<IDBDatabase> {
         if (!this.dbPromise) {
         this.dbPromise = new Promise((resolve, reject) => {
-            const request = indexedDB.open(DATABASE_NAME, 1);
+            const request = indexedDB.open(DATABASE_NAME, 2);
     
             request.onupgradeneeded = (event) => {
             const db = (event.target as IDBOpenDBRequest).result;

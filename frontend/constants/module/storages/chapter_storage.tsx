@@ -8,7 +8,7 @@ import { ensure_safe_table_name } from "../ensure_safe_table_name";
 const DATABASE_NAME = 'ChapterDB';
 
 class Chapter_Storage_Web  {
-  private static DATABASE_VERSION: number = 2;
+  private static DATABASE_VERSION: number = 3;
 
   private static async openDB(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
