@@ -3,7 +3,7 @@ import { useFonts } from 'expo-font';
 import { Stack, router, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState, useContext, createContext, memo } from 'react';
-import { useWindowDimensions, View, Text, Pressable } from 'react-native';
+import { useWindowDimensions, View, Text, Pressable, KeyboardAvoidingView } from 'react-native';
 import 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Menu from '@/components/menu/menu';
@@ -134,7 +134,15 @@ return (<>{loaded && themeTypeContext && apiBaseContext && socketBaseContext && 
 		widgetContext, setWidgetContext,
 		showCloudflareTurnstileContext, setShowCloudflareTurnstileContext,
 		}}>
-		<View style={{width:Dimensions.width,height:Dimensions.height,backgroundColor: Theme[themeTypeContext].background_color}}>
+		<KeyboardAvoidingView 
+			behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+			style={{
+				width:Dimensions.width,
+				height:Dimensions.height,
+
+				backgroundColor: Theme[themeTypeContext].background_color
+			}}
+		>
 			{showCloudflareTurnstileContext
 				? <View style={{position:"absolute",width:"100%",height:"100%",display:"flex",justifyContent:"center",alignItems:"center",backgroundColor:Theme[themeTypeContext].background_color}}>
 					<CloudflareTurnstile 
@@ -184,7 +192,7 @@ return (<>{loaded && themeTypeContext && apiBaseContext && socketBaseContext && 
 			}
 			
 		
-		</View>
+		</KeyboardAvoidingView>
 		<Toast  config={toastConfig} />
 	</CONTEXT.Provider>
 	</SafeAreaView>

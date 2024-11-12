@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useCallback, useContext, useRef, Fragment } from 'react';
+import React, { useEffect, useState, useCallback, useContext, useRef, Fragment, memo } from 'react';
 import { Platform, useWindowDimensions, ScrollView } from 'react-native';
 
 import { Icon, MD3Colors, Button, Text, TextInput, TouchableRipple, ActivityIndicator, Menu, Divider, PaperProvider, Portal } from 'react-native-paper';
@@ -58,206 +58,208 @@ const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
     const controller = new AbortController();
     const signal = controller.signal;
 
-    const RenderTag = ({item}:any) =>{
-        const [editTag, setEditTag]:any = useState(item.value)
-        return (<>
-            {item.value.includes(searchTag) &&
-                (
-                    <View
-                        style={{
-                            display:"flex",
-                            flexDirection:"row",
-                            alignItems:"center",
-                            justifyContent:"space-between",
-                            gap:8,
-                            zIndex:10,
-                        }}
-                    >
-                        <>{manageBookmark.edit !== item.value && manageBookmark.delete !== item.value && 
-                            (<View
-                                style={{
-                                    width:"100%",
-                                    display:"flex",
-                                    flexDirection:"row",
-                                    justifyContent:"space-between",
-                                    alignItems:"center",
-                                    height:"auto",
-                                    gap:18,
-                                }}
-                            >
-                                <Text
+    const RenderTag =  useCallback(({item}:any) =>{
+            const [editTag, setEditTag]:any = useState(item.value)
+            useEffect(()=>{
+                console.log("render again?")
+            },[])
+            
+            return (<>
+                {item.value.includes(searchTag) &&
+                    (
+                        <View
+                            style={{
+                                display:"flex",
+                                flexDirection:"row",
+                                alignItems:"center",
+                                justifyContent:"space-between",
+                                gap:8,
+                                zIndex:10,
+                            }}
+                        >
+                            <>{manageBookmark.edit !== item.value && manageBookmark.delete !== item.value && 
+                                (<View
                                     style={{
-                                        color:"white",
-                                        fontFamily:"roboto-medium",
-                                        fontSize:(Dimensions.width+Dimensions.height)/2*0.025
-                                    }}
-                                >{item.label}</Text>
-                                <View
-                                    style={{
-                                        width:"auto",
+                                        width:"100%",
+                                        display:"flex",
+                                        flexDirection:"row",
+                                        justifyContent:"space-between",
+                                        alignItems:"center",
                                         height:"auto",
-                                        
+                                        gap:18,
                                     }}
                                 >
-                                    
-                                    <TouchableRipple
-                                        
-                                        rippleColor={Theme[themeTypeContext].ripple_color_outlined}
+                                    <Text
                                         style={{
-                                            borderRadius:5,
-                                            borderWidth:0,
-                                            backgroundColor: "transparent",
-                                            padding:5,
-                                            
+                                            color:"white",
+                                            fontFamily:"roboto-medium",
+                                            fontSize:(Dimensions.width+Dimensions.height)/2*0.025
                                         }}
-
-                                        onPress={(event)=>{
-                                            if (manageBookmark.edit){
-                                                setManageBookmark({...manageBookmark,edit:""})
-                                                setEditTag("")
-                                            }
-                                            
-
-                                            const x = event.nativeEvent.pageX
-                                            const y = event.nativeEvent.pageY
-                                            
-                                            setShowMenuOption({
-                                                ...showMenuOption,
-                                                state: showMenuOption.id === item.value ? false : true,
-                                                positions:[y+((Dimensions.width+Dimensions.height)/2)*0.0225,0,x-((Dimensions.width+Dimensions.height)/2)*0.18,0],
-                                                id:showMenuOption.id === item.value ? "" : item.value,
-                                            })
-
-                                            
-                                            
-                                        }}
-                                    >
-                                        
-                                        <Icon source={"dots-vertical"} size={((Dimensions.width+Dimensions.height)/2)*0.035} color={Theme[themeTypeContext].icon_color}/>
-                                    </TouchableRipple>
-                                </View>
-                            </View>)
-                        }</>
-                        <>{manageBookmark.edit &&
-                            (<View
-                                style={{
-                                    display:"flex",
-                                    flexDirection:"row",
-                                    justifyContent:"space-between",
-                                    alignItems:"center",
-                                    width:"100%",
-                                    height:"auto",
-                                    gap:12,
-                                    padding:12,
-                                }}
-                            >
-                                    <View 
-                                        style={{flex:1}}
-                                    >
-                                        <TextInput mode="outlined" label="Edit" textColor={Theme[themeTypeContext].text_color} maxLength={72}
-                                            right={<TextInput.Affix text={`| Max: 72`} />} 
-                                            style={{
-                                                width:"100%",
-                                                height:"100%",
-                                                backgroundColor:Theme[themeTypeContext].background_color,
-                                                borderColor:Theme[themeTypeContext].border_color,
-                                                
-                                            }}
-                                            outlineColor={Theme[themeTypeContext].text_input_border_color}
-                                            value={editTag}
-                                            onChange={(event)=>{
-                                                setEditTag(event.nativeEvent.text)
-                                            }}
-                                        />
-                                    </View>
+                                    >{item.label}</Text>
                                     <View
                                         style={{
-                                            display:"flex",
-                                            flexDirection:"row",
-                                            gap:8,
+                                            width:"auto",
+                                            height:"auto",
+                                            
                                         }}
                                     >
+                                        
                                         <TouchableRipple
-                                            rippleColor={Theme[themeTypeContext].ripple_color_outlined}
-                                            style={{
-                                                borderRadius:5,
-                                                borderWidth:0,
-                                                backgroundColor: "transparent",
-                                                padding:5,
-                                            }}
-
-                                            onPress={()=>{
-                                                setManageBookmark({...manageBookmark,edit:""})
-                                                setEditTag("")
-                                                setShowMenuOption({...showMenuOption,state:false,id:""})
-                                            }}
-                                        >
                                             
-                                            <Icon source={"close"} size={((Dimensions.width+Dimensions.height)/2)*0.035} color={"red"}/>
-                                        </TouchableRipple>
-                                        <TouchableRipple
                                             rippleColor={Theme[themeTypeContext].ripple_color_outlined}
                                             style={{
                                                 borderRadius:5,
                                                 borderWidth:0,
                                                 backgroundColor: "transparent",
                                                 padding:5,
+                                                
                                             }}
 
-                                            onPress={async ()=>{
-                                                const stored_bookmark = await Storage.get("bookmark");
-                                                
-                                                const index = stored_bookmark.findIndex((item:string) => item === manageBookmark.edit);
-                                                
-                                                if (index !== -1){
-                                                    stored_bookmark[index] = editTag;
-                                                    await Storage.store("bookmark", stored_bookmark)
-
-                                                    const stored_comics:any = await ComicStorage.getByTag(manageBookmark.edit)
-                                                    for (const item of stored_comics){
-                                                        await ComicStorage.replaceTag(item.source, item.id, editTag)
-                                                    }
-                                                    if (manageBookmark.edit === defaultTag) {
-                                                        onRefresh();
-                                                        setWidgetContext({state:false,component:<></>});
-
-                                                    }else{
-                                                        
-                                                        const index = BOOKMARK_DATA.findIndex((item:any) => item.value === manageBookmark.edit);
-                                                        if (index !== -1){
-                                                            BOOKMARK_DATA[index].label = editTag
-                                                            BOOKMARK_DATA[index].value = editTag
-                                                        }
-                                                        SET_BOOKMARK_DATA(BOOKMARK_DATA)
-                                                        setManageBookmark({...manageBookmark,edit:""})
-                                                        setEditTag("")
-                                                    }
-                                                    
+                                            onPress={(event)=>{
+                                                if (manageBookmark.edit){
+                                                    setManageBookmark({...manageBookmark,edit:""})
+                                                    setEditTag("")
                                                 }
-                                                setShowMenuOption({...showMenuOption,state:false,id:""})
+                                                
+
+                                                const x = event.nativeEvent.pageX
+                                                const y = event.nativeEvent.pageY
+                                                
+                                                setShowMenuOption({
+                                                    ...showMenuOption,
+                                                    state: showMenuOption.id === item.value ? false : true,
+                                                    positions:[y+((Dimensions.width+Dimensions.height)/2)*0.0225,0,x-((Dimensions.width+Dimensions.height)/2)*0.18,0],
+                                                    id:showMenuOption.id === item.value ? "" : item.value,
+                                                })
+
+                                                
+                                                
                                             }}
                                         >
                                             
-                                            <Icon source={"check"} size={((Dimensions.width+Dimensions.height)/2)*0.035} color={"green"}/>
+                                            <Icon source={"dots-vertical"} size={((Dimensions.width+Dimensions.height)/2)*0.035} color={Theme[themeTypeContext].icon_color}/>
                                         </TouchableRipple>
                                     </View>
-                                
-                                        
+                                </View>)
+                            }</>
+                            <>{manageBookmark.edit &&
+                                (<View
+                                    style={{
+                                        display:"flex",
+                                        flexDirection:"row",
+                                        justifyContent:"space-between",
+                                        alignItems:"center",
+                                        width:"100%",
+                                        height:"auto",
+                                        gap:12,
+                                        padding:12,
+                                    }}
+                                >
+                                        <View 
+                                            style={{flex:1}}
+                                        >
+                                            <TextInput mode="outlined" label="Edit" textColor={Theme[themeTypeContext].text_color} maxLength={72}
+                                                right={<TextInput.Affix text={`| Max: 72`} />} 
+                                                style={{
+                                                    backgroundColor:Theme[themeTypeContext].background_color,
+                                                    borderColor:Theme[themeTypeContext].border_color,
+                                                    
+                                                }}
+                                                outlineColor={Theme[themeTypeContext].text_input_border_color}
+                                                value={editTag}
+                                                onChangeText={(text)=>{
+                                                    setEditTag(text)
+                                                }}
+                                            />
+                                        </View>
+                                        <View
+                                            style={{
+                                                display:"flex",
+                                                flexDirection:"row",
+                                                gap:8,
+                                            }}
+                                        >
+                                            <TouchableRipple
+                                                rippleColor={Theme[themeTypeContext].ripple_color_outlined}
+                                                style={{
+                                                    borderRadius:5,
+                                                    borderWidth:0,
+                                                    backgroundColor: "transparent",
+                                                    padding:5,
+                                                }}
 
-                            </View>)
+                                                onPress={()=>{
+                                                    setManageBookmark({...manageBookmark,edit:""})
+                                                    setEditTag("")
+                                                    setShowMenuOption({...showMenuOption,state:false,id:""})
+                                                }}
+                                            >
+                                                
+                                                <Icon source={"close"} size={((Dimensions.width+Dimensions.height)/2)*0.035} color={"red"}/>
+                                            </TouchableRipple>
+                                            <TouchableRipple
+                                                rippleColor={Theme[themeTypeContext].ripple_color_outlined}
+                                                style={{
+                                                    borderRadius:5,
+                                                    borderWidth:0,
+                                                    backgroundColor: "transparent",
+                                                    padding:5,
+                                                }}
 
-                        }</>
+                                                onPress={async ()=>{
+                                                    const stored_bookmark = await Storage.get("bookmark");
+                                                    
+                                                    const index = stored_bookmark.findIndex((item:string) => item === manageBookmark.edit);
+                                                    
+                                                    if (index !== -1){
+                                                        stored_bookmark[index] = editTag;
+                                                        await Storage.store("bookmark", stored_bookmark)
 
+                                                        const stored_comics:any = await ComicStorage.getByTag(manageBookmark.edit)
+                                                        for (const item of stored_comics){
+                                                            await ComicStorage.replaceTag(item.source, item.id, editTag)
+                                                        }
+                                                        if (manageBookmark.edit === defaultTag) {
+                                                            onRefresh();
+                                                            setWidgetContext({state:false,component:<></>});
+
+                                                        }else{
+                                                            
+                                                            const index = BOOKMARK_DATA.findIndex((item:any) => item.value === manageBookmark.edit);
+                                                            if (index !== -1){
+                                                                BOOKMARK_DATA[index].label = editTag
+                                                                BOOKMARK_DATA[index].value = editTag
+                                                            }
+                                                            SET_BOOKMARK_DATA(BOOKMARK_DATA)
+                                                            setManageBookmark({...manageBookmark,edit:""})
+                                                            setEditTag("")
+                                                        }
+                                                        
+                                                    }
+                                                    setShowMenuOption({...showMenuOption,state:false,id:""})
+                                                }}
+                                            >
+                                                
+                                                <Icon source={"check"} size={((Dimensions.width+Dimensions.height)/2)*0.035} color={"green"}/>
+                                            </TouchableRipple>
+                                        </View>
+                                    
+                                            
+
+                                </View>)
+
+                            }</>
+
+                            
+                            
+                            
+                        </View>
                         
-                        
-                        
-                    </View>
-                    
-                )
-            }
-        </>)
-    }
-
+                    )
+                }
+            </>)
+        }
+    ,[Theme,themeTypeContext,manageBookmark,searchTag,removeTag,createTag,defaultTag,bookmark,showMenuOption,MIGRATE_BOOKMARK_DATA,BOOKMARK_DATA])
     
 
     const load_bookmark = async ()=>{
@@ -298,8 +300,8 @@ const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
             style={{
                 zIndex:10,
                 backgroundColor:Theme[themeTypeContext].background_color,
-                width:Dimensions.width*0.35,
-                minWidth:500,
+                maxWidth:500,
+                width:"100%",
                 
                 borderColor:Theme[themeTypeContext].border_color,
                 borderWidth:2,
@@ -457,7 +459,7 @@ const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
                                 style={{flex:1}}
                             >
                                 <TextInput mode="outlined" label="Search" textColor={Theme[themeTypeContext].text_color} 
-                                    placeholder={""}
+                                    
                                     style={{
                                         
                                         backgroundColor:Theme[themeTypeContext].background_color,
@@ -491,10 +493,14 @@ const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
                                         
                                     }}
                                 >
-                                    <>{BOOKMARK_DATA.map((item:any) => <Fragment key={item.value}>
-                                        <RenderTag item={item}/>
-                                        <View style={{width:"100%",height:2,backgroundColor:Theme[themeTypeContext].border_color}}/>
-                                    </Fragment>)}</>
+                                    <>{BOOKMARK_DATA.map((item:any) => 
+                                        (
+                                            <View key={item.value}>
+                                                <RenderTag item={item}/>
+                                                <View style={{width:"100%",height:2,backgroundColor:Theme[themeTypeContext].border_color}}/>
+                                            </View>
+                                        )
+                                    )}</>
                                 </ScrollView>
                             </View>
                         </>
@@ -881,13 +887,14 @@ const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
                     display:"flex",
                     justifyContent:"center",
                     alignItems:"center",
+                    padding:15,
                 }}
             >
                 <View
                     style={{
                         backgroundColor:Theme[themeTypeContext].background_color,
-                        width:Dimensions.width*0.35,
-                        minWidth:500,
+                        maxWidth:500,
+                        width:"100%",
                         height:"auto",
                         
                         borderColor:Theme[themeTypeContext].border_color,
