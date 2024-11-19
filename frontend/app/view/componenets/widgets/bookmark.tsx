@@ -159,6 +159,7 @@ const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
                                             style={{flex:1}}
                                         >
                                             <TextInput mode="outlined" label="Edit" textColor={Theme[themeTypeContext].text_color} maxLength={72}
+                                                autoFocus={true}
                                                 right={<TextInput.Affix text={`| Max: 72`} />} 
                                                 style={{
                                                     backgroundColor:Theme[themeTypeContext].background_color,
@@ -219,7 +220,7 @@ const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
                                                         for (const item of stored_comics){
                                                             await ComicStorage.replaceTag(item.source, item.id, editTag)
                                                         }
-                                                        if (manageBookmark.edit === defaultTag) {
+                                                        if ((manageBookmark.edit === defaultTag) && (editTag !== defaultTag)) {
                                                             onRefresh();
                                                             setWidgetContext({state:false,component:<></>});
 
@@ -815,12 +816,12 @@ const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
                             
                         }}
                     >
-                        <Icon source={"pencil"} size={((Dimensions.width+Dimensions.height)/2)*0.025} color={"blue"}/>
+                        <Icon source={"pencil"} size={((Dimensions.width+Dimensions.height)/2)*0.025} color={"cyan"}/>
                         <View>
                             <Text selectable={false}
                                 style={{
                                     textAlign:"center",
-                                    color:"blue",
+                                    color:"cyan",
                                     fontFamily:"roboto-medium",
                                     fontSize:(Dimensions.width+Dimensions.height)/2*0.02
                                 }}

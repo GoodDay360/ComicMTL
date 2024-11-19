@@ -338,7 +338,7 @@ const Index = ({}:any) => {
                                                             console.log("HO2h2")
                                                         }}
                                                     >
-                                                        <Icon source={"cloud-refresh"} size={((Dimensions.width+Dimensions.height)/2)*0.05} color={Theme[themeTypeContext].icon_color}/>
+                                                        <Icon source={"update"} size={((Dimensions.width+Dimensions.height)/2)*0.05} color={Theme[themeTypeContext].icon_color}/>
                                                     </TouchableRipple>
                                                 </View>
                                                 <View 

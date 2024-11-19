@@ -354,7 +354,7 @@ const Index = ({}:any) => {
                             onRefresh()
                         }}
                     >
-                        <Icon source={"refresh"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={Theme[themeTypeContext].icon_color}/>
+                        <Icon source={"update"} size={((Dimensions.width+Dimensions.height)/2)*0.04} color={Theme[themeTypeContext].icon_color}/>
                     </TouchableRipple>
                     <TouchableRipple
                         rippleColor={Theme[themeTypeContext].ripple_color_outlined}
