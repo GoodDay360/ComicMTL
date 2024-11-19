@@ -76,6 +76,7 @@ const ChapterImage = ({item, zoom, showOptions,setShowOptions, setIsLoading, SET
                                     aspectRatio: image_layout.current.width / image_layout.current.height,
                                 }}
                                 onLoadEnd={()=>{
+                                    image.current = ""
                                 }}
                             />
                         )}

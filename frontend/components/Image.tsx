@@ -94,10 +94,12 @@ const Image = ({source, style, onError, contentFit, transition, onLoad, onLoadEn
                         contentFit={contentFit}
                         transition={transition}
                         onLoad={()=>{
-                            if (onLoad) onLoad()
-                            imageData.current = null
+                            if (onLoad) onLoad();
                         }}
-                        onLoadEnd={onLoadEnd}
+                        onLoadEnd={()=>{
+                            if (onLoad) onLoadEnd();
+                            imageData.current = null;
+                        }}
                     />
                     : <View style={{...style,display:'flex',justifyContent:"center",alignItems:"center"}}>
                         <ActivityIndicator animating={true}/>
