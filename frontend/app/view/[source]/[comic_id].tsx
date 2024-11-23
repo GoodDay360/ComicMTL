@@ -12,6 +12,7 @@ import Toast from 'react-native-toast-message';
 import { View, AnimatePresence } from 'moti';
 import * as Clipboard from 'expo-clipboard';
 import NetInfo from "@react-native-community/netinfo";
+import _ from 'lodash'
 
 
 import Theme from '@/constants/theme';
@@ -87,18 +88,35 @@ const Index = ({}:any) => {
         
     },[CONTENT])
 
+    const RenderChapter = useCallback(({chapter}:any) => {
+        return <ChapterComponent 
+            SOURCE={SOURCE}
+            ID={ID}
+            page={page}
+            sort={sort}
+            chapter={chapter}
+            signal={signal}
+            isDownloading={isDownloading}
+            chapterRequested={chapterRequested}
+            setChapterRequested={setChapterRequested}
+            chapterToDownload={chapterToDownload}
+            setChapterToDownload={setChapterToDownload}
+            downloadProgress={downloadProgress}
+            setDownloadProgress={setDownloadProgress}
+            setChapterQueue={setChapterQueue}
+            chapterQueue={chapterQueue}
+    />
+    },[page,sort,chapterRequested,chapterToDownload,downloadProgress,chapterQueue])
+
 
     // Worker for downloading chapter
     const download_chapter_interval:any = useRef(null)
     const isDownloading:any = useRef(false)
     useEffect(() => {
         clearInterval(download_chapter_interval.current)
-        
         download_chapter_interval.current = setInterval(() => {
             if (!isDownloading.current && Object.keys(chapterToDownload).length){
                 isDownloading.current = true
-                console.log(isDownloading.current,chapterToDownload)
-                console.log("Downloading HERE")
                 download_chapter(
                     setShowCloudflareTurnstileContext, isDownloading, SOURCE, ID, 
                     chapterRequested, setChapterRequested,
@@ -130,8 +148,8 @@ const Index = ({}:any) => {
                 if (!stored_comic) return
                 const event = result.event
                 if (event.type === "chapter_queue_info"){
-                    console.log(event.chapter_queue)
-                    setChapterQueue(event.chapter_queue)
+                    if (!_.isEqual(event.chapter_queue,chapterQueue)) setChapterQueue(event.chapter_queue);
+                    
                 }else if (event.type === "chapter_ready_to_download"){
                     get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, setChapterToDownload, signal, SOURCE, ID)
                 }
@@ -870,24 +888,7 @@ const Index = ({}:any) => {
                         <View style={styles.chapter_box}>
                             <>{CONTENT.chapters.length
                                 ? <>{CONTENT.chapters.slice((page-1)*MAX_OFFSET,((page-1)*MAX_OFFSET)+MAX_OFFSET).map((chapter:any,index:number) => 
-                                    <ChapterComponent 
-                                        key={index}
-                                        SOURCE={SOURCE}
-                                        ID={ID}
-                                        page={page}
-                                        sort={sort}
-                                        chapter={chapter}
-                                        signal={signal}
-                                        isDownloading={isDownloading}
-                                        chapterRequested={chapterRequested}
-                                        setChapterRequested={setChapterRequested}
-                                        chapterToDownload={chapterToDownload}
-                                        setChapterToDownload={setChapterToDownload}
-                                        downloadProgress={downloadProgress}
-                                        setDownloadProgress={setDownloadProgress}
-                                        setChapterQueue={setChapterQueue}
-                                        chapterQueue={chapterQueue}
-                                    />
+                                    <RenderChapter key={index} chapter={chapter}/>
                                 )}</>
                                 : <Text
                                     style={{

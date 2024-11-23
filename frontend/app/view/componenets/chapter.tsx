@@ -265,7 +265,6 @@ const ChapterComponent = ({
                                     textAlign:"center",
                                 }}
                                 onAnimationComplete={()=>{
-                                    console.log("HAHA",chapterQueue)
                                     get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, setChapterToDownload, signal, SOURCE, ID)
                                 }}
                             />

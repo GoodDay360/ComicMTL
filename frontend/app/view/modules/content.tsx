@@ -178,9 +178,25 @@ export const download_chapter = async (
     setDownloadProgress:any,
     signal:any
 ) => {
-    const API_BASE = await Storage.get("IN_USE_API_BASE")
 
+    const API_BASE = await Storage.get("IN_USE_API_BASE")
     const [chapter_id, request_info]:any = Object.entries(chapterToDownload)[0];
+
+    const stored_chapter = await ChapterStorage.get(`${source}-${comic_id}`,chapter_id)
+    console.log("HELLO???")
+    if (stored_chapter.data_state === "completed") {
+        console.log("Chapter Already Downloaded")
+        const chapter_to_download = chapterToDownload
+        delete chapter_to_download[chapter_id]
+        setChapterToDownload(chapter_to_download)
+        
+        const chapter_requested = (await ComicStorage.getByID(source,comic_id)).chapter_requested
+        const new_chapter_requested = chapter_requested.filter((item:any) => item.chapter_id !== chapter_id);
+        await ComicStorage.updateChapterQueue(source,comic_id,new_chapter_requested)
+        
+        isDownloading.current = false
+        return
+    }
     
     var progress_lenth:number = 0
     var total_length:number = 0

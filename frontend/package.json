@@ -22,6 +22,7 @@
     "@rneui/base": "^0.0.0-edge.2",
     "@rneui/themed": "^0.0.0-edge.2",
     "@shopify/flash-list": "1.6.4",
+    "@types/lodash": "^4.17.13",
     "axios": "^1.7.7",
     "dayjs": "^1.11.13",
     "disqus-react": "^1.1.5",

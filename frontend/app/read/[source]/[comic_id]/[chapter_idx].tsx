@@ -94,39 +94,8 @@ const Index = ({}:any) => {
 
     const renderItem = useCallback(({item,index}:any) => {
         return <ChapterImage key={index} item={item} zoom={zoom} showOptions={showOptions} setShowOptions={setShowOptions} setIsLoading={setIsLoading} SET_DATA={SET_DATA}/>
-    },[zoom,showOptions,setShowOptions])
+    },[zoom,showOptions])
 
-    const onViewableItemsChanged = useCallback(async ({viewableItems, changed}:any) => {
-        // const expect_chapter_idx = [CHAPTER_IDX.current + 1, CHAPTER_IDX.current - 1]
-        // const current_count = viewableItems.filter((data:any) => data.item.chapter_idx === CHAPTER_IDX.current).length
-        // const existed_count = viewableItems.filter((data:any) => expect_chapter_idx.includes(data.item.chapter_idx)).length
-        
-        // if (current_count || existed_count){
-        //     const choose_idx = current_count > existed_count ? CHAPTER_IDX.current : viewableItems.find((data:any) => expect_chapter_idx.includes(data.item.chapter_idx))?.item.chapter_idx
-        //     if (choose_idx === CHAPTER_IDX.current) return
-        //     const stored_chapter = await ChapterStorage.getByIdx(`${SOURCE}-${COMIC_ID}`,choose_idx, {exclude_fields:["data"]})   
-        //     setChapterInfo({
-        //         chapter_id: stored_chapter?.id,
-        //         chapter_idx: stored_chapter?.id,
-        //         title: stored_chapter?.title,
-        //     })
-        //     const stored_comic = await ComicStorage.getByID(SOURCE, COMIC_ID)
-        //     if (stored_comic.history.idx && choose_idx > stored_comic.history.idx) {
-        //         await ComicStorage.updateHistory(SOURCE, COMIC_ID, {idx:stored_chapter?.idx,id:stored_chapter?.id,title:stored_chapter?.title})
-        //     }
-        //     router.setParams({idx:choose_idx})
-        //     CHAPTER_IDX.current = choose_idx
-        // }
-    },[])
-
-    const onEndReached = useCallback(async () => {
-        console.log(DATA)
-        // const NEW_DATA = DATA.filter((data:any) => data.chapter_idx === CHAPTER_IDX.current-2)
-
-        // const chapter_current_data = await get_chapter(SOURCE,COMIC_ID,CHAPTER_IDX.current+1)
-        
-        // SET_DATA([...NEW_DATA,...chapter_current_data])
-    },[DATA])
 
     return (<>
         {isError.state
@@ -223,11 +192,8 @@ const Index = ({}:any) => {
                         <FlatList 
                             data={DATA}
                             renderItem={renderItem}
-                            // onEndReachedThreshold={0.5}
                             windowSize={21}
                             ItemSeparatorComponent={undefined}
-                            onEndReached={onEndReached}
-                            onViewableItemsChanged={onViewableItemsChanged}
                         />
                     </View>
                     <AnimatePresence exitBeforeEnter>

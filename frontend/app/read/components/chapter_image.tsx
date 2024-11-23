@@ -34,6 +34,7 @@ const ChapterImage = ({item, zoom, showOptions,setShowOptions, setIsLoading, SET
 
     const [isReady, setIsReady] = useState(false);
     const [isError, setIsError] = useState({state:false,text:""});
+    const [isNavigate, setIsNavigate] = useState(false);
 
     const image = useRef<any>(null);
     const image_layout = useRef<any>(null);
@@ -52,6 +53,12 @@ const ChapterImage = ({item, zoom, showOptions,setShowOptions, setIsLoading, SET
         }else setIsReady(true)
         
     })()},[])
+
+    useFocusEffect(useCallback(() => {
+        return () => {
+            image.current = null
+        };
+    },[]))
 
 
     return ( <Pressable
@@ -172,7 +179,7 @@ const ChapterImage = ({item, zoom, showOptions,setShowOptions, setIsLoading, SET
                                     paddingVertical: 18,
                                 }}
                             >
-                                <TouchableRipple
+                                <TouchableRipple disabled={isNavigate}
                                     rippleColor={Theme[themeTypeContext].ripple_color_outlined}
                                     style={{
                                         width:"auto",
@@ -193,8 +200,10 @@ const ChapterImage = ({item, zoom, showOptions,setShowOptions, setIsLoading, SET
                                         
                                     }}
                                     onPress={async ()=>{
+                                        setIsNavigate(true);
                                         const stored_chapter_info = await ChapterStorage.getByIdx(`${SOURCE}-${COMIC_ID}`,item.chapter_idx-1)
                                         if (stored_chapter_info?.data_state === "completed"){
+                                            setIsLoading(true);
                                             router.replace(`/read/${SOURCE}/${COMIC_ID}/${stored_chapter_info.idx}/`)
                                         }else{
                                             Toast.show({
@@ -215,6 +224,7 @@ const ChapterImage = ({item, zoom, showOptions,setShowOptions, setIsLoading, SET
                                                 },
                                             });
                                         }
+                                        setIsNavigate(false);
                                     }}
                                 >
                                     <Text selectable={false}
@@ -226,7 +236,7 @@ const ChapterImage = ({item, zoom, showOptions,setShowOptions, setIsLoading, SET
                                     >Previous</Text>
                                 </TouchableRipple>
 
-                                <TouchableRipple
+                                <TouchableRipple disabled={isNavigate}
                                     rippleColor={Theme[themeTypeContext].ripple_color_outlined}
                                     style={{
                                         width:"auto",
@@ -246,8 +256,10 @@ const ChapterImage = ({item, zoom, showOptions,setShowOptions, setIsLoading, SET
                                         elevation: 5,
                                     }}
                                     onPress={async ()=>{
+                                        setIsNavigate(true);
                                         const stored_chapter_info = await ChapterStorage.getByIdx(`${SOURCE}-${COMIC_ID}`,item.chapter_idx+1)
                                         if (stored_chapter_info?.data_state === "completed"){
+                                            setIsLoading(true)
                                             router.replace(`/read/${SOURCE}/${COMIC_ID}/${stored_chapter_info.idx}/`)
                                         }else{
                                             Toast.show({
@@ -268,6 +280,7 @@ const ChapterImage = ({item, zoom, showOptions,setShowOptions, setIsLoading, SET
                                                 },
                                             });
                                         }
+                                        setIsNavigate(false);
                                     }}
                                 >
                                     <Text selectable={false}

@@ -17,15 +17,10 @@ const Disqus = ({url,identifier,title, paddingVertical=0, paddingHorizontal=0}:a
     const Dimensions = useWindowDimensions();
     const shortname = 'comicmtl';
     
-
-    const {showMenuContext, setShowMenuContext}:any = useContext(CONTEXT)
     const {themeTypeContext, setThemeTypeContext}:any = useContext(CONTEXT)
-    const {showCloudflareTurnstileContext, setShowCloudflareTurnstileContext}:any = useContext(CONTEXT)
-    const {apiBaseContext, setApiBaseContext}:any = useContext(CONTEXT)
+
 
     if (Platform.OS === "web") {
-        
-    
         return (
             <ScrollView 
                 style={{
