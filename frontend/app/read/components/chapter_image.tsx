@@ -14,6 +14,7 @@ import * as FileSystem from 'expo-file-system';
 import NetInfo from "@react-native-community/netinfo";
 import JSZip from 'jszip';
 
+import ComicStorage from '@/constants/module/storages/comic_storage';
 import ChapterStorage from '@/constants/module/storages/chapter_storage';
 import ChapterDataStorage from '@/constants/module/storages/chapter_data_storage';
 import Image from '@/components/Image';
@@ -260,6 +261,12 @@ const ChapterImage = ({item, zoom, showOptions,setShowOptions, setIsLoading, SET
                                         const stored_chapter_info = await ChapterStorage.getByIdx(`${SOURCE}-${COMIC_ID}`,item.chapter_idx+1)
                                         if (stored_chapter_info?.data_state === "completed"){
                                             setIsLoading(true)
+
+                                            const stored_comic = await ComicStorage.getByID(SOURCE, COMIC_ID)
+                                            if (stored_comic.history.idx && item.chapter_idx+1 > stored_comic.history.idx) {
+                                                await ComicStorage.updateHistory(SOURCE, COMIC_ID, {idx:stored_chapter_info?.idx, id:stored_chapter_info?.id, title:stored_chapter_info?.title})
+                                            }
+                                            
                                             router.replace(`/read/${SOURCE}/${COMIC_ID}/${stored_chapter_info.idx}/`)
                                         }else{
                                             Toast.show({

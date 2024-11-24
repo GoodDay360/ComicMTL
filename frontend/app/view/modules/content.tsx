@@ -116,7 +116,7 @@ export const store_comic_cover = async (
 
 export const get_requested_info = async (
     setShowCloudflareTurnstile:any,
-    setChapterRequested:any,
+    chapter_requested:any,
     setChapterToDownload:any,
     signal:any,
     source:any,
@@ -142,7 +142,7 @@ export const get_requested_info = async (
     }).then((response) => {
         const DATA = response.data
         
-        setChapterRequested(DATA)
+        chapter_requested.current = DATA
         
         const new_obj:any = {}
         for (const [key, value] of Object.entries(DATA) as any) {
@@ -170,15 +170,14 @@ export const download_chapter = async (
     isDownloading:any, 
     source:string | string[], 
     comic_id:string | string[], 
-    chapterRequested:any,
-    setChapterRequested:any,
+    chapter_requested:any,
     chapterToDownload:any, 
     setChapterToDownload:any, 
     downloadProgress:any,
     setDownloadProgress:any,
     signal:any
 ) => {
-
+    console.log("RUN REQUEST!!!")
     const API_BASE = await Storage.get("IN_USE_API_BASE")
     const [chapter_id, request_info]:any = Object.entries(chapterToDownload)[0];
 
@@ -186,14 +185,22 @@ export const download_chapter = async (
     console.log("HELLO???")
     if (stored_chapter.data_state === "completed") {
         console.log("Chapter Already Downloaded")
+        
+        const stored_chapter_requested = (await ComicStorage.getByID(source,comic_id)).chapter_requested
+        const new_chapter_requested = stored_chapter_requested.filter((item:any) => item.chapter_id !== chapter_id);
+        await ComicStorage.updateChapterQueue(source,comic_id,new_chapter_requested)
+
+        delete chapter_requested.current[chapter_id]
+        chapter_requested.current = chapter_requested.current
+
         const chapter_to_download = chapterToDownload
         delete chapter_to_download[chapter_id]
         setChapterToDownload(chapter_to_download)
-        
-        const chapter_requested = (await ComicStorage.getByID(source,comic_id)).chapter_requested
-        const new_chapter_requested = chapter_requested.filter((item:any) => item.chapter_id !== chapter_id);
-        await ComicStorage.updateChapterQueue(source,comic_id,new_chapter_requested)
-        
+
+        const download_progress = downloadProgress
+        delete download_progress[chapter_id]
+        setDownloadProgress(download_progress)
+
         isDownloading.current = false
         return
     }

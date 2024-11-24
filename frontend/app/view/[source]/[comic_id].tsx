@@ -62,7 +62,6 @@ const Index = ({}:any) => {
     
 
     const [CONTENT, SET_CONTENT]:any = useState({})
-    const [chapterRequested, setChapterRequested]:any = useState({})
     const [chapterToDownload, setChapterToDownload]:any = useState({})
     const [downloadProgress, setDownloadProgress]:any = useState(0)
     const [chapterQueue, setChapterQueue]:any = useState({})
@@ -78,6 +77,8 @@ const Index = ({}:any) => {
     
     const socketNetWorkListener:any = useRef(null)
     const socket:any = useRef(null)
+
+    const chapter_requested:any = useRef({})
     
     const controller = new AbortController();
     const signal = controller.signal;
@@ -97,8 +98,7 @@ const Index = ({}:any) => {
             chapter={chapter}
             signal={signal}
             isDownloading={isDownloading}
-            chapterRequested={chapterRequested}
-            setChapterRequested={setChapterRequested}
+            chapter_requested={chapter_requested}
             chapterToDownload={chapterToDownload}
             setChapterToDownload={setChapterToDownload}
             downloadProgress={downloadProgress}
@@ -106,7 +106,7 @@ const Index = ({}:any) => {
             setChapterQueue={setChapterQueue}
             chapterQueue={chapterQueue}
     />
-    },[page,sort,chapterRequested,chapterToDownload,downloadProgress,chapterQueue])
+    },[page,sort,chapterToDownload,downloadProgress,chapterQueue])
 
 
     // Worker for downloading chapter
@@ -119,10 +119,9 @@ const Index = ({}:any) => {
                 isDownloading.current = true
                 download_chapter(
                     setShowCloudflareTurnstileContext, isDownloading, SOURCE, ID, 
-                    chapterRequested, setChapterRequested,
-                    chapterToDownload, setChapterToDownload,
-                    downloadProgress, setDownloadProgress,
-                    signal,
+                    chapter_requested,chapterToDownload, 
+                    setChapterToDownload, downloadProgress, 
+                    setDownloadProgress, signal,
                 )
             }
         },1000)
@@ -151,7 +150,7 @@ const Index = ({}:any) => {
                     if (!_.isEqual(event.chapter_queue,chapterQueue)) setChapterQueue(event.chapter_queue);
                     
                 }else if (event.type === "chapter_ready_to_download"){
-                    get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, setChapterToDownload, signal, SOURCE, ID)
+                    get_requested_info(setShowCloudflareTurnstileContext, chapter_requested, setChapterToDownload, signal, SOURCE, ID)
                 }
             }
         }
@@ -262,7 +261,7 @@ const Index = ({}:any) => {
 
             const stored_comic = await ComicStorage.getByID(SOURCE,ID)
             if (stored_comic) {
-                await get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, setChapterToDownload, signal, SOURCE, ID)
+                await get_requested_info(setShowCloudflareTurnstileContext, chapter_requested, setChapterToDownload, signal, SOURCE, ID)
                 
                 setBookmarked({state:true,tag:stored_comic.tag})
                 setHistory(stored_comic.history)
@@ -299,7 +298,7 @@ const Index = ({}:any) => {
             get(setShowCloudflareTurnstileContext, setIsLoading, signal, translate, setFeedBack, SOURCE, ID, SET_CONTENT)
             if (stored_comic) {
                 setHistory(stored_comic.history)
-                get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, setChapterToDownload, signal, SOURCE, ID)
+                get_requested_info(setShowCloudflareTurnstileContext, chapter_requested, setChapterToDownload, signal, SOURCE, ID)
             }
         }else{
             Load_Offline()

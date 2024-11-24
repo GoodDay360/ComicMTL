@@ -23,21 +23,15 @@ interface RequestChapterWidgetProps {
     SOURCE: string | string[];
     ID: string | string[];
     CHAPTER: any;
-    chapterQueue: any;
-    setChapterQueue: any;
-    chapterRequested: any;
-    setChapterRequested: any;
+    chapter_requested: any;
     get_requested_info: any;
-  }
+}
 
 const RequestChapterWidget: React.FC<RequestChapterWidgetProps> = ({
     SOURCE,
     ID,
     CHAPTER,
-    chapterQueue,
-    setChapterQueue,
-    chapterRequested,
-    setChapterRequested,
+    chapter_requested,
     get_requested_info
 }) => {
     const Dimensions = useWindowDimensions();
@@ -221,7 +215,7 @@ const RequestChapterWidget: React.FC<RequestChapterWidgetProps> = ({
                         setIsRequesting(true)
                         const new_queue:any = {}
                         new_queue[CHAPTER.id] = "queue"
-                        setChapterRequested({...chapterRequested,...new_queue})
+                        chapter_requested.current = {...chapter_requested.current,...new_queue}
                         
                         const API_BASE = await Storage.get("IN_USE_API_BASE")
                         const stored_socket_info = await Storage.get("SOCKET_INFO")

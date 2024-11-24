@@ -61,8 +61,7 @@ const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
     const RenderTag =  useCallback(({item}:any) =>{
             const [editTag, setEditTag]:any = useState(item.value)
             useEffect(()=>{
-                console.log("render again?")
-            },[])
+            },[manageBookmark])
             
             return (<>
                 {item.value.includes(searchTag) &&
@@ -120,7 +119,6 @@ const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
                                                     setManageBookmark({...manageBookmark,edit:""})
                                                     setEditTag("")
                                                 }
-                                                
 
                                                 const x = event.nativeEvent.pageX
                                                 const y = event.nativeEvent.pageY
@@ -142,7 +140,7 @@ const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
                                     </View>
                                 </View>)
                             }</>
-                            <>{manageBookmark.edit &&
+                            <>{manageBookmark.edit === item.value &&
                                 (<View
                                     style={{
                                         display:"flex",
@@ -286,7 +284,6 @@ const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
     }
 
     useEffect(()=>{
-        console.log(BOOKMARK_DATA)
         SET_MIGRATE_BOOKMARK_DATA([{label:"None",value:""},...BOOKMARK_DATA])
     },[BOOKMARK_DATA])
 

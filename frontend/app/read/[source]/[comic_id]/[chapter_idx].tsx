@@ -270,7 +270,8 @@ const Index = ({}:any) => {
                                                         }}
                                                         
                                                         onPress={()=>{
-                                                            router.replace(`/view/${SOURCE}/${COMIC_ID}/`)
+                                                            if (router.canGoBack()) router.back()
+                                                            else router.replace(`/view/${SOURCE}/${COMIC_ID}/`)
                                                         }}
                                                     >
                                                         <Icon source={"arrow-left-thin"} size={((Dimensions.width+Dimensions.height)/2)*0.05} color={Theme[themeTypeContext].icon_color}/>
@@ -291,21 +292,7 @@ const Index = ({}:any) => {
                                                             {chapterInfo.title}
                                                         </Text>
                                                     </View>
-                                                    <TouchableRipple
-                                                        rippleColor={Theme[themeTypeContext].ripple_color_outlined}
-                                                        style={{
-                                                            borderRadius:5,
-                                                            borderWidth:0,
-                                                            backgroundColor: "transparent",
-                                                            padding:5,
-                                                        }}
-                                                        
-                                                        onPress={()=>{
-                                                            console.log("HO2h2")
-                                                        }}
-                                                    >
-                                                        <Icon source={"update"} size={((Dimensions.width+Dimensions.height)/2)*0.05} color={Theme[themeTypeContext].icon_color}/>
-                                                    </TouchableRipple>
+                                                    
                                                 </View>
                                                 <View 
                                                     style={{

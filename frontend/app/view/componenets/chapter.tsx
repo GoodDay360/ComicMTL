@@ -36,8 +36,7 @@ const ChapterComponent = ({
     chapter,
     signal,
     isDownloading,
-    chapterRequested,
-    setChapterRequested,
+    chapter_requested,
     downloadProgress,
     setDownloadProgress,
     chapterToDownload,
@@ -58,6 +57,24 @@ const ChapterComponent = ({
     const [styles, setStyles]:any = useState("")
     const [is_saved, set_is_saved] = useState(false)
     const [is_net_connected, set_is_net_connected]:any = useState(false)
+
+
+    const [chapterRequested, setChapterRequested]:any = useState({})
+
+
+    const chapter_status_interval = useRef<any>(null)
+    useFocusEffect(useCallback(() => {
+        chapter_status_interval.current = setInterval(() => {
+            if (chapter_requested.current.hasOwnProperty(chapter.id) && !chapterRequested.hasOwnProperty(chapter.id)) {
+                console.log(chapter_requested.current)
+                setChapterRequested({[chapter.id]:chapter_requested.current[chapter.id]})
+            }else if (!chapter_requested.current.hasOwnProperty(chapter.id) && chapterRequested.hasOwnProperty(chapter.id)){
+                setChapterRequested({})
+            }
+        },1000)
+        return () => clearInterval(chapter_status_interval.current)
+    },[]))
+
 
     useEffect(() => {(async () => {
         const net_info = await NetInfo.fetch()
@@ -83,11 +100,8 @@ const ChapterComponent = ({
                 SOURCE={SOURCE}
                 ID={ID}
                 CHAPTER={CHAPTER}
-                chapterQueue={chapterQueue}
-                setChapterQueue={setChapterQueue}
-                chapterRequested={chapterRequested}
-                setChapterRequested={setChapterRequested}
-                get_requested_info={() => get_requested_info(setShowCloudflareTurnstileContext, setChapterRequested, setChapterToDownload, signal, SOURCE, ID)}
+                chapter_requested={chapter_requested}
+                get_requested_info={() => get_requested_info(setShowCloudflareTurnstileContext, chapter_requested, setChapterToDownload, signal, SOURCE, ID)}
             />})
         }
         else{
@@ -226,8 +240,8 @@ const ChapterComponent = ({
                                     const new_chapter_requested = stored_chapter_requested.filter((item:any) => item.chapter_id !== chapter.id);
                                     await ComicStorage.updateChapterQueue(SOURCE,ID,new_chapter_requested)
 
-                                    delete chapterRequested[chapter.id]
-                                    setChapterRequested(chapterRequested)
+                                    delete chapter_requested.current[chapter.id]
+                                    chapter_requested(chapter_requested.current)
 
                                     const chapter_to_download = chapterToDownload
                                     delete chapter_to_download[chapter.id]
