@@ -73,33 +73,44 @@ class Job(Thread):
                     else:
                         connections['cache'].close()
                         
-                        script = []
-                        
-                        input_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),"temp")
-                        
-                        if (options.get("translate").get("state") and options.get("colorize")):
-                            
-                            managed_output_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),f"{options.get("translate").get("target")}_translated_colorized")
-                            script = ["python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--ocr=mocr", "--no-text-lang-skip", "--det-auto-rotate", "--det-gamma-correct", "--colorize=mc2", "--translator=m2m100_big", "-l", f"{options.get("translate").get("target")}", "-i", f"{input_dir}", "-o", f"{managed_output_dir}"]
-                        elif (options.get("translate").get("state") and not options.get("colorize")):
-                            
-                            managed_output_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),f"{options.get("translate").get("target")}_translated")
-                            script = ["python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--ocr=mocr", "--no-text-lang-skip", "--det-auto-rotate", "--det-gamma-correct", "--translator=m2m100_big", "-l", f"{options.get("translate").get("target")}", "-i", f"{input_dir}", "-o", f"{managed_output_dir}"]
-                        elif (options.get("colorize") and not options.get("translate").get("state")):
-                            
-                            managed_output_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),"colorized")
-                            script = ["python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--detector=none", "--translator=original", "--colorize=mc2", "--colorization-size=-1", "-i", f"{input_dir}", "-o", f"{managed_output_dir}"]
-
-                        if target_lang == "ENG": script.append("--manga2eng")
-                            
-                        
-                        
                         if (options.get("colorize") or options.get("translate").get("state")):
+                            script = []
+                            input_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),"temp")
+                            merge_output_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),"merged")
+                        
+                            if (options.get("translate").get("state") and options.get("colorize")):
+                                managed_output_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),f"{options.get("translate").get("target")}_translated_colorized")
+                                script = [
+                                    "python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--ocr=mocr", "--no-text-lang-skip", "--det-auto-rotate", "--det-gamma-correct", "--colorize=mc2", "--translator=m2m100_big", "-l", 
+                                    f"{options.get("translate").get("target")}", "-i", f"{merge_output_dir}", "-o", f"{managed_output_dir}"
+                                ]
+                            elif (options.get("translate").get("state") and not options.get("colorize")):
+                                managed_output_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),f"{options.get("translate").get("target")}_translated")
+                                script = [
+                                            "python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--ocr=mocr", "--no-text-lang-skip", "--det-auto-rotate", "--det-gamma-correct", "--translator=m2m100_big", "-l", 
+                                            f"{options.get("translate").get("target")}", "-i", f"{merge_output_dir}", "-o", f"{managed_output_dir}"
+                                        ]
+                            elif (options.get("colorize") and not options.get("translate").get("state")):
+                                
+                                managed_output_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),"colorized")
+                                script = [
+                                        "python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--detector=none", "--translator=original", "--colorize=mc2", "--colorization-size=-1", "-i", 
+                                        f"{merge_output_dir}", "-o", f"{managed_output_dir}"
+                                    ]
+
+                            if target_lang == "ENG": script.append("--manga2eng")
+                            
+                        
                             if os.path.exists(input_dir): shutil.rmtree(input_dir)
+                            if os.path.exists(merge_output_dir): shutil.rmtree(merge_output_dir)
                             if os.path.exists(managed_output_dir): shutil.rmtree(managed_output_dir)
                             
                             job = web_scrap.source_control[source].get_chapter.scrap(comic_id=comic_id,chapter_id=chapter_id,output_dir=input_dir)
+
                             if job.get("status") == "success":
+                                manage_image.merge_images_vertically(input_dir, merge_output_dir, max_height=1800)
+                                shutil.rmtree(input_dir)
+                                
                                 
                                 with open(os.path.join(LOG_DIR,"image_translator_output.log"), "w") as file:
                                     result = subprocess.run(
@@ -113,7 +124,7 @@ class Job(Thread):
                                     )
                                 if result.returncode != 0: raise Exception("Image Translator Execution error!")
                                 os.makedirs(managed_output_dir,exist_ok=True)
-                                shutil.rmtree(input_dir)
+                                shutil.rmtree(merge_output_dir)
                                 
                                 with zipfile.ZipFile(managed_output_dir + '.zip', 'w') as zipf:
                                     for foldername, subfolders, filenames in os.walk(managed_output_dir):
@@ -139,63 +150,79 @@ class Job(Thread):
                                 
                                 query_result_3 = SocketRequestChapterQueueCache.objects.filter(id=query_result.id).first()
                                 channel_name = query_result_3.channel_name if query_result_3 else ""
-                                channel_layer = get_channel_layer()
-                                async_to_sync(channel_layer.send)(channel_name, {
-                                    'type': 'event_send',
-                                    'data': {
-                                        "type": "chapter_ready_to_download",
-                                        "data": {
-                                            "source": source,
-                                            "comic_id": comic_id,
-                                            "chapter_id": chapter_id,
-                                            "chapter_idx": chapter_idx
-                                        }
-                                    }
-                                })
                                 SocketRequestChapterQueueCache.objects.filter(id=query_result.id).delete()
-                            else: raise Exception("Dowload chapter error!")
+                                if channel_name:
+                                    channel_layer = get_channel_layer()
+                                    async_to_sync(channel_layer.send)(channel_name, {
+                                        'type': 'event_send',
+                                        'data': {
+                                            "type": "chapter_ready_to_download",
+                                            "data": {
+                                                "source": source,
+                                                "comic_id": comic_id,
+                                                "chapter_id": chapter_id,
+                                                "chapter_idx": chapter_idx
+                                            }
+                                        }
+                                    })
+                                connections['cache'].close()
+                                
+                            else: 
+                                connections['cache'].close()
+                                raise Exception("#1 Dowload chapter error!")
                         else:
                             input_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),"original")
+                            merge_output_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),"origin-merged")
+                            
                             if os.path.exists(input_dir): shutil.rmtree(input_dir)
                             
                             job = web_scrap.source_control["colamanga"].get_chapter.scrap(comic_id=comic_id,chapter_id=chapter_id,output_dir=input_dir)
-                        
-                            with zipfile.ZipFile(input_dir + '.zip', 'w') as zipf:
-                                for foldername, subfolders, filenames in os.walk(input_dir):
-                                    for filename in filenames:
-                                        if filename.endswith(('.png', '.jpg', '.jpeg')):
-                                            file_path = os.path.join(foldername, filename)
-                                            zipf.write(file_path, os.path.basename(file_path))
-                            shutil.rmtree(input_dir)
-                            
-                            ComicStorageCache(
-                                    source = source,
-                                    comic_id = comic_id,
-                                    chapter_id = chapter_id,
-                                    chapter_idx = chapter_idx,
-                                    file_path = input_dir + '.zip',
-                                    colorize = False,
-                                    translate = False,
-                                    target_lang = "",
-                                    
-                            ).save()
-                            query_result_3 = SocketRequestChapterQueueCache.objects.filter(id=query_result.id).first()
-                            channel_name = query_result_3.channel_name if query_result_3 else ""
-                            channel_layer = get_channel_layer()
-                            async_to_sync(channel_layer.send)(channel_name, {
-                                'type': 'event_send',
-                                'data': {
-                                    "type": "chapter_ready_to_download",
-                                    "data": {
-                                        "source": source,
-                                        "comic_id": comic_id,
-                                        "chapter_id": chapter_id,
-                                        "chapter_idx": chapter_idx
-                                    }
-                                }
-                            })
-                            SocketRequestChapterQueueCache.objects.filter(id=query_result.id).delete() 
-                        
+                            if job.get("status") == "success":
+                                manage_image.merge_images_vertically(input_dir, merge_output_dir, max_height=1800)
+                                if os.path.exists(input_dir): shutil.rmtree(input_dir)
+                                
+                                with zipfile.ZipFile(input_dir + '.zip', 'w') as zipf:
+                                    for foldername, subfolders, filenames in os.walk(merge_output_dir):
+                                        for filename in filenames:
+                                            if filename.endswith(('.png', '.jpg', '.jpeg')):
+                                                file_path = os.path.join(foldername, filename)
+                                                zipf.write(file_path, os.path.basename(file_path))
+                                shutil.rmtree(merge_output_dir)
+                                
+                                ComicStorageCache(
+                                        source = source,
+                                        comic_id = comic_id,
+                                        chapter_id = chapter_id,
+                                        chapter_idx = chapter_idx,
+                                        file_path = input_dir + '.zip',
+                                        colorize = False,
+                                        translate = False,
+                                        target_lang = "",
+                                        
+                                ).save()
+                                
+                                
+                                query_result_3 = SocketRequestChapterQueueCache.objects.filter(id=query_result.id).first()
+                                channel_name = query_result_3.channel_name if query_result_3 else ""
+                                SocketRequestChapterQueueCache.objects.filter(id=query_result.id).delete() 
+                                
+                                if channel_name:
+                                    channel_layer = get_channel_layer()
+                                    async_to_sync(channel_layer.send)(channel_name, {
+                                        'type': 'event_send',
+                                        'data': {
+                                            "type": "chapter_ready_to_download",
+                                            "data": {
+                                                "source": source,
+                                                "comic_id": comic_id,
+                                                "chapter_id": chapter_id,
+                                                "chapter_idx": chapter_idx
+                                            }
+                                        }
+                                    })
+                            else: 
+                                connections['cache'].close()
+                                raise Exception("#2 Dowload chapter error!")
                         connections['cache'].close()
                 else:
                     connections['cache'].close()
@@ -206,18 +233,24 @@ class Job(Thread):
                     if os.path.exists(input_dir): shutil.rmtree(input_dir) 
                 if (managed_output_dir):
                     if os.path.exists(managed_output_dir): shutil.rmtree(managed_output_dir)
+                
+                
                 query_result_3 = SocketRequestChapterQueueCache.objects.filter(id=query_result.id).first()
                 channel_name = query_result_3.channel_name if query_result_3 else ""
-                channel_layer = get_channel_layer()
-                async_to_sync(channel_layer.send)(channel_name, {
-                    'type': 'event_send',
-                    'data': {
-                        "type": "chapter_ready_to_download",
-                        "data": {"state":"error"}
-                    }
-                })
-                
                 SocketRequestChapterQueueCache.objects.filter(id=query_result.id).delete() 
+                
+                if (channel_name):
+                    channel_layer = get_channel_layer()
+                    async_to_sync(channel_layer.send)(channel_name, {
+                        'type': 'event_send',
+                        'data': {
+                            "type": "chapter_ready_to_download",
+                            "data": {"state":"error"}
+                        }
+                    })
+                
+                
+                
                 connections['cache'].close()
                 sleep(10)
 

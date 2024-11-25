@@ -18,14 +18,14 @@ const connectWebSocket = (socketBaseContext: string, socket_id: string | number[
             console.log('WebSocket closed or error. Attempting to reconnect...');
             setTimeout(() => {
                 connectWebSocket(socketBaseContext, socket_id, onOpen, onMessage).then(resolve).catch(reject);
-            }, 3000); // Wait 3 seconds before attempting to reconnect
+            }, 10000); // Wait 3 seconds before attempting to reconnect
         };
 
         // _socket.onclose = handleReconnect;
         _socket.onerror = (error: any) => {
             console.error('WebSocket error:', error);
             _socket.close();
-            handleReconnect();
+            // handleReconnect();
         };
     });
 };

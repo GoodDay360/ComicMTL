@@ -231,6 +231,8 @@ class Comic_Storage_Web {
                     const deleteRequest = store.delete(id); // Delete the item
 
                     deleteRequest.onsuccess = () => {
+                        ChapterStorage.drop(`${source}-${id}`),
+                        ChapterDataStorage.removeByComicID(id)
                         resolve();
                     };
 

@@ -213,9 +213,7 @@ const RequestChapterWidget: React.FC<RequestChapterWidgetProps> = ({
                     style={{backgroundColor:"green",borderRadius:5}} 
                     onPress={(async ()=>{
                         setIsRequesting(true)
-                        const new_queue:any = {}
-                        new_queue[CHAPTER.id] = "queue"
-                        chapter_requested.current = {...chapter_requested.current,...new_queue}
+                        chapter_requested.current[CHAPTER.id] = {state: "queue"}
                         
                         const API_BASE = await Storage.get("IN_USE_API_BASE")
                         const stored_socket_info = await Storage.get("SOCKET_INFO")

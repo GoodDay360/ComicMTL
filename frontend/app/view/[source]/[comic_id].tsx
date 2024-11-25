@@ -62,9 +62,9 @@ const Index = ({}:any) => {
     
 
     const [CONTENT, SET_CONTENT]:any = useState({})
-    const [chapterToDownload, setChapterToDownload]:any = useState({})
-    const [downloadProgress, setDownloadProgress]:any = useState(0)
-    const [chapterQueue, setChapterQueue]:any = useState({})
+    
+    
+    
     const [isLoading, setIsLoading]:any = useState(true);
     const [feedBack, setFeedBack]:any = useState("");
     const [showOption, setShowOption]:any = useState({type:null})
@@ -78,7 +78,10 @@ const Index = ({}:any) => {
     const socketNetWorkListener:any = useRef(null)
     const socket:any = useRef(null)
 
+    const download_progress:any = useRef({})
+    const chapter_queue:any = useRef({})
     const chapter_requested:any = useRef({})
+    const chapter_to_download:any = useRef({})
     
     const controller = new AbortController();
     const signal = controller.signal;
@@ -99,35 +102,30 @@ const Index = ({}:any) => {
             signal={signal}
             isDownloading={isDownloading}
             chapter_requested={chapter_requested}
-            chapterToDownload={chapterToDownload}
-            setChapterToDownload={setChapterToDownload}
-            downloadProgress={downloadProgress}
-            setDownloadProgress={setDownloadProgress}
-            setChapterQueue={setChapterQueue}
-            chapterQueue={chapterQueue}
+            chapter_to_download={chapter_to_download}
+            download_progress={download_progress}
+            chapter_queue={chapter_queue}
     />
-    },[page,sort,chapterToDownload,downloadProgress,chapterQueue])
+    },[page,sort])
 
 
     // Worker for downloading chapter
     const download_chapter_interval:any = useRef(null)
     const isDownloading:any = useRef(false)
-    useEffect(() => {
+    useFocusEffect(useCallback(() => {
         clearInterval(download_chapter_interval.current)
         download_chapter_interval.current = setInterval(() => {
-            if (!isDownloading.current && Object.keys(chapterToDownload).length){
+            if (!isDownloading.current && Object.keys(chapter_to_download.current).length){
                 isDownloading.current = true
                 download_chapter(
                     setShowCloudflareTurnstileContext, isDownloading, SOURCE, ID, 
-                    chapter_requested,chapterToDownload, 
-                    setChapterToDownload, downloadProgress, 
-                    setDownloadProgress, signal,
+                    chapter_requested, chapter_to_download, download_progress, signal,
                 )
             }
         },1000)
 
         return () => clearInterval(download_chapter_interval.current)
-    },[chapterToDownload])
+    },[]))
 
     // Setting up socket listener
     useFocusEffect(useCallback(() => {
@@ -147,10 +145,9 @@ const Index = ({}:any) => {
                 if (!stored_comic) return
                 const event = result.event
                 if (event.type === "chapter_queue_info"){
-                    if (!_.isEqual(event.chapter_queue,chapterQueue)) setChapterQueue(event.chapter_queue);
-                    
+                    chapter_queue.current = event.chapter_queue;
                 }else if (event.type === "chapter_ready_to_download"){
-                    get_requested_info(setShowCloudflareTurnstileContext, chapter_requested, setChapterToDownload, signal, SOURCE, ID)
+                    get_requested_info(setShowCloudflareTurnstileContext, chapter_requested, chapter_to_download, signal, SOURCE, ID)
                 }
             }
         }
@@ -261,7 +258,7 @@ const Index = ({}:any) => {
 
             const stored_comic = await ComicStorage.getByID(SOURCE,ID)
             if (stored_comic) {
-                await get_requested_info(setShowCloudflareTurnstileContext, chapter_requested, setChapterToDownload, signal, SOURCE, ID)
+                await get_requested_info(setShowCloudflareTurnstileContext, chapter_requested, chapter_to_download, signal, SOURCE, ID)
                 
                 setBookmarked({state:true,tag:stored_comic.tag})
                 setHistory(stored_comic.history)
@@ -298,7 +295,7 @@ const Index = ({}:any) => {
             get(setShowCloudflareTurnstileContext, setIsLoading, signal, translate, setFeedBack, SOURCE, ID, SET_CONTENT)
             if (stored_comic) {
                 setHistory(stored_comic.history)
-                get_requested_info(setShowCloudflareTurnstileContext, chapter_requested, setChapterToDownload, signal, SOURCE, ID)
+                get_requested_info(setShowCloudflareTurnstileContext, chapter_requested, chapter_to_download, signal, SOURCE, ID)
             }
         }else{
             Load_Offline()
@@ -725,7 +722,6 @@ const Index = ({}:any) => {
                                             chapter = CONTENT?.chapters[0]
                                         }
                                         const stored_chapter = await ChapterStorage.get(`${SOURCE}-${ID}`,chapter.id)
-                                        console.log(stored_chapter)
                                         if (stored_chapter.data_state === "completed"){
                                             await ComicStorage.updateHistory(SOURCE,ID,{idx:chapter.idx, id:chapter.id, title:chapter.title})
                                             router.push(`/read/${SOURCE}/${ID}/${stored_chapter.idx}/`)
