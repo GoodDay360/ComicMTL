@@ -3,7 +3,8 @@ from core.settings import BASE_DIR
 from django_ratelimit.decorators import ratelimit
 from django.views.decorators.csrf import csrf_exempt
 from backend.module.utils import cloudflare_turnstile
-from backend.models.model_cache import SocketRequestChapterQueueCache, ComicStorageCache
+from backend.models.model_cache import SocketRequestChapterQueueCache
+from backend.models.model_1 import ComicStorageCache
 
 import os, json, sys
 

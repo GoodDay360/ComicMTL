@@ -12,18 +12,6 @@ class CloudflareTurnStileCache(models.Model):
     token = models.TextField(primary_key=True)
     datetime = models.DateTimeField(default=get_current_utc_time)
     
-class ComicStorageCache(models.Model):
-    id = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
-    source = models.TextField()
-    comic_id = models.TextField()
-    chapter_id = models.TextField()
-    chapter_idx = models.IntegerField()
-    file_path = models.TextField()
-    colorize = models.BooleanField()
-    translate = models.BooleanField()
-    target_lang = models.TextField()
-    datetime = models.DateTimeField(default=get_current_utc_time)
-
 
 class SocketRequestChapterQueueCache(models.Model):
     id = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)

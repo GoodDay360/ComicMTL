@@ -2,6 +2,7 @@ import { Platform } from "react-native";
 import * as SQLite from 'expo-sqlite';
 import ChapterStorage from "./chapter_storage";
 import ChapterDataStorage from "./chapter_data_storage";
+import CoverStorage from "./cover_storage";
 
 const DATABASE_NAME = 'ComicStorageDB'
 
@@ -231,8 +232,7 @@ class Comic_Storage_Web {
                     const deleteRequest = store.delete(id); // Delete the item
 
                     deleteRequest.onsuccess = () => {
-                        ChapterStorage.drop(`${source}-${id}`),
-                        ChapterDataStorage.removeByComicID(id)
+                        CoverStorage.remove(`${source}-${id}`)
                         resolve();
                     };
 
@@ -266,8 +266,10 @@ class Comic_Storage_Web {
                     const source = data.source
                     const comic_id = data.id;
                     
-                    ChapterStorage.drop(`${source}-${comic_id}`),
+                    ChapterStorage.drop(`${source}-${comic_id}`)
+                    CoverStorage.remove(`${source}-${comic_id}`)
                     ChapterDataStorage.removeByComicID(comic_id)
+                    
                     
                     cursor.delete();
                     cursor.continue();

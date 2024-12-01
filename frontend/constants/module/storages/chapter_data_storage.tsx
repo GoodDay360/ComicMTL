@@ -101,10 +101,10 @@ class Chapter_Data_Storage_Web {
             request.onsuccess = (event) => {
                 const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
                 if (cursor) {
-                store.delete(cursor.primaryKey);
-                cursor.continue();
+                    store.delete(cursor.primaryKey);
+                    cursor.continue();
                 } else {
-                resolve();
+                    resolve();
                 }
             };
         

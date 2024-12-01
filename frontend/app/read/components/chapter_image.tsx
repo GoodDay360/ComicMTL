@@ -23,7 +23,7 @@ import {blobToBase64, base64ToBlob} from "@/constants/module/file_manager";
 import Theme from '@/constants/theme';
 import { get_chapter } from '../modules/get_chapter';
 
-const ChapterImage = ({item, zoom, showOptions,setShowOptions, setIsLoading, SET_DATA}:any)=>{
+const ChapterImage = ({item, zoom, showOptions, setShowOptions, setIsLoading, SET_DATA}:any)=>{
     const SOURCE = useLocalSearchParams().source;
     const COMIC_ID = useLocalSearchParams().comic_id;
     const CHAPTER_IDX = Number(useLocalSearchParams().chapter_idx as string);
@@ -63,7 +63,9 @@ const ChapterImage = ({item, zoom, showOptions,setShowOptions, setIsLoading, SET
 
 
     return ( <Pressable
-                onPress={()=>{setShowOptions({type:"general",state:!showOptions.state})}}
+                onPress={()=>{
+                    setShowOptions({type:"general",state:!showOptions.state})
+                }}
                 style={{
                     display:"flex",
                     width:"100%",
@@ -232,7 +234,7 @@ const ChapterImage = ({item, zoom, showOptions,setShowOptions, setIsLoading, SET
                                         style={{
                                             color:Theme[themeTypeContext].text_color,
                                             fontFamily:"roboto-medium",
-                                            fontSize:(Dimensions.width+Dimensions.height)/2*0.03
+                                            fontSize:(Dimensions.width+Dimensions.height)/2*0.03 * (1 - zoom / 100)
                                         }}
                                     >Previous</Text>
                                 </TouchableRipple>
@@ -294,7 +296,7 @@ const ChapterImage = ({item, zoom, showOptions,setShowOptions, setIsLoading, SET
                                         style={{
                                             color:Theme[themeTypeContext].text_color,
                                             fontFamily:"roboto-medium",
-                                            fontSize:(Dimensions.width+Dimensions.height)/2*0.03
+                                            fontSize:(Dimensions.width+Dimensions.height)/2*0.03 * (1 - zoom / 100)
                                         }}
                                     >Next</Text>
                                 </TouchableRipple>

@@ -12,7 +12,6 @@ import axios from 'axios';
 import Theme from '@/constants/theme';
 import Dropdown from '@/components/dropdown';
 import { CONTEXT } from '@/constants/module/context';
-import { store_comic_cover } from '../../modules/content';
 import Storage from '@/constants/module/storages/storage';
 import ComicStorage from '@/constants/module/storages/comic_storage';
 import ImageCacheStorage from '@/constants/module/storages/image_cache_storage';
@@ -22,17 +21,11 @@ import ChapterDataStorage from '@/constants/module/storages/chapter_data_storage
 interface BookmarkWidgetProps {
     setIsLoading: any;
     onRefresh: any;
-    SOURCE: string | string[];
-    ID: string | string[];
-    CONTENT: any;
 }
 
 const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
     setIsLoading,
     onRefresh,
-    SOURCE,
-    ID,
-    CONTENT,
 }) => {
     const Dimensions = useWindowDimensions();
 
@@ -50,9 +43,7 @@ const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
     
     const [migrateTag,setMigrateTag]:any = useState("")
 
-    const [defaultTag, setDefaultTag]:any = useState("")
-    const [bookmark, setBookmark]:any = useState("")
-    const [manageBookmark, setManageBookmark]:any = useState({state:false,edit:"",delete:""})
+    const [manageBookmark, setManageBookmark]:any = useState({edit:"",delete:""})
     const [createTag, setCreateTag]:any = useState({state:false,title:""})
     const [removeTag, setRemoveTag]:any = useState({state:false, removing: false})
 
@@ -220,22 +211,20 @@ const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
                                                         for (const item of stored_comics){
                                                             await ComicStorage.replaceTag(item.source, item.id, editTag)
                                                         }
-                                                        if ((manageBookmark.edit === defaultTag) && (editTag !== defaultTag)) {
-                                                            onRefresh();
-                                                            setWidgetContext({state:false,component:<></>});
-
-                                                        }else{
-                                                            
-                                                            const index = BOOKMARK_DATA.findIndex((item:any) => item.value === manageBookmark.edit);
-                                                            if (index !== -1){
-                                                                BOOKMARK_DATA[index].label = editTag
-                                                                BOOKMARK_DATA[index].value = editTag
-                                                            }
-                                                            SET_BOOKMARK_DATA(BOOKMARK_DATA)
-                                                            setManageBookmark({...manageBookmark,edit:""})
-                                                            setEditTag("")
-                                                        }
                                                         
+
+                                                        
+                                                    
+                                                        const index_2 = BOOKMARK_DATA.findIndex((item:any) => item.value === manageBookmark.edit);
+                                                        if (index_2 !== -1){
+                                                            BOOKMARK_DATA[index_2].label = editTag
+                                                            BOOKMARK_DATA[index_2].value = editTag
+                                                        }
+                                                        SET_BOOKMARK_DATA(BOOKMARK_DATA)
+                                                        setManageBookmark({...manageBookmark,edit:""})
+                                                        setEditTag("")
+                                                        
+                                                        onRefresh();
                                                     }
                                                     setShowMenuOption({...showMenuOption,state:false,id:""})
                                                 }}
@@ -260,17 +249,10 @@ const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
                 }
             </>)
         }
-    ,[Theme,themeTypeContext,manageBookmark,searchTag,removeTag,createTag,defaultTag,bookmark,showMenuOption,MIGRATE_BOOKMARK_DATA,BOOKMARK_DATA])
+    ,[Theme,themeTypeContext,manageBookmark,searchTag,removeTag,createTag,showMenuOption,MIGRATE_BOOKMARK_DATA,BOOKMARK_DATA])
     
 
     const load_bookmark = async ()=>{
-        const stored_comic = await ComicStorage.getByID(SOURCE,CONTENT.id)
-        
-        if (stored_comic) {
-            setDefaultTag(stored_comic.tag)
-            setBookmark(stored_comic.tag)
-        }
-
         const stored_bookmark_data = await Storage.get("bookmark") || []
         if (stored_bookmark_data.length) {
             const bookmark_data:Array<Object> = []
@@ -335,115 +317,7 @@ const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
             }}
         >
             
-            <>{!manageBookmark.state && !createTag.state && !removeTag.state &&
-                <>
-                    <View
-                        style={{
-                            width:"100%",
-                            height:"auto",
-                            display:"flex",
-                            flexDirection:"row",
-                            alignItems:"flex-end",
-                            justifyContent:"space-between",
-                            gap:8,
-                        }}
-                    >
-                        <View style={{flex:1}}>
-                            <Dropdown
-                                theme_type={themeTypeContext}
-                                Dimensions={Dimensions}
-
-                                label='Add to tag' 
-                                data={BOOKMARK_DATA}
-                                value={bookmark}
-                                onChange={(async (item:any) => {
-                                    setBookmark(item.value)
-                                })}
-                            />
-                        </View>
-                        <>{bookmark &&
-                            <TouchableRipple
-                                rippleColor={Theme[themeTypeContext].ripple_color_outlined}
-                                style={{
-                                    padding:5,
-                                    borderRadius:5,
-                                    borderWidth:0,
-                                    backgroundColor: "transparent",
-                                }}
-                                onPress={(async ()=>{
-                                    const stored_comic = await ComicStorage.getByID(SOURCE,CONTENT.id)
-                                    if (stored_comic) setRemoveTag({...removeTag,state:true})
-                                    else setBookmark("")
-                                })}
-                            >
-                                <Icon source={"tag-remove-outline"} size={((Dimensions.width+Dimensions.height)/2)*0.035} color={"red"}/>
-                            </TouchableRipple>
-                        }</>
-                    </View>
-
-
-                    <View 
-                        style={{
-                            display:"flex",
-                            flexDirection:"row",
-                            width:"100%",
-                            justifyContent:"space-around",
-                            alignItems:"center",
-                        }}
-                    >  
-                        <Button mode='contained' 
-                            labelStyle={{
-                                color:Theme[themeTypeContext].text_color,
-                                fontFamily:"roboto-medium",
-                                fontSize:(Dimensions.width+Dimensions.height)/2*0.02,
-                                paddingVertical:4,
-                            }} 
-                            style={{backgroundColor:"blue",borderRadius:5}} 
-                            onPress={(()=>{
-                                setManageBookmark({...manageBookmark,state:true})
-                            })}
-                        >Manage Bookmark</Button>
-                        <Button mode='outlined' 
-                            labelStyle={{
-                                color:Theme[themeTypeContext].text_color,
-                                fontFamily:"roboto-medium",
-                                fontSize:(Dimensions.width+Dimensions.height)/2*0.02,
-                                
-
-                            }} 
-                            style={{
-                                
-                                borderRadius:5,
-                                borderWidth:2,
-                                borderColor:Theme[themeTypeContext].border_color
-                            }} 
-                            onPress={(async ()=>{
-                                if (defaultTag !== bookmark){
-                                    const stored_comic = await ComicStorage.getByID(SOURCE,CONTENT.id)
-                                    if (stored_comic) await ComicStorage.replaceTag(SOURCE, CONTENT.id, bookmark)
-                                    else {
-                                        await store_comic_cover(setShowCloudflareTurnstileContext,signal,SOURCE,ID,CONTENT)
-                                        
-                                        await ComicStorage.store(SOURCE,CONTENT.id, bookmark, {
-                                            title:CONTENT.title,
-                                            author:CONTENT.author,
-                                            category:CONTENT.category,
-                                            status:CONTENT.status,
-                                            synopsis:CONTENT.synopsis,
-                                            updated:CONTENT.updated,
-                                        })
-                                    }
-                                    onRefresh()
-                                }
-                                setWidgetContext({state:false,component:<></>})
-                                
-                            })}
-                        >Done</Button>
-                    </View>
-                </>
-            }</>
-
-            <>{manageBookmark.state && !createTag.state && !removeTag.state && <>
+            <>{!createTag.state && !removeTag.state && <>
                 <View
                     
                     style={{
@@ -551,10 +425,9 @@ const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
                                 borderColor:Theme[themeTypeContext].border_color
                             }} 
                             onPress={(async ()=>{
-                                setManageBookmark({...manageBookmark,state:false,edit:"",delete:""})
-                                setShowMenuOption({...showMenuOption,state:false,id:""})
+                                setWidgetContext({state:false,component:<></>})
                             })}
-                        >Back</Button>
+                        >Done</Button>
                     </View>
                 </View>
             </>}</>
@@ -669,104 +542,16 @@ const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
                                             
                                         },
                                     });
+                                    onRefresh()
                                 }
                             })}
                         >Add</Button>
                     </View>
                 </>
             }</>
-            <>{removeTag.state &&
-                <>
-                    <View 
-                        style={{
-                            height:"auto",
-                            display:"flex",
-                            flexDirection:"column",
-                            gap:12,
-                        }}
-                    >
-                        <Text
-                            style={{
-                                color:Theme[themeTypeContext].text_color,
-                                fontFamily:"roboto-bold",
-                                fontSize:(Dimensions.width+Dimensions.height)/2*0.03,
-                                textAlign:"center",
-                            }}
-                        >Are you sure you want to remove this comic from bookmark?</Text>
-
-                        <Text
-                            style={{
-                                color:Theme[themeTypeContext].text_color,
-                                fontFamily:"roboto-medium",
-                                fontSize:(Dimensions.width+Dimensions.height)/2*0.025,
-                                textAlign:"center",
-                            }}
-                        >This will remove all local saved info and chapters.</Text>
-                    </View>
-
-                    <View 
-                        style={{
-                            display:"flex",
-                            flexDirection:"row",
-                            width:"100%",
-                            justifyContent:"space-around",
-                            alignItems:"center",
-                        }}
-                    >  
-                        <>{removeTag.removing 
-                            ? <ActivityIndicator animating={true}/>
-                            :<>
-                        
-                                <Button mode='outlined' disabled={removeTag.removing}
-                                    labelStyle={{
-                                        color:Theme[themeTypeContext].text_color,
-                                        fontFamily:"roboto-medium",
-                                        fontSize:(Dimensions.width+Dimensions.height)/2*0.02,
-                                        
-
-                                    }} 
-                                    style={{
-                                        
-                                        borderRadius:5,
-                                        borderWidth:2,
-                                        borderColor:Theme[themeTypeContext].border_color
-                                    }} 
-                                    onPress={(()=>{
-                                        setRemoveTag({...removeTag,state:false})
-                                    })}
-                                >No</Button>
-                                <Button mode='contained' disabled={removeTag.removing}
-                                    labelStyle={{
-                                        color:Theme[themeTypeContext].text_color,
-                                        fontFamily:"roboto-medium",
-                                        fontSize:(Dimensions.width+Dimensions.height)/2*0.02
-                                    }} 
-                                    style={{backgroundColor:"red",borderRadius:5}} 
-                                    onPress={(async ()=>{
-                                        setWidgetContext({state:false,component:<></>})
-                                        setIsLoading(true)
-                                        setRemoveTag({...removeTag,removing:false})
-                                        if (Platform.OS !== "web"){
-                                            const comic_dir = FileSystem.documentDirectory + "ComicMTL/" + `${SOURCE}/` + `${ID}/`
-                                            await FileSystem.deleteAsync(comic_dir, { idempotent: true })
-                                        }
-                                        
-                                        await ChapterStorage.drop(`${SOURCE}-${CONTENT.id}`)
-                                        await ChapterDataStorage.removeByComicID(CONTENT.id)
-                                        await ComicStorage.removeByID(SOURCE,CONTENT.id)
-
-                                        onRefresh()
-                                    })}
-                                >Yes</Button>
-                            </>
-                        }</>
-                        
-                    </View>
-                </>
-            }</>
 
         </View>
-        <>{showMenuOption.state && manageBookmark.state &&
+        <>{showMenuOption.state &&
             <View
                 style={{
                     display:"flex",
@@ -1000,20 +785,19 @@ const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
                                         stored_bookmark.splice(index, 1);
                                         await Storage.store("bookmark",stored_bookmark);
 
-                                        if (defaultTag === manageBookmark.delete) {
-                                            setWidgetContext({state:false,component:<></>});
-                                            onRefresh();
-                                        }else {
-                                            const index_2 = BOOKMARK_DATA.findIndex((item:any) => item.value === manageBookmark.delete);
-                                            if (index_2 !== -1){
-                                                BOOKMARK_DATA.splice(index_2, 1);
-                                            }
-                                            SET_BOOKMARK_DATA(BOOKMARK_DATA)
-                                            setManageBookmark({...manageBookmark,edit:"",delete:""})
-                                            setShowMenuOption({...showMenuOption,state:false,id:""})
-                                            setMigrateTag("")
-                                        }
+                                        
+                                        
                                     
+                                        const index_2 = BOOKMARK_DATA.findIndex((item:any) => item.value === manageBookmark.delete);
+                                        if (index_2 !== -1){
+                                            BOOKMARK_DATA.splice(index_2, 1);
+                                        }
+                                        SET_BOOKMARK_DATA(BOOKMARK_DATA)
+                                        setManageBookmark({...manageBookmark,edit:"",delete:""})
+                                        setShowMenuOption({...showMenuOption,state:false,id:""})
+                                        setMigrateTag("")
+                                        
+                                        onRefresh();
                                     }}
                                 >
                                     
@@ -1049,20 +833,16 @@ const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
                                     await ComicStorage.removeByTag(manageBookmark.delete);
                                     stored_bookmark.splice(index, 1);
                                     await Storage.store("bookmark",stored_bookmark);
-
-                                    if (defaultTag === manageBookmark.delete) {
-                                        setWidgetContext({state:false,component:<></>});
-                                        onRefresh();
-                                    }else {
-                                        const index_2 = BOOKMARK_DATA.findIndex((item:any) => item.value === manageBookmark.delete);
-                                        if (index_2 !== -1){
-                                            BOOKMARK_DATA.splice(index_2, 1);
-                                        }
-                                        SET_BOOKMARK_DATA(BOOKMARK_DATA)
-                                        setManageBookmark({...manageBookmark,edit:"",delete:""})
-                                        setShowMenuOption({...showMenuOption,state:false,id:""})
-                                        setMigrateTag("")
+                                
+                                    const index_2 = BOOKMARK_DATA.findIndex((item:any) => item.value === manageBookmark.delete);
+                                    if (index_2 !== -1){
+                                        BOOKMARK_DATA.splice(index_2, 1);
                                     }
+                                    SET_BOOKMARK_DATA(BOOKMARK_DATA)
+                                    setManageBookmark({...manageBookmark,edit:"",delete:""})
+                                    setShowMenuOption({...showMenuOption,state:false,id:""})
+                                    setMigrateTag("")
+                                    onRefresh()
                                     
                                 }}
                             >

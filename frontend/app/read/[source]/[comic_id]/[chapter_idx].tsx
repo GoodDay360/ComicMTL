@@ -16,6 +16,7 @@ import * as FileSystem from 'expo-file-system';
 import NetInfo from "@react-native-community/netinfo";
 import { Marquee } from '@animatereactnative/marquee';
 import { Slider } from '@rneui/themed-edge';
+import dayjs from 'dayjs'; import utc from 'dayjs/plugin/utc'; dayjs.extend(utc);
 
 import Storage from '@/constants/module/storages/storage';
 import ChapterStorage from '@/constants/module/storages/chapter_storage';
@@ -28,12 +29,12 @@ import Menu from '../../components/menu/menu';
 import Disqus from '../../components/disqus';
 import { get_chapter } from '../../modules/get_chapter';
 import ComicStorage from '@/constants/module/storages/comic_storage';
+import { set } from 'lodash';
 
 const Index = ({}:any) => {
     const SOURCE = useLocalSearchParams().source;
     const COMIC_ID = useLocalSearchParams().comic_id;
     const Dimensions = useWindowDimensions();
-    const StaticDimensions = useMemo(() => Dimensions, [])
     
 
     const {showMenuContext, setShowMenuContext}:any = useContext(CONTEXT)
@@ -46,8 +47,10 @@ const Index = ({}:any) => {
     const [chapterInfo, setChapterInfo]:any = useState({})
     const [showOptions, setShowOptions]:any = useState({type:"general",state:false})
     const [DATA, SET_DATA]:any = useState([])
-    const [isAdding, setIsAdding]:any = useState(false)
+    
+
     const [zoom, setZoom]:any = useState(0)
+
 
     const CHAPTER_IDX = useRef(Number(useLocalSearchParams().chapter_idx as string));
 
@@ -60,6 +63,27 @@ const Index = ({}:any) => {
 
     // First Load
     useEffect(()=>{(async () => {
+        setIsLoading(true)
+
+        const stored_recent = await Storage.get("RECENT") || []
+        stored_recent.sort((a:any,b:any) => b.timestamp - a.timestamp)
+
+        let exist = false
+        for (const i of stored_recent) {
+            if (i.source === SOURCE && i.comic_id === COMIC_ID) {
+                i.timestamp = dayjs().utc().valueOf()
+                exist = true
+                break
+            }
+        }
+        if (!exist) {
+            if (stored_recent.length >= 25) stored_recent.pop()
+            stored_recent.push({source:SOURCE,comic_id:COMIC_ID,timestamp:dayjs().utc().valueOf()})
+        }
+
+        await Storage.store("RECENT",stored_recent)
+
+
         if (!SOURCE || !COMIC_ID || !CHAPTER_IDX.current){
             setIsError({state:true,text:"Invalid source, comic id or chapter idx!"})
             return
@@ -136,7 +160,7 @@ const Index = ({}:any) => {
                         }}
                         
                         onPress={()=>{
-                            router.replace("/explore")
+                            router.replace(`/view/${SOURCE}/${COMIC_ID}/?mode=local`)
                         }}
                     >
                         <Icon source={"arrow-left-thin"} size={((Dimensions.width+Dimensions.height)/2)*0.05} color={Theme[themeTypeContext].icon_color}/>
@@ -189,7 +213,7 @@ const Index = ({}:any) => {
                             zIndex:0
                         }}
                     >   
-                        <FlatList 
+                        <FlatList
                             data={DATA}
                             renderItem={renderItem}
                             windowSize={21}
@@ -197,7 +221,7 @@ const Index = ({}:any) => {
                         />
                     </View>
                     <AnimatePresence exitBeforeEnter>
-                        {showOptions.state && 
+                        {showOptions.state &&
                             <View
                                 style={{
                                     position:"absolute",
@@ -270,8 +294,7 @@ const Index = ({}:any) => {
                                                         }}
                                                         
                                                         onPress={()=>{
-                                                            if (router.canGoBack()) router.back()
-                                                            else router.replace(`/view/${SOURCE}/${COMIC_ID}/`)
+                                                            router.replace(`/view/${SOURCE}/${COMIC_ID}/?mode=local`)
                                                         }}
                                                     >
                                                         <Icon source={"arrow-left-thin"} size={((Dimensions.width+Dimensions.height)/2)*0.05} color={Theme[themeTypeContext].icon_color}/>

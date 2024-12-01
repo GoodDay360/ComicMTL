@@ -12,6 +12,7 @@ import Toast from 'react-native-toast-message';
 import { View, AnimatePresence } from 'moti';
 import * as Clipboard from 'expo-clipboard';
 import NetInfo from "@react-native-community/netinfo";
+import dayjs from 'dayjs'; import utc from 'dayjs/plugin/utc'; dayjs.extend(utc);
 
 
 import Theme from '@/constants/theme';
@@ -207,6 +208,7 @@ const ChapterComponent = ({
                 if (stored_chapter?.data_state === "completed") {
                     const stored_comic = await ComicStorage.getByID(SOURCE,ID)
                     if (!stored_comic.history.idx || chapter.idx > stored_comic.history.idx) await ComicStorage.updateHistory(SOURCE,ID,{idx:chapter.idx, id:chapter.id, title:chapter.title})
+                    
                     router.navigate(`/read/${SOURCE}/${ID}/${chapter.idx}/`)
                 }else{
                     Toast.show({

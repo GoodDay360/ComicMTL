@@ -15,12 +15,15 @@ import NetInfo from "@react-native-community/netinfo";
 import _ from 'lodash'
 
 
+
 import Theme from '@/constants/theme';
 import { __styles } from '../stylesheet/show_styles';
 import Storage from '@/constants/module/storages/storage';
 import ImageCacheStorage from '@/constants/module/storages/image_cache_storage';
 import ChapterStorage from '@/constants/module/storages/chapter_storage';
 import ComicStorage from '@/constants/module/storages/comic_storage';
+import CoverStorage from '@/constants/module/storages/cover_storage';
+
 import { CONTEXT } from '@/constants/module/context';
 import Dropdown from '@/components/dropdown';
 import PageNavigationWidget from '../componenets/widgets/page_navigation';
@@ -40,6 +43,8 @@ import { createSocket, setupSocketNetworkListener } from '../modules/socket';
 const Index = ({}:any) => {
     const SOURCE = useLocalSearchParams().source;
     const ID = useLocalSearchParams().comic_id;
+    const MODE = useLocalSearchParams().mode;
+    console.log(MODE)
 
     const {showMenuContext, setShowMenuContext}:any = useContext(CONTEXT)
     const {themeTypeContext, setThemeTypeContext}:any = useContext(CONTEXT)
@@ -180,11 +185,11 @@ const Index = ({}:any) => {
     },[]))
 
 
-    const Load_Offline = async () => {
+    const Load_Local = async () => {
         Toast.show({
             type: 'info',
-            text1: '🌐 No internet connection available.',
-            text2: `Switching to offline mode.`,
+            text1: '💾 Local mode',
+            text2: `Press refresh button to fetch new updates.`,
             
             position: "bottom",
             visibilityTime: 6000,
@@ -205,6 +210,7 @@ const Index = ({}:any) => {
             if (stored_comic) {
                 const DATA:any = {}
                 DATA["id"] = ID
+                DATA["cover"] = await CoverStorage.get(`${SOURCE}-${ID}`)
                 
                 for (const [key, value] of Object.entries(stored_comic.info)) {
                     DATA[key] = value
@@ -258,18 +264,18 @@ const Index = ({}:any) => {
 
             const stored_comic = await ComicStorage.getByID(SOURCE,ID)
             if (stored_comic) {
-                await get_requested_info(setShowCloudflareTurnstileContext, chapter_requested, chapter_to_download, signal, SOURCE, ID)
-                
                 setBookmarked({state:true,tag:stored_comic.tag})
                 setHistory(stored_comic.history)
             }
             else setBookmarked({state:false,tag:""})
 
             const net_info = await NetInfo.fetch()
-            if (net_info.isConnected){
+            if (net_info.isConnected && MODE !== "local"){
+                if (stored_comic) await get_requested_info(setShowCloudflareTurnstileContext, chapter_requested, chapter_to_download, signal, SOURCE, ID)
                 get(setShowCloudflareTurnstileContext, setIsLoading, signal, __translate, setFeedBack, SOURCE, ID, SET_CONTENT)
             }else{
-                Load_Offline()
+                if (net_info.isConnected && stored_comic) await get_requested_info(setShowCloudflareTurnstileContext, chapter_requested, chapter_to_download, signal, SOURCE, ID)
+                Load_Local()
             }
             
         })()
@@ -294,11 +300,10 @@ const Index = ({}:any) => {
         if (net_info.isConnected){
             get(setShowCloudflareTurnstileContext, setIsLoading, signal, translate, setFeedBack, SOURCE, ID, SET_CONTENT)
             if (stored_comic) {
-                setHistory(stored_comic.history)
                 get_requested_info(setShowCloudflareTurnstileContext, chapter_requested, chapter_to_download, signal, SOURCE, ID)
             }
         }else{
-            Load_Offline()
+            Load_Local()
         }
     }
 
@@ -326,7 +331,7 @@ const Index = ({}:any) => {
                         
                         onPress={()=>{
                             if (router.canGoBack()) router.back()
-                            else router.replace("/explore")
+                            else router.replace("/bookmark")
                         }}
                     >
                         <Icon source={"arrow-left-thin"} size={((Dimensions.width+Dimensions.height)/2)*0.045} color={Theme[themeTypeContext].icon_color}/>
@@ -384,7 +389,7 @@ const Index = ({}:any) => {
                             Toast.show({
                                 type: 'info',
                                 text1: '📋 Copied to your clipboard.',
-                                text2: `${apiBaseContext}/view/${SOURCE}/${ID}/`,
+                                text2: `https://comicmtl.netlify.app/view/${SOURCE}/${ID}/`,
                                 
                                 position: "bottom",
                                 visibilityTime: 3000,
@@ -597,6 +602,7 @@ const Index = ({}:any) => {
                             onPress={()=>{
                                 setWidgetContext({state:true,component:
                                     <BookmarkWidget
+                                        setIsLoading={setIsLoading}
                                         onRefresh={onRefresh}
                                         SOURCE={SOURCE}
                                         ID={ID}
@@ -659,7 +665,7 @@ const Index = ({}:any) => {
                                         
                                     }}
                                     onPress={()=>{
-                                        router.push(`/read/${SOURCE}/${ID}/${history.idx}/`)
+                                        router.replace(`/read/${SOURCE}/${ID}/${history.idx}/`)
                                     }}
                                 >
                                     <View
@@ -693,43 +699,63 @@ const Index = ({}:any) => {
                                     </View>
                                 </TouchableRipple>
                                 : <TouchableRipple
-                                rippleColor={Theme[themeTypeContext].ripple_color_outlined}
-                                style={{
-                                    width:Dimensions.width*0.60,
-                                    display:"flex",
-                                    flexDirection:"column",
-                                    justifyContent:"center",
-                                    alignSelf:"center",
-                                    padding:8,
-                                    paddingVertical:12,
-                                    borderRadius:Dimensions.width*0.60/2,
-                                    backgroundColor:Theme[themeTypeContext].border_color,
+                                    rippleColor={Theme[themeTypeContext].ripple_color_outlined}
+                                    style={{
+                                        width:Dimensions.width*0.60,
+                                        display:"flex",
+                                        flexDirection:"column",
+                                        justifyContent:"center",
+                                        alignSelf:"center",
+                                        padding:8,
+                                        paddingVertical:12,
+                                        borderRadius:Dimensions.width*0.60/2,
+                                        backgroundColor:Theme[themeTypeContext].border_color,
 
-                                    shadowColor: Theme[themeTypeContext].shadow_color,
-                                    shadowOffset: { width: 0, height: 2 },
-                                    shadowOpacity: 0.25,
-                                    shadowRadius: 3.84,
-                                    elevation: 5,
-                                    
-                                }}
-                                onPress={async ()=>{
-                                    
-                                    if (bookmarked.state){
-                                        let chapter
-                                        if (sort === "descending"){
-                                            chapter = CONTENT?.chapters[CONTENT.chapters.length - 1]
-                                        }else{
-                                            chapter = CONTENT?.chapters[0]
-                                        }
-                                        const stored_chapter = await ChapterStorage.get(`${SOURCE}-${ID}`,chapter.id)
-                                        if (stored_chapter.data_state === "completed"){
-                                            await ComicStorage.updateHistory(SOURCE,ID,{idx:chapter.idx, id:chapter.id, title:chapter.title})
-                                            router.push(`/read/${SOURCE}/${ID}/${stored_chapter.idx}/`)
+                                        shadowColor: Theme[themeTypeContext].shadow_color,
+                                        shadowOffset: { width: 0, height: 2 },
+                                        shadowOpacity: 0.25,
+                                        shadowRadius: 3.84,
+                                        elevation: 5,
+                                        
+                                    }}
+                                    onPress={async ()=>{
+                                        
+                                        if (bookmarked.state){
+                                            let chapter
+                                            if (sort === "descending"){
+                                                chapter = CONTENT?.chapters[CONTENT.chapters.length - 1]
+                                            }else{
+                                                chapter = CONTENT?.chapters[0]
+                                            }
+                                            const stored_chapter = await ChapterStorage.get(`${SOURCE}-${ID}`,chapter.id)
+                                            if (stored_chapter.data_state === "completed"){
+                                                await ComicStorage.updateHistory(SOURCE,ID,{idx:chapter.idx, id:chapter.id, title:chapter.title})
+                                                router.replace(`/read/${SOURCE}/${ID}/${stored_chapter.idx}/`)
+                                                
+                                            }else{
+                                                Toast.show({
+                                                    type: 'error',
+                                                    text1: 'Chapter not download yet.',
+                                                    text2: "Press the button next to chapter title to download.",
+                                                    
+                                                    position: "bottom",
+                                                    visibilityTime: 4000,
+                                                    text1Style:{
+                                                        fontFamily:"roboto-bold",
+                                                        fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
+                                                    },
+                                                    text2Style:{
+                                                        fontFamily:"roboto-medium",
+                                                        fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
+                                                        
+                                                    },
+                                                });
+                                            }
                                         }else{
                                             Toast.show({
                                                 type: 'error',
-                                                text1: 'Chapter not download yet.',
-                                                text2: "Press the button next to chapter title to download.",
+                                                text1: '🔖 Bookmark required.',
+                                                text2: `Add this comic to your bookmark to start reading.`,
                                                 
                                                 position: "bottom",
                                                 visibilityTime: 4000,
@@ -743,30 +769,11 @@ const Index = ({}:any) => {
                                                     
                                                 },
                                             });
-                                        }
-                                    }else{
-                                        Toast.show({
-                                            type: 'error',
-                                            text1: '🔖 Bookmark required.',
-                                            text2: `Add this comic to your bookmark to start reading.`,
-                                            
-                                            position: "bottom",
-                                            visibilityTime: 4000,
-                                            text1Style:{
-                                                fontFamily:"roboto-bold",
-                                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.025
-                                            },
-                                            text2Style:{
-                                                fontFamily:"roboto-medium",
-                                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.0185,
-                                                
-                                            },
-                                        });
-                                    
                                         
-                                    }
-                                }}
-                            >
+                                            
+                                        }
+                                    }}
+                                >
                                 <View
                                     style={{
                                         display:"flex",
@@ -809,19 +816,31 @@ const Index = ({}:any) => {
                                 >Synopsis:</Text>
                             </View>
                             
-                            <Button mode='outlined'
+                            <TouchableRipple
+                                rippleColor={Theme[themeTypeContext].ripple_color_outlined}
                                 onPress={() => {
                                     if (showMoreSynopsis) setShowMoreSynopsis(false)
                                     else setShowMoreSynopsis(true)
                                 }}
-                                style={{borderWidth:0}}
-                                labelStyle={{
-                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
-                                    fontFamily:"roboto-medium",
-                                    color:"cyan",
-
+                                style={{
+                                    borderWidth:0,
+                                    display:"flex",
+                                    justifyContent:"center",
+                                    borderRadius:((Dimensions.width+Dimensions.height)/2)*0.015,
+                                    paddingHorizontal:12,
+                                    backgroundColor:"transparent",
                                 }}
-                            >{showMoreSynopsis ? "Show Less" : "Show More"}</Button>
+                            >
+                                <Text selectable={false}
+                                    style={{
+                                        fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
+                                        fontFamily:"roboto-medium",
+                                        color:"cyan",
+                                        textAlign:"center",
+                                        textDecorationLine: showMoreSynopsis ? "underline" : "none",
+                                    }}
+                                >{showMoreSynopsis ? "Show Less" : "Show More"}</Text>
+                            </TouchableRipple>
 
                         </View>
                         
@@ -834,6 +853,7 @@ const Index = ({}:any) => {
                                 borderColor: Theme[themeTypeContext].border_color,
                                 borderBottomWidth:showMoreSynopsis ? 0 : 5,
                                 borderRadius:8,
+                                
                             }}
                             numberOfLines={showMoreSynopsis ? 0 : 2} 
                             ellipsizeMode='tail'

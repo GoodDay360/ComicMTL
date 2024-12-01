@@ -17,7 +17,6 @@ class SeleniumScraper:
         options.add_argument('--no-sandbox')
         options.add_argument("--no-quit")
         options.add_argument('--disable-extensions')
-        options.add_argument('--disable-gpu')
         options.add_argument('--disable-dev-shm-usage')
         options.set_capability('goog:loggingPrefs', {'performance': 'ALL'})
         self.__driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)

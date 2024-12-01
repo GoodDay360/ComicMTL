@@ -117,37 +117,27 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 DATABASE_ROUTERS = ['core.routers.Router']
 
-if DEBUG or DEBUG_DB:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'database.sqlite3',
-        },
-        'cache': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'cache.sqlite3',
-        },
-        'DB1': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db1.sqlite3',
-        },
-        'DB2': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db2.sqlite3',
-        },
 
-    }
-else:
-    DATABASES = {
-        'default': dj_database_url.config(default=env("DB")),
-        'cache': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'cache.sqlite3',
-        },
-        'DB1': dj_database_url.config(default=env("DB1")),
-        'DB2': dj_database_url.config(default=env("DB2")),
-        
-    }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'database.sqlite3',
+    },
+    'cache': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'cache.sqlite3',
+    },
+    'DB1': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db1.sqlite3',
+    },
+    'DB2': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db2.sqlite3',
+    },
+
+}
+
 
 
 

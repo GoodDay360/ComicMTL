@@ -10,6 +10,8 @@ import ComicStorage from '@/constants/module/storages/comic_storage';
 import ImageCacheStorage from '@/constants/module/storages/image_cache_storage';
 import ChapterStorage from '@/constants/module/storages/chapter_storage';
 import ChapterDataStorage from '@/constants/module/storages/chapter_data_storage';
+import CoverStorage from '@/constants/module/storages/cover_storage';
+
 import {blobToBase64} from '@/constants/module/file_manager';
 import { getImageLayout } from '@/constants/module/file_manager';
 
@@ -56,9 +58,7 @@ export const get = async (setShowCloudflareTurnstile:any,setIsLoading:any,signal
         // Store in local if bookmarked.
         const stored_comic = await ComicStorage.getByID(source,DATA.id)
         if (stored_comic) {
-            const cover_result:any = await store_comic_cover(setShowCloudflareTurnstile,signal,source,id,DATA)
             await ComicStorage.updateInfo(source,DATA.id, {
-                cover:cover_result,
                 title:DATA.title,
                 author:DATA.author,
                 category:DATA.category,
@@ -66,6 +66,7 @@ export const get = async (setShowCloudflareTurnstile:any,setIsLoading:any,signal
                 synopsis:DATA.synopsis,
                 updated:DATA.updated,
             })
+            await store_comic_cover(setShowCloudflareTurnstile,signal,source,id,DATA)
             for (const chapter of DATA.chapters) {
                 const stored_chapter = await ChapterStorage.get(`${source}-${DATA.id}`,chapter.id)
                 if (!stored_chapter) await ChapterStorage.add(`${source}-${DATA.id}`, chapter.idx, chapter.id, chapter.title, {});
@@ -103,15 +104,18 @@ export const store_comic_cover = async (
                 to: storage_dir + "cover.png",
             });
             
-            return {type:"file_path",data:storage_dir + "cover.png"}
+            
         }catch (error: any) {
             console.log("store_comic_cover: ", error)
-            return { type: "error", data: null };
+        
         }
 
 
         
-    }else return result
+    }else {
+        CoverStorage.store(`${source}-${comic_id}`,result)
+        // return result
+    }
 }
 
 export const get_requested_info = async (

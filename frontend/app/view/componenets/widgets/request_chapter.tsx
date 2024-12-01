@@ -96,7 +96,7 @@ const RequestChapterWidget: React.FC<RequestChapterWidgetProps> = ({
                 theme_type={themeTypeContext}
                 Dimensions={Dimensions}
 
-                label='Colorize' 
+                label='Colorization' 
                 data={[
                     { 
                         label: "Enable", 
@@ -116,7 +116,7 @@ const RequestChapterWidget: React.FC<RequestChapterWidgetProps> = ({
                 theme_type={themeTypeContext}
                 Dimensions={Dimensions}
 
-                label='Translation' 
+                label='Translation (Beta)' 
                 data={[
                     { 
                         label: "Enable", 

@@ -9,7 +9,7 @@ import Dropdown from '@/components/dropdown';
 
 
 import Theme from '@/constants/theme';
-import { __styles } from './stylesheet/show_list_styles';
+import { __styles } from './stylesheet/styles';
 import Storage from '@/constants/module/storages/storage';
 import ImageStorage from '@/constants/module/storages/image_cache_storage';
 import { CONTEXT } from '@/constants/module/context';
@@ -52,7 +52,7 @@ const Index = ({}:any) => {
         };
     }, []))
     
-    useEffect(() => { 
+    useFocusEffect(useCallback(() => {
         (async ()=>{
             setStyles(__styles(themeTypeContext,Dimensions))
 
@@ -69,7 +69,7 @@ const Index = ({}:any) => {
         return () => {
             controller.abort();
         };
-    },[])
+    },[]))
 
 
 
@@ -397,7 +397,7 @@ const Index = ({}:any) => {
                                                 contentFit="cover" transition={1000}
                                             />
                                         
-                                        <Text style={styles.item_title}>{item.title}</Text>
+                                        <Text selectable={false} style={styles.item_title}>{item.title}</Text>
                                     </>
                                 </TouchableRipple>
                                 

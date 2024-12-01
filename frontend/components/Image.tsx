@@ -88,6 +88,7 @@ const Image = ({source, style, onError, contentFit, transition, onLoad, onLoadEn
                     
                 
                     ? <_Image 
+                        
                         onError={onError} 
                         source={imageData.current} 
                         style={style}

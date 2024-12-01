@@ -9,7 +9,8 @@ from asgiref.sync import sync_to_async
 
 from backend.module import web_scrap
 from backend.module.utils import manage_image
-from backend.models.model_cache import SocketRequestChapterQueueCache, ComicStorageCache
+from backend.models.model_cache import SocketRequestChapterQueueCache
+from backend.models.model_1 import ComicStorageCache
 from core.settings import BASE_DIR
 from backend.module.utils import cloudflare_turnstile
 

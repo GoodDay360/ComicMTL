@@ -2,7 +2,8 @@ from django_thread import Thread
 from time import sleep
 from backend.module.utils import date_utils
 from django.db import connections
-from backend.models.model_cache import SocketRequestChapterQueueCache, ComicStorageCache
+from backend.models.model_cache import SocketRequestChapterQueueCache
+from backend.models.model_1 import ComicStorageCache
 from core.settings import BASE_DIR
 from backend.module import web_scrap
 from backend.module.utils import manage_image
@@ -22,6 +23,8 @@ env = environ.Env()
 
 STORAGE_DIR = os.path.join(BASE_DIR,"storage")
 if not os.path.exists(STORAGE_DIR): os.makedirs(STORAGE_DIR)
+COMIC_STORAGE_DIR = os.path.join(STORAGE_DIR,"comics")
+if not os.path.exists(COMIC_STORAGE_DIR): os.makedirs(COMIC_STORAGE_DIR)
 
 LOG_DIR = os.path.join(BASE_DIR, "log")
 if not os.path.exists(LOG_DIR): os.makedirs(LOG_DIR)
@@ -37,7 +40,7 @@ class Job(Thread):
                 
                 query_result = SocketRequestChapterQueueCache.objects.order_by("datetime").first()
                 while True:
-                    if (GetDirectorySize(STORAGE_DIR) >= MAX_STORAGE_SIZE):
+                    if (GetDirectorySize(COMIC_STORAGE_DIR) >= MAX_STORAGE_SIZE):
                         query_result_2 = ComicStorageCache.objects.order_by("datetime").first()
                         if (query_result_2):
                             file_path = query_result_2.file_path
@@ -75,28 +78,28 @@ class Job(Thread):
                         
                         if (options.get("colorize") or options.get("translate").get("state")):
                             script = []
-                            input_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),"temp")
-                            merge_output_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),"merged")
+                            input_dir = os.path.join(COMIC_STORAGE_DIR,source,comic_id,str(chapter_idx),"temp")
+                            merge_output_dir = os.path.join(COMIC_STORAGE_DIR,source,comic_id,str(chapter_idx),"merged")
                         
                             if (options.get("translate").get("state") and options.get("colorize")):
-                                managed_output_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),f"{options.get("translate").get("target")}_translated_colorized")
+                                managed_output_dir = os.path.join(COMIC_STORAGE_DIR,source,comic_id,str(chapter_idx),f"{options.get("translate").get("target")}_translated_colorized")
                                 script = [
-                                    "python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--ocr=mocr", "--no-text-lang-skip", "--det-auto-rotate", "--det-gamma-correct", "--colorize=mc2", "--translator=m2m100_big", "-l", 
-                                    f"{options.get("translate").get("target")}", "-i", f"{merge_output_dir}", "-o", f"{managed_output_dir}"
+                                    "python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--ocr=mocr", "--no-text-lang-skip", "--det-auto-rotate", "--det-gamma-correct", "--colorize=mc2", "--translator=m2m100_big", 
+                                    "-l", f"{options.get("translate").get("target")}", "-i", f"{merge_output_dir}", "-o", f"{managed_output_dir}"
                                 ]
                             elif (options.get("translate").get("state") and not options.get("colorize")):
-                                managed_output_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),f"{options.get("translate").get("target")}_translated")
+                                managed_output_dir = os.path.join(COMIC_STORAGE_DIR,source,comic_id,str(chapter_idx),f"{options.get("translate").get("target")}_translated")
                                 script = [
-                                            "python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--ocr=mocr", "--no-text-lang-skip", "--det-auto-rotate", "--det-gamma-correct", "--translator=m2m100_big", "-l", 
-                                            f"{options.get("translate").get("target")}", "-i", f"{merge_output_dir}", "-o", f"{managed_output_dir}"
-                                        ]
+                                    "python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--ocr=mocr", "--no-text-lang-skip", "--det-auto-rotate", "--det-gamma-correct", "--translator=m2m100_big", 
+                                    "-l", f"{options.get("translate").get("target")}", "-i", f"{merge_output_dir}", "-o", f"{managed_output_dir}"
+                                ]
                             elif (options.get("colorize") and not options.get("translate").get("state")):
                                 
-                                managed_output_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),"colorized")
+                                managed_output_dir = os.path.join(COMIC_STORAGE_DIR,source,comic_id,str(chapter_idx),"colorized")
                                 script = [
-                                        "python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--detector=none", "--translator=original", "--colorize=mc2", "--colorization-size=-1", "-i", 
-                                        f"{merge_output_dir}", "-o", f"{managed_output_dir}"
-                                    ]
+                                    "python", "-m", "manga_translator", "-v", "--overwrite", "--attempts=3", "--detector=none", "--translator=original", "--colorize=mc2", "--colorization-size=-1", 
+                                    "-i", f"{merge_output_dir}", "-o", f"{managed_output_dir}"
+                                ]
 
                             if target_lang == "ENG": script.append("--manga2eng")
                             
@@ -171,10 +174,11 @@ class Job(Thread):
                                 connections['cache'].close()
                                 raise Exception("#1 Dowload chapter error!")
                         else:
-                            input_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),"original")
-                            merge_output_dir = os.path.join(STORAGE_DIR,source,comic_id,str(chapter_idx),"origin-merged")
+                            input_dir = os.path.join(COMIC_STORAGE_DIR,source,comic_id,str(chapter_idx),"original")
+                            merge_output_dir = os.path.join(COMIC_STORAGE_DIR,source,comic_id,str(chapter_idx),"origin-merged")
                             
                             if os.path.exists(input_dir): shutil.rmtree(input_dir)
+                            if os.path.exists(merge_output_dir): shutil.rmtree(merge_output_dir)
                             
                             job = web_scrap.source_control["colamanga"].get_chapter.scrap(comic_id=comic_id,chapter_id=chapter_id,output_dir=input_dir)
                             if job.get("status") == "success":
