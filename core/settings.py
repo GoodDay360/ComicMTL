@@ -21,8 +21,7 @@ for key, value in os.environ.items():
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-DEBUG_DB = True
+DEBUG = False
 
 # settings.py
 
