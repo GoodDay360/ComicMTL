@@ -20,7 +20,7 @@ class ComicStorageCache(models.Model):
     target_lang = models.TextField()
     datetime = models.DateTimeField(default=get_current_utc_time)
     
-class WebscrapeGetCoverCache(models.Model):
+class WebScrapeGetCoverCache(models.Model):
     file_path = models.TextField(primary_key=True)
     source = models.TextField()
     comic_id = models.TextField()

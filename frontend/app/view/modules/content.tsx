@@ -243,10 +243,15 @@ export const download_chapter = async (
         signal:signal,
     }).then(async (response) => {
         const DATA = response.data
+
+        
+
         if (Platform.OS === "web"){
 
             const zip = new JSZip();
             const zipContent = await zip.loadAsync(DATA);
+            const MAX_PAGE = Object.keys(zipContent.files).length
+
             let page = 0;
             for (const fileName of Object.keys(zipContent.files).sort((a,b) => parseInt(a, 10) - parseInt(b, 10))) {
                 if (zipContent.files[fileName].dir) {
@@ -256,10 +261,11 @@ export const download_chapter = async (
                 const fileData = await zipContent.files[fileName].async('blob');
                 const layout = await getImageLayout(await blobToBase64(fileData, "image/png"));
                 await ChapterDataStorage.store(`${source}-${comic_id}-${request_info.chapter_idx}-${page}`,comic_id,request_info.chapter_idx, fileData, layout)
-                
+                const current_progress = progress_lenth + ((total_length-progress_lenth)*page)/MAX_PAGE
+                download_progress.current = {...download_progress.current, [chapter_id]:{progress:current_progress, total:total_length}}
             }
 
-            await ChapterStorage.update(`${source}-${comic_id}`,chapter_id, "completed", page)
+            await ChapterStorage.update(`${source}-${comic_id}`,chapter_id, "completed", MAX_PAGE-1)
         }else{
             // const chapter_dir = FileSystem.documentDirectory + "ComicMTL/" + `${source}/` + `${comic_id}/` + `chapters/`;
             // const dirInfo = await FileSystem.getInfoAsync(chapter_dir);
@@ -271,7 +277,7 @@ export const download_chapter = async (
             // await ChapterStorage.update(`${source}-${comic_id}`,chapter_id,{type:"file_path", value:chapter_dir + `${request_info.chapter_idx}.zip`}, "completed")
         }
         
-        download_progress.current = {...download_progress.current, [chapter_id]:{progress:total_length, total:total_length}}
+        // download_progress.current = {...download_progress.current, [chapter_id]:{progress:total_length, total:total_length}}
         
 
         

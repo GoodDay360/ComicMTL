@@ -12,7 +12,7 @@ from backend.module.utils import manage_image
 from backend.models.model_cache import RequestCache
 from core.settings import BASE_DIR
 from backend.module.utils import cloudflare_turnstile
-from backend.models.model_1 import WebscrapeGetCoverCache
+from backend.models.model_1 import WebScrapeGetCoverCache
 
 from backend.module.utils import directory_info, date_utils
 
@@ -76,7 +76,7 @@ def get_cover(request,source,id,cover_id):
     MAX_COVER_STORAGE_SIZE = 10 * 1024 * 1024 * 1024
 
     try:
-        query_result = WebscrapeGetCoverCache.objects.filter(source=source,comic_id=id,cover_id=cover_id).first()
+        query_result = WebScrapeGetCoverCache.objects.filter(source=source,comic_id=id,cover_id=cover_id).first()
         if (
             query_result 
             and os.path.exists(query_result.file_path)
@@ -91,16 +91,15 @@ def get_cover(request,source,id,cover_id):
             while True:
                 storage_size = directory_info.GetDirectorySize(directory=os.path.join(STORAGE_DIR,"covers"),max_threads=5)
                 if (storage_size >= MAX_COVER_STORAGE_SIZE):
-                    query_result = WebscrapeGetCoverCache.objects.order_by("datetime").first()
+                    query_result = WebScrapeGetCoverCache.objects.order_by("datetime").first()
                     if (query_result):
                         file_path = query_result.file_path
-                        if os.path.exists(file_path): shutil.rmtree(file_path)
-                        WebscrapeGetCoverCache.objects.filter(file_path=query_result.file_path).delete()
+                        if os.path.exists(file_path): os.remove(file_path)
+                        WebScrapeGetCoverCache.objects.filter(file_path=query_result.file_path).delete()
                     else: 
                         shutil.rmtree(os.path.join(STORAGE_DIR,"covers"))
                         break
                 else: break
-                print(storage_size)
             
             DATA = web_scrap.source_control[source].get_cover.scrap(id=id,cover_id=cover_id)
             if not DATA: HttpResponseBadRequest('Image Not found!', status=404)
@@ -110,7 +109,7 @@ def get_cover(request,source,id,cover_id):
             
             with open(file_path, "wb") as f: f.write(DATA)
             
-            WebscrapeGetCoverCache(
+            WebScrapeGetCoverCache(
                 file_path=file_path,
                 source=source,
                 comic_id=id,

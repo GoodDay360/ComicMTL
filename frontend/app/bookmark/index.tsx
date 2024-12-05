@@ -167,7 +167,6 @@ const Index = ({}:any) => {
                         contentContainerStyle={{
                             flex:1,
                             flexGrow: 1,
-                            justifyContent: 'center',
                         }}
                         horizontal={true}
                         data={BOOKMARK_DATA}

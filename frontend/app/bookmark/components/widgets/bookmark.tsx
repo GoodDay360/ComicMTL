@@ -81,13 +81,20 @@ const BookmarkWidget: React.FC<BookmarkWidgetProps> = ({
                                         gap:18,
                                     }}
                                 >
-                                    <Text
+                                    <View
                                         style={{
-                                            color:"white",
-                                            fontFamily:"roboto-medium",
-                                            fontSize:(Dimensions.width+Dimensions.height)/2*0.025
+                                            flex:1,
                                         }}
-                                    >{item.label}</Text>
+                                    >
+                                        <Text
+                                            style={{
+                                                color:"white",
+                                                fontFamily:"roboto-medium",
+                                                fontSize:(Dimensions.width+Dimensions.height)/2*0.025,
+                                                width:"100%"
+                                            }}
+                                        >{item.label}</Text>
+                                    </View>
                                     <View
                                         style={{
                                             width:"auto",
