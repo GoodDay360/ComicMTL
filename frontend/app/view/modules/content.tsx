@@ -265,7 +265,7 @@ export const download_chapter = async (
                 download_progress.current = {...download_progress.current, [chapter_id]:{progress:current_progress, total:total_length}}
             }
 
-            await ChapterStorage.update(`${source}-${comic_id}`,chapter_id, "completed", MAX_PAGE-1)
+            await ChapterStorage.update(`${source}-${comic_id}`,chapter_id, "completed", page)
         }else{
             // const chapter_dir = FileSystem.documentDirectory + "ComicMTL/" + `${source}/` + `${comic_id}/` + `chapters/`;
             // const dirInfo = await FileSystem.getInfoAsync(chapter_dir);
