@@ -7,7 +7,6 @@ CACHE_MODELS = [cls.__name__.lower() for name, cls in inspect.getmembers(model_c
 DB1_MODELS = [cls.__name__.lower() for name, cls in inspect.getmembers(model_1, inspect.isclass) if cls.__module__ == model_1.__name__]
 DB2_MODELS = [cls.__name__.lower() for name, cls in inspect.getmembers(model_2, inspect.isclass) if cls.__module__ == model_2.__name__]
 
-
 class Router:
     def db_for_read(self, model, **hints):
         if model._meta.model_name in CACHE_MODELS:
@@ -26,7 +25,7 @@ class Router:
         elif model._meta.model_name in DB2_MODELS:
             return 'DB2'
         return 'default'
-    
+
     def allow_relation(self, obj1, obj2, **hints):
         return True
 

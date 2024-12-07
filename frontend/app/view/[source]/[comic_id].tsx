@@ -181,6 +181,7 @@ const Index = ({}:any) => {
         setShowMenuContext(null)
         return () => {
             controller.abort();
+            Toast.hide()
         }
     },[]))
 
@@ -188,8 +189,8 @@ const Index = ({}:any) => {
     const Load_Local = async () => {
         Toast.show({
             type: 'info',
-            text1: '💾 Local mode',
-            text2: `Press refresh button to fetch new updates.`,
+            text1: '⚡ Loaded in Local Mode',
+            text2: `Press refresh button to fetch new updates`,
             
             position: "bottom",
             visibilityTime: 6000,

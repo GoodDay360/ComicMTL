@@ -51,23 +51,50 @@ const Index = ({}:any) => {
 
     const [COMIC_DATA, SET_COMIC_DATA] = useState<any>([])
 
-    useEffect(() => {
+    const [reRender, setReRender] = useState(false)
+    const max_column = useRef(0)
+
+
+    useFocusEffect(useCallback(() => {
+    
+        if (!reRender) return
+        else setReRender(false)
+        
+    },[reRender]))
+
+    useFocusEffect(useCallback(() => {
+        const item_box = Math.max(((Dimensions.width+Dimensions.height)/2)*0.225,100) + (Math.max((Dimensions.width+Dimensions.height)/2*0.015,8))*2;
+
+        const number_of_column = Math.floor((Dimensions.width-(((Dimensions.width+Dimensions.height)/2)*0.035)-32)/item_box)
+        if (max_column.current !== number_of_column) {
+            max_column.current = number_of_column
+            setReRender(true)
+        }
+    }, [Dimensions]))
+
+
+    // First load + Refresh ->
+    useFocusEffect(useCallback(() => {
+        (async ()=>{
+            if (!onRefresh) return
+            else setOnRefresh(false)
+        })()
+    },[onRefresh]))
+
+    useFocusEffect(useCallback(() => {
         (async ()=>{
             if (!SELECTED_BOOKMARK) return
             const stored_comic = await ComicStorage.getByTag(SELECTED_BOOKMARK)
-            console.log(stored_comic)
             SET_COMIC_DATA(stored_comic)
         })()
-    },[SELECTED_BOOKMARK,onRefresh])
+    },[SELECTED_BOOKMARK]))
 
     useFocusEffect(useCallback(() => {
         (async ()=>{
             setIsLoading(true)
             const stored_bookmark = await Storage.get("bookmark") || []
-            console.log(stored_bookmark)
             
             SET_BOOKMARK_DATA(stored_bookmark)
-            console.log("AA",stored_bookmark.length )
             if (stored_bookmark.length) {
                 SET_SELECTED_BOOKMARK(stored_bookmark[0])
             }
@@ -91,11 +118,11 @@ const Index = ({}:any) => {
         setIsLoading(true)
         setShowMenuContext(true)
         setStyles(__styles(themeTypeContext,Dimensions))
-
         return () => {
             controller.abort();
         };
     },[]))
+    // <- End
 
     return (<>{styles && ! isLoading
         ? <>
@@ -187,7 +214,7 @@ const Index = ({}:any) => {
                             setWidgetContext({state:true,component:
                                 <BookmarkWidget
                                     setIsLoading={setIsLoading}
-                                    onRefresh={()=>{setOnRefresh(!onRefresh)}}
+                                    onRefresh={()=>{setOnRefresh(true)}}
 
                                 />
                             })
@@ -196,85 +223,85 @@ const Index = ({}:any) => {
                         <Icon source={require("@/assets/icons/tag-edit-outline.png")} size={((Dimensions.width+Dimensions.height)/2)*0.0325} color={Theme[themeTypeContext].icon_color}/>
                     </TouchableRipple>
                 </View>
-                <FlatList
-                    contentContainerStyle={{
-                        flexGrow: 1,
-                        padding:12,
-                        flexDirection:"row",
-                        gap:Math.max((Dimensions.width+Dimensions.height)/2*0.015,8),
-                        flexWrap:"wrap",
-                    }}
-                    renderItem={renderComicComponent}
-                    ItemSeparatorComponent={undefined}
-                    data={COMIC_DATA.filter((item:any) => item.info.title.toLowerCase().includes(search.text.toLowerCase()))}
-                    ListEmptyComponent={
-                        <View
-                            style={{
-                                width:"100%",
-                                height:"100%",
-                                backgroundColor:"transparent",
-                                display:"flex",
-                                justifyContent:"center",
-                                alignItems:"center",
-                                flexDirection:"row",
-                                gap:12,
-                            }}
-                        >
-                            <>{BOOKMARK_DATA.length 
-                                ? <>
-                                    {search.text && COMIC_DATA.length
-                                        ? <>
-                                            <Icon source={"magnify-scan"} color={Theme[themeTypeContext].icon_color} size={((Dimensions.width+Dimensions.height)/2)*0.03}/>
-                                            <Text selectable={false}
-                                                style={{
-                                                    fontFamily:"roboto-bold",
-                                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
-                                                    color:Theme[themeTypeContext].text_color,
-                                                }}
-                                            >Search no result</Text>
-                                        </>
-                                        : <>
-                                            <Icon source={require("@/assets/icons/tag-hidden.png")} color={Theme[themeTypeContext].icon_color} size={((Dimensions.width+Dimensions.height)/2)*0.03}/>
-                                            <Text selectable={false}
-                                                style={{
-                                                    fontFamily:"roboto-bold",
-                                                    fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
-                                                    color:Theme[themeTypeContext].text_color,
-                                                }}
-                                            >This tag is empty.</Text>
-                                        </>
-                                    }
-                                </>
-                                : <View style={{
+                <>{!reRender && (
+                    <FlatList
+                        contentContainerStyle={{
+                            padding:12,
+                            marginHorizontal:"auto",
+                        }}
+                        numColumns={max_column.current}
+                        renderItem={renderComicComponent}
+                        ItemSeparatorComponent={undefined}
+                        data={COMIC_DATA.filter((item:any) => item.info.title.toLowerCase().includes(search.text.toLowerCase()))}
+                        ListEmptyComponent={
+                            <View
+                                style={{
+                                    width:"100%",
+                                    height:"100%",
+                                    backgroundColor:"transparent",
                                     display:"flex",
-                                    flexDirection:"column", 
                                     justifyContent:"center",
                                     alignItems:"center",
-                                    width:"100%",
-                                    height:"auto",
-                                }}>
-                                    
-                                    <Text selectable={false}
-                                        style={{
-                                            fontFamily:"roboto-bold",
-                                            fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
-                                            color:Theme[themeTypeContext].text_color,
-                                            textAlign:"center",
-                                        }}
-                                    >
-                                        No tag found. {"\n"}Press{"  "}
-                                        <Icon source={require("@/assets/icons/tag-edit-outline.png")} color={Theme[themeTypeContext].icon_color} size={((Dimensions.width+Dimensions.height)/2)*0.03}/>  
-                                        {"  "}to create bookmark tag.
-                                    </Text>
-                                </View>
+                                    flexDirection:"row",
+                                    gap:12,
+                                }}
+                            >
+                                <>{BOOKMARK_DATA.length 
+                                    ? <>
+                                        {search.text && COMIC_DATA.length
+                                            ? <>
+                                                <Icon source={"magnify-scan"} color={Theme[themeTypeContext].icon_color} size={((Dimensions.width+Dimensions.height)/2)*0.03}/>
+                                                <Text selectable={false}
+                                                    style={{
+                                                        fontFamily:"roboto-bold",
+                                                        fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
+                                                        color:Theme[themeTypeContext].text_color,
+                                                    }}
+                                                >Search no result</Text>
+                                            </>
+                                            : <>
+                                                <Icon source={require("@/assets/icons/tag-hidden.png")} color={Theme[themeTypeContext].icon_color} size={((Dimensions.width+Dimensions.height)/2)*0.03}/>
+                                                <Text selectable={false}
+                                                    style={{
+                                                        fontFamily:"roboto-bold",
+                                                        fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
+                                                        color:Theme[themeTypeContext].text_color,
+                                                    }}
+                                                >This tag is empty.</Text>
+                                            </>
+                                        }
+                                    </>
+                                    : <View style={{
+                                        display:"flex",
+                                        flexDirection:"column", 
+                                        justifyContent:"center",
+                                        alignItems:"center",
+                                        width:"100%",
+                                        height:"auto",
+                                    }}>
+                                        
+                                        <Text selectable={false}
+                                            style={{
+                                                fontFamily:"roboto-bold",
+                                                fontSize:((Dimensions.width+Dimensions.height)/2)*0.025,
+                                                color:Theme[themeTypeContext].text_color,
+                                                textAlign:"center",
+                                            }}
+                                        >
+                                            No tag found. {"\n"}Press{"  "}
+                                            <Icon source={require("@/assets/icons/tag-edit-outline.png")} color={Theme[themeTypeContext].icon_color} size={((Dimensions.width+Dimensions.height)/2)*0.03}/>  
+                                            {"  "}to create bookmark tag.
+                                        </Text>
+                                    </View>
 
-                            }
-                            </>
+                                }
+                                </>
+                                
+                            </View>
                             
-                        </View>
-                        
-                    }
-                />
+                        }
+                    />
+                )}</>
             </View>
 
         </>

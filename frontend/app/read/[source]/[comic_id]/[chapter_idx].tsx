@@ -58,6 +58,7 @@ const Index = ({}:any) => {
     useFocusEffect(useCallback(() => {
         setShowMenuContext(null)
         return () => {
+            SET_DATA([])
         }
     },[]))
 

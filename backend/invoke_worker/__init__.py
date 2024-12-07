@@ -5,5 +5,7 @@ if len(sys.argv) > 1 and not (sys.argv[1] in ['migrate', "makemigrations", "clea
     from backend.invoke_worker import (
         session,
         chapter_queue,
+        webscrape_get_cover,
+        webscrape_get,
     )
 

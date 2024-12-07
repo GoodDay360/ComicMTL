@@ -4,8 +4,17 @@ import uuid
 
 def get_current_utc_time(): return date_utils.utc_time().get()
 
-class RequestCache(models.Model):
-    client = models.UUIDField(primary_key=True)
+class RequestWebScrapeGetCoverCache(models.Model):
+    id = models.UUIDField(primary_key=True, default = uuid.uuid4)
+    source = models.TextField()
+    comic_id = models.TextField()
+    cover_id = models.TextField()
+    datetime = models.DateTimeField(default=get_current_utc_time)
+    
+class RequestWebScrapeGetCache(models.Model):
+    id = models.UUIDField(primary_key=True, default = uuid.uuid4)
+    source = models.TextField()
+    comic_id = models.TextField()
     datetime = models.DateTimeField(default=get_current_utc_time)
 
 class CloudflareTurnStileCache(models.Model):

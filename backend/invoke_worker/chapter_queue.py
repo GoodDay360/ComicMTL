@@ -73,8 +73,10 @@ class Job(Thread):
                     if (stored):
                         SocketRequestChapterQueueCache.objects.filter(id=query_result.id).delete()
                         connections['cache'].close()
+                        connections['DB1'].close()
                     else:
                         connections['cache'].close()
+                        connections['DB1'].close()
                         
                         if (options.get("colorize") or options.get("translate").get("state")):
                             script = []
@@ -169,9 +171,11 @@ class Job(Thread):
                                         }
                                     })
                                 connections['cache'].close()
+                                connections['DB1'].close()
                                 
                             else: 
                                 connections['cache'].close()
+                                connections['DB1'].close()
                                 raise Exception("#1 Dowload chapter error!")
                         else:
                             input_dir = os.path.join(COMIC_STORAGE_DIR,source,comic_id,str(chapter_idx),"original")
@@ -226,10 +230,13 @@ class Job(Thread):
                                     })
                             else: 
                                 connections['cache'].close()
+                                connections['DB1'].close()
                                 raise Exception("#2 Dowload chapter error!")
                         connections['cache'].close()
+                        connections['DB1'].close()
                 else:
                     connections['cache'].close()
+                    connections['DB1'].close()
                     sleep(5)
             except Exception as e: 
                 print("[Error] Chapter Queue Socket:", e) 
@@ -256,6 +263,7 @@ class Job(Thread):
                 
                 
                 connections['cache'].close()
+                connections['DB1'].close()
                 sleep(10)
 
 thread = Job()
@@ -303,6 +311,7 @@ class UpdateSocketQueue(Thread):
                 print(e)
                 
             connections['cache'].close()
+            connections['DB1'].close()
             sleep(10)
 thread = UpdateSocketQueue()
 thread.daemon = True

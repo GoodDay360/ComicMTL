@@ -32,7 +32,8 @@ export const get = async (setShowCloudflareTurnstile:any,setIsLoading:any,signal
         timeout: 60000,
         signal:signal,
     }).then((response) => {(async () =>{
-        const DATA = response.data.data
+        const DATA = response.data
+        console.log("EEE",response)
         if (Object.keys(DATA).length) setFeedBack("")
         else{
             setFeedBack("No content found!")

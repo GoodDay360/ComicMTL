@@ -49,7 +49,6 @@ const ComicComponent = ({item, SELECTED_BOOKMARK, SET_SELECTED_BOOKMARK}:any) =>
             setIsLoading(true)
             setStyles(__styles(themeTypeContext,Dimensions))
             const stored_bookmark = await Storage.get("bookmark") || []
-            console.log(stored_bookmark)
             cover.current  = await CoverStorage.get(`${item.source}-${item.id}`) || ""
             setIsLoading(false)
         })()
@@ -60,7 +59,12 @@ const ComicComponent = ({item, SELECTED_BOOKMARK, SET_SELECTED_BOOKMARK}:any) =>
         };
     },[]))
 
-    return (<>{styles && !isLoading && <>
+    return (<>{styles && !isLoading && <View
+        style={{
+            marginHorizontal: Math.max((Dimensions.width+Dimensions.height)/2*0.015,8),
+            marginVertical: 16,
+        }}
+    >
         <TouchableRipple 
             rippleColor={Theme[themeTypeContext].ripple_color_outlined}
             onPress={()=>{router.navigate(`/view/${item.source}/${item.id}/?mode=local`)}}
@@ -76,7 +80,7 @@ const ComicComponent = ({item, SELECTED_BOOKMARK, SET_SELECTED_BOOKMARK}:any) =>
                 <Text style={styles.item_title}>{item.info.title}</Text>
             </>
         </TouchableRipple>
-    </>}</>)
+    </View>}</>)
     
 
 }

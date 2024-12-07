@@ -36,8 +36,11 @@ class SequentialRequestMiddleware:
         request_type = request.scope.get("type")
         request_path = request.path
         print(request_path)
-        if request_type == "http":
-            
+        if (
+            request_type == "http"
+            and request_path in ["/api/web_scrap/get_list/"]
+        ):
+            print("IT THREAD")
             with TimeoutContext(30) as executor:
                 self.__Lock.acquire()
                 try:

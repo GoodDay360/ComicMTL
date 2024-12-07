@@ -1,6 +1,6 @@
 
 import json, environ, requests, os, subprocess
-import asyncio, uuid, shutil
+import asyncio, uuid, shutil, time
 
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest, StreamingHttpResponse
 from django_ratelimit.decorators import ratelimit
@@ -9,10 +9,10 @@ from asgiref.sync import sync_to_async
 
 from backend.module import web_scrap
 from backend.module.utils import manage_image
-from backend.models.model_cache import RequestCache
 from core.settings import BASE_DIR
 from backend.module.utils import cloudflare_turnstile
-from backend.models.model_1 import WebScrapeGetCoverCache
+from backend.models.model_1 import WebScrapeGetCoverCache, WebScrapeGetCache
+from backend.models.model_cache import RequestWebScrapeGetCoverCache, RequestWebScrapeGetCache
 
 from backend.module.utils import directory_info, date_utils
 
@@ -34,11 +34,6 @@ def get_list(request):
     page = payload.get("page")
     source = payload.get("source")
     
-    
-    
-    
-    
-    
     if search.get("text"): DATA = web_scrap.source_control[source].search.scrap(search=search,page=page)
     else: DATA = web_scrap.source_control["colamanga"].get_list.scrap(page=page)
 
@@ -56,12 +51,57 @@ def get(request):
     payload = json.loads(request.body)
     id = payload.get("id")
     source = payload.get("source")
-    
-    try:
-        DATA = web_scrap.source_control[source].get.scrap(id=id)
-        return JsonResponse({"data":DATA}) 
-    except Exception as e:
 
+    file_path = ""
+    file_name = ""
+    chunk_size = 8192
+
+    try:
+        query_result = WebScrapeGetCache.objects.filter(source=source,comic_id=id).first()
+        if (
+            query_result 
+            and query_result.datetime >= date_utils.utc_time().add(-5,'hour').get()
+            and os.path.exists(query_result.file_path)
+        ): 
+            file_path = query_result.file_path
+            file_name = os.path.basename(file_path)
+
+        else:
+            request_query = RequestWebScrapeGetCache.objects.filter(source=source,comic_id=id).first()
+            if not request_query:
+                RequestWebScrapeGetCache(
+                    source=source,
+                    comic_id=id,
+                ).save()
+            
+            timeout = date_utils.utc_time().add(30,'second').get()
+            while True:
+                if date_utils.utc_time().get() >= timeout: return HttpResponseBadRequest('Request timeout!', status=408)
+                count = RequestWebScrapeGetCache.objects.filter(source=source,comic_id=id).count()
+                if count: time.sleep(1)
+                else: break
+            query_result = WebScrapeGetCache.objects.filter(source=source,comic_id=id).first()
+            
+            if (query_result):
+                file_path = query_result.file_path
+                if not os.path.exists(file_path): return HttpResponseBadRequest('Worker is done but item not found.!', status=404)
+                file_name = os.path.basename(file_path)
+            else:
+                return HttpResponseBadRequest('Worker is done but item not found.!', status=404)
+            
+            
+        
+        def file_iterator():
+            with open(file_path, 'r') as f:
+                while chunk := f.read(chunk_size):
+                    yield chunk
+
+        response = StreamingHttpResponse(file_iterator(), content_type='application/json')
+        response['Content-Length'] = os.path.getsize(file_path)
+        response['Content-Disposition'] = f'attachment; filename="{file_name}"'
+        return response
+    except Exception as e:
+        print(e)
         return HttpResponseBadRequest(str(e), status=500)
 
 
@@ -73,7 +113,6 @@ def get_cover(request,source,id,cover_id):
     file_path = ""
     file_name = ""
     chunk_size = 8192
-    MAX_COVER_STORAGE_SIZE = 10 * 1024 * 1024 * 1024
 
     try:
         query_result = WebScrapeGetCoverCache.objects.filter(source=source,comic_id=id,cover_id=cover_id).first()
@@ -86,36 +125,28 @@ def get_cover(request,source,id,cover_id):
             file_name = os.path.basename(file_path)
 
         else:
-            if not os.path.exists(os.path.join(STORAGE_DIR,"covers")): os.makedirs(os.path.join(STORAGE_DIR,"covers"))
+            request_query = RequestWebScrapeGetCoverCache.objects.filter(source=source,comic_id=id,cover_id=cover_id).first()
+            if not request_query:
+                RequestWebScrapeGetCoverCache(
+                    source=source,
+                    comic_id=id,
+                    cover_id=cover_id
+                ).save()
             
+            timeout = date_utils.utc_time().add(30,'second').get()
             while True:
-                storage_size = directory_info.GetDirectorySize(directory=os.path.join(STORAGE_DIR,"covers"),max_threads=5)
-                if (storage_size >= MAX_COVER_STORAGE_SIZE):
-                    query_result = WebScrapeGetCoverCache.objects.order_by("datetime").first()
-                    if (query_result):
-                        file_path = query_result.file_path
-                        if os.path.exists(file_path): os.remove(file_path)
-                        WebScrapeGetCoverCache.objects.filter(file_path=query_result.file_path).delete()
-                    else: 
-                        shutil.rmtree(os.path.join(STORAGE_DIR,"covers"))
-                        break
+                if date_utils.utc_time().get() >= timeout: return HttpResponseBadRequest('Request timeout!', status=408)
+                count = RequestWebScrapeGetCoverCache.objects.filter(source=source,comic_id=id,cover_id=cover_id).count()
+                if count: time.sleep(1)
                 else: break
+            query_result = WebScrapeGetCoverCache.objects.filter(source=source,comic_id=id,cover_id=cover_id).first()
             
-            DATA = web_scrap.source_control[source].get_cover.scrap(id=id,cover_id=cover_id)
-            if not DATA: HttpResponseBadRequest('Image Not found!', status=404)
-            
-            file_path = os.path.join(STORAGE_DIR,"covers",f'{source}-{id}-{cover_id}.png')
-            file_name = os.path.basename(file_path)
-            
-            with open(file_path, "wb") as f: f.write(DATA)
-            
-            WebScrapeGetCoverCache(
-                file_path=file_path,
-                source=source,
-                comic_id=id,
-                cover_id=cover_id,
-            ).save()
-            
+            if (query_result):
+                file_path = query_result.file_path
+                if not os.path.exists(file_path): return HttpResponseBadRequest('Worker is done but item not found.!', status=404)
+                file_name = os.path.basename(file_path)
+            else:
+                return HttpResponseBadRequest('Worker is done but item not found.!', status=404)
             
         
         def file_iterator():
@@ -123,12 +154,12 @@ def get_cover(request,source,id,cover_id):
                 while chunk := f.read(chunk_size):
                     yield chunk
 
-        response = StreamingHttpResponse(file_iterator())
-        response['Content-Type'] = 'application/octet-stream'
+        response = StreamingHttpResponse(file_iterator(), content_type='image/png')
         response['Content-Length'] = os.path.getsize(file_path)
         response['Content-Disposition'] = f'attachment; filename="{file_name}"'
         return response
     except Exception as e:
+        print(e)
         return HttpResponseBadRequest(str(e), status=500)
 
     
