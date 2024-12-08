@@ -23,7 +23,7 @@ STORAGE_DIR = os.path.join(BASE_DIR,"storage")
 if not os.path.exists(STORAGE_DIR): os.makedirs(STORAGE_DIR)
 
 @csrf_exempt
-@ratelimit(key='ip', rate='20/m')
+@ratelimit(key='ip', rate='30/m')
 def get_list(request):
     if request.method != "POST": return HttpResponseBadRequest('Allowed POST request only!', status=400)
     token = request.META.get('HTTP_X_CLOUDFLARE_TURNSTILE_TOKEN')
@@ -42,7 +42,7 @@ def get_list(request):
 
 
 @csrf_exempt
-@ratelimit(key='ip', rate='20/m')
+@ratelimit(key='ip', rate='30/m')
 def get(request):
     if request.method != "POST": return HttpResponseBadRequest('Allowed POST request only!', status=400)
     token = request.META.get('HTTP_X_CLOUDFLARE_TURNSTILE_TOKEN')

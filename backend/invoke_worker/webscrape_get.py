@@ -20,7 +20,7 @@ from backend.module.utils import directory_info, date_utils
 from django_thread import Thread
 from time import sleep
 
-MAX_GET_STORAGE_SIZE  = 10 * 1024 * 1024 * 1024
+MAX_GET_STORAGE_SIZE  = 10 * 1024 * 1024 * 1024 # GB
 
 STORAGE_DIR = os.path.join(BASE_DIR,"storage")
 if not os.path.exists(STORAGE_DIR): os.makedirs(STORAGE_DIR)
