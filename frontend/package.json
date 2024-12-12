@@ -24,6 +24,7 @@
     "@shopify/flash-list": "1.6.4",
     "@types/lodash": "^4.17.13",
     "axios": "^1.7.7",
+    "cheerio": "^1.0.0",
     "dayjs": "^1.11.13",
     "disqus-react": "^1.1.5",
     "expo": "~51.0.20",

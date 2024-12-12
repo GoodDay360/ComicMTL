@@ -1,8 +1,12 @@
 import axios from 'axios';
 import translator from '@/constants/module/translator';
 import Storage from '@/constants/module/storages/storage';
-
+import WebScrape from '@/constants/module/webscrape';
 export const get_list = async (setShowCloudflareTurnstile:any,setFeedBack:any,signal:AbortSignal,setIsLoading:any,translate:any,SET_CONTENT:any,search:any,page:number) => {
+    
+    const scraper = new WebScrape("DrakeComic")
+    console.log("WW", scraper.get_list(search,page))
+    
     const API_BASE = await Storage.get("IN_USE_API_BASE")
     axios({
         method: 'post',

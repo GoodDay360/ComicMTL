@@ -9,7 +9,7 @@ const Index = () => {
     const pathname = usePathname()
 
     if (pathname === "/" || pathname === "") return (
-        <Redirect href="/bookmark" />
+        <Redirect href="/explore" />
     )
 
 }
